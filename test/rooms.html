@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#2b2433}canvas{image-rendering:pixelated}</style></head><body>
+<canvas id="c"></canvas>
+<script src="../src/pixel.js"></script><script src="../src/monkey.js"></script><script src="../src/items.js"></script><script src="../src/rooms.js"></script>
+<script>
+const q = new URLSearchParams(location.search); const Z = +(q.get('z') || 3); const full = q.get('full') === '1';
+const H = { wall: q.get('wall') || 'warm', floor: q.get('floor') || 'wood', items: full ? { sofa: q.get('sofa') || 'old', tv: q.get('tv') || 'crt', wallart: q.get('art') || 'carpet', lamp: 1, plant: 1, rug: 1, disco: 1, garland: 1, magnets: 1, clock: 1, cactus: 1, kettle: 1, duck: 1, bathmat: 1, fern: 1, nightlight: 1, poster: 1, teddy: 1, hammock: 1, gnome: 1, flamingo: 1, pool: 1, grill: 1 } : { sofa: 'old', tv: 'crt', wallart: 'painting' } };
+const rooms = ['yard', 'kitchen', 'living', 'bath', 'bed']; const c = document.getElementById('c'); c.width = 180 * Z * 5 + 4 * Z * 4; c.height = 320 * Z; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+const m = MONKEY.compose({ s: 1.2, f: +(q.get('f') || 0) });
+rooms.forEach((r, i) => { const o = PX.canvas(180, 320), ox = o.getContext('2d'); ox.drawImage(ROOMS.build(r, H), 0, 0); ROOMS.dyn(ox, r, H, 1.3, { treeBananas: 4, light: r === 'bed' && q.get('dark') ? false : true });
+  Painter(ox).shadow(90, ROOMS.GROUND, 26, 4, 0.28); ox.drawImage(m.cv, 90 - m.ox, ROOMS.GROUND - m.oy); ROOMS.front(ox, r, H, 1.3); if (r === 'bed' && q.get('dark')) ROOMS.night(ox, H, 1);
+  x.drawImage(o, i * (180 + 4) * Z, 0, 180 * Z, 320 * Z); });
+</script></body></html>

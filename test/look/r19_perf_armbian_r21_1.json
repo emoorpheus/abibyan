@@ -1,0 +1,68 @@
+{
+ "tag": "armbian_r21_1",
+ "file": "index.html",
+ "date": "2026-11-08T22:36:52.036Z",
+ "size": {
+  "html": 9458325,
+  "site": 9495629,
+  "siteZip": 6291557,
+  "speech": 6827286,
+  "rec": 1536160
+ },
+ "runs": [
+  {
+   "cpu": 1,
+   "wall": 2415,
+   "dcl": 1679,
+   "load": 2039,
+   "ready": 949,
+   "longTasks": 7,
+   "longest": 563,
+   "scriptMs": 983,
+   "taskMs": 2317,
+   "heapMB": 3.6,
+   "home": {
+    "busy": 48.7,
+    "script": 32.5,
+    "frames": 229,
+    "p95": 16.8,
+    "over25": 10
+   },
+   "game": {
+    "busy": 65.6,
+    "script": 19.4,
+    "frames": 238,
+    "p95": 16.7,
+    "over25": 3
+   },
+   "errs": []
+  },
+  {
+   "cpu": 4,
+   "wall": 8915,
+   "dcl": 6324,
+   "load": 7905,
+   "ready": 3380,
+   "longTasks": 16,
+   "longest": 2277,
+   "scriptMs": 3967,
+   "taskMs": 8753,
+   "heapMB": 3.6,
+   "home": {
+    "busy": 96.7,
+    "script": 67.8,
+    "frames": 58,
+    "p95": 150,
+    "over25": 57
+   },
+   "game": {
+    "busy": 97.2,
+    "script": 38.9,
+    "frames": 80,
+    "p95": 100,
+    "over25": 77
+   },
+   "errs": []
+  }
+ ]
+}

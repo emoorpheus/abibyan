@@ -1,0 +1,11 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); window.L2S=(x,y)=>{const r=document.getElementById('cv').getBoundingClientRect();return [r.left+x/180*r.width, r.top+y/320*r.height]}; window.MK=()=>{const m=__game.HOME.mk, sp=m.sp; return {x:m.x, y:m.y, head: m.y+sp.head.y, mouth: m.y+sp.mouth.y}}; MK()", "tag": "mk", "wait": 3000},
+ {"tag": "pet", "dragJS": "(()=>{const m=MK(); const p=[]; for(let i=0;i<8;i++) p.push(L2S(m.x+(i%2?-14:14), m.head-8)); return p})()", "holdShot": "i1.png", "steps": 6, "dt": 60},
+ {"wait": 1200, "eval": "__game.GAME.S.stats.petted", "tag": "petted"},
+ {"tag": "tickle", "dragJS": "(()=>{const m=MK(); const p=[]; for(let i=0;i<10;i++) p.push(L2S(m.x+(i%2?-12:12), m.y-38)); return p})()", "holdShot": "i2.png", "steps": 6, "dt": 50},
+ {"wait": 1500},
+ {"clickJS": "(()=>{const m=MK(); return L2S(m.x, m.mouth-9)})()", "wait": 400, "shot": "i3.png"},
+ {"wait": 1500, "eval": "(async()=>{const m=MK(); for(let i=0;i<8;i++){ const [x,y]=L2S(m.x+4, m.y-30); const o={clientX:x, clientY:y, pointerId:1, bubbles:true, pointerType:'mouse', buttons:1}; const cv=document.getElementById('cv'); cv.dispatchEvent(new PointerEvent('pointerdown', o)); cv.dispatchEvent(new PointerEvent('pointerup', {...o, buttons:0})); await new Promise(r=>setTimeout(r,90)); } return __game.HOME.mk.dizzy})()", "tag": "dizzy"},
+ {"wait": 500, "shot": "i4.png"}
+]

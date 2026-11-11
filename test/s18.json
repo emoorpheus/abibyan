@@ -1,0 +1,18 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); const s=__game.GAME.S; s.coins=321; s.name='Тест'; __game.GAME.save(true); 1", "wait": 400},
+ {"clickSel": "#h-set", "wait": 500, "shot": "set.png"},
+ {"clickSel": "#t-exp", "wait": 500, "shot": "exp.png"},
+ {"eval": "window.__code=document.querySelector('#ex-code').value; [__code.slice(0,12), __code.length]", "tag": "code"},
+ {"clickSel": "#ex-copy", "wait": 600, "shot": "exp_copy.png"},
+ {"eval": "document.querySelectorAll('#modal').forEach(m=>m.remove()); const s=__game.GAME.S; s.coins=5; s.name='Другой'; __game.GAME.save(true); localStorage.setItem('__code', __code); [s.coins,s.name]", "tag": "changed", "wait": 300},
+ {"clickSel": "#h-set", "wait": 400},
+ {"clickSel": "#t-imp", "wait": 400},
+ {"eval": "document.querySelector('#im-code').value='MARTYN1:abc'; 1"},
+ {"clickSel": "#im-ok", "wait": 400, "shot": "imp_err.png"},
+ {"eval": "document.querySelector('#im-err').style.display", "tag": "errDisplay"},
+ {"eval": "document.querySelector('#im-code').value=localStorage.getItem('__code'); 1"},
+ {"clickSel": "#im-ok", "wait": 400, "shot": "imp_ok.png"},
+ {"wait": 2000},
+ {"eval": "[__game.GAME.S.coins, __game.GAME.S.name, location.href.slice(-20)]", "tag": "afterReload"}
+]

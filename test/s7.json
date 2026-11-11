@@ -1,0 +1,9 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.GAME.S.st.energy=40; __game.GAME.addCoins(500); __game.HOME.goTo('zal', true); 1", "wait": 1600},
+ {"clickSel": "#a-light", "wait": 2500, "shot": "b1.png"},
+ {"clickSel": "#a-light", "wait": 1500},
+ {"clickSel": "#a-wardrobe", "wait": 1200, "shot": "b2.png"},
+ {"eval": "const c=[...document.querySelectorAll('#sh-body .card')]; c[1] && c[1].click(); c.length", "wait": 900, "shot": "b3.png"},
+ {"eval": "const t=[...document.querySelectorAll('#sheet .tab')]; t[2] && t[2].click(); t.length", "wait": 700, "shot": "b4.png"}
+]

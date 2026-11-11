@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#2b2433;color:#fff;font:11px monospace}canvas{image-rendering:pixelated}</style></head><body>
+<canvas id="c"></canvas>
+<script src="../src/pixel.js"></script><script src="../src/monkey.js"></script><script src="../src/items.js"></script>
+<script>
+const Z = 6; const f = Object.keys(ART.FOOD_ART), ic = Object.keys(ART.ICON_ART);
+const c = document.getElementById('c'); const cols = 9; const cell = 20;
+const rows = Math.ceil(f.length / cols) + Math.ceil(ic.length / cols);
+c.width = cols * cell * Z; c.height = rows * (cell + 4) * Z; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+let i = 0; const draw = (cv, name, j, row0) => { const gx = (j % cols) * cell, gy = (row0 + Math.floor(j / cols)) * (cell + 4); x.fillStyle = (j % 2) ? '#f4ead8' : '#e9dcc6'; x.fillRect(gx * Z, gy * Z, cell * Z, (cell + 4) * Z); x.drawImage(cv, (gx + (cell - cv.width) / 2) * Z, (gy + 2) * Z, cv.width * Z, cv.height * Z); x.fillStyle = '#333'; x.font = '22px monospace'; x.fillText(name, gx * Z + 6, (gy + cell + 3) * Z); };
+f.forEach((k, j) => draw(ART.food(k), k, j, 0)); const r0 = Math.ceil(f.length / cols); ic.forEach((k, j) => draw(ART.icon(k), k, j, r0));
+</script></body></html>

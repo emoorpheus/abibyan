@@ -1,0 +1,9 @@
+[
+ {"click": [195, 560], "wait": 300, "tag": "x"},
+ {"eval": "document.querySelector('#nm-ok') && document.querySelector('#nm-ok').click(); 1", "wait": 1500, "shot": "h1.png"},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.HOME.room", "wait": 2200, "shot": "h2.png"},
+ {"eval": "__game.HOME.goTo('kitchen', true); 1", "wait": 1400, "shot": "h3.png"},
+ {"eval": "__game.HOME.goTo('bath', true); 1", "wait": 1400, "shot": "h4.png"},
+ {"eval": "__game.HOME.goTo('zal', true); 1", "wait": 1400, "shot": "h5.png"},
+ {"eval": "__game.HOME.goTo('balcony', true); 1", "wait": 1400, "shot": "h6.png"}
+]

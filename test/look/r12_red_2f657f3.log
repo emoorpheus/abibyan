@@ -1,0 +1,17 @@
+FAIL jig: setup — he dances on the rug, the tune is a stoppable live sound  ← [{"room":"zal","x":90,"y":270,"w":false,"act":"jig"},null]
+PASS jig: he went to the next room …
+FAIL jig: … and stopped dancing right away  ← {"room":"bath","x":90,"y":270,"w":false,"act":"jig"}
+FAIL jig: the jig tune is cut off too (no music from the zal)  ← {"stops":["fry","gondola"],"live":null}
+FAIL jig: no «та-да» and no notes over his head in the other room  ← [["whoosh","tada"],0]
+PASS jig: he is not hopping there (stands on the floor)
+PASS jig: back in the zal he does not pick the dance up again
+PASS jig: walking to the rug and leaving the room — no dance in the other room
+PASS zhuk: setup — on the rack he hangs on his chain (chain from the hook to his head)
+PASS zhuk: the special ran (he scurried over Абибян's fur)
+FAIL zhuk: off the rack the chain is never stretched across the room (no chain away from the rack)  ← [124,3,105]
+FAIL zhuk: he unhooked — a short loose piece of chain dangles from the hook while he is away  ← 1
+PASS zhuk: back on the rack he is hooked on again (chain hook → head)
+FAIL zhuk: unhook / hook-on jingles (keys sound when he clips back on)  ← ["jingle","fly","brush","brush","brush","brush","brush","happy","chirr"]
+PASS no page errors 
+8 passed, 7 failed
+ERRORS

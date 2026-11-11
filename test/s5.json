@@ -1,0 +1,9 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); window.L2S=(x,y)=>{const r=document.getElementById('cv').getBoundingClientRect();return [r.left+x/180*r.width, r.top+y/320*r.height]}; __game.GAME.setKg(17); __game.GAME.S.st.clean=10; __game.UI.refresh(); 1", "wait": 1800, "shot": "k1.png"},
+ {"eval": "__game.HOME.goTo('bath', true); 1", "wait": 1500, "shot": "k2.png"},
+ {"tag": "soap", "dragJS": "(()=>{const r=document.querySelector('#a-soap').getBoundingClientRect(); const m=__game.HOME.mk; const pts=[[r.left+r.width/2, r.top+r.height/2]]; for(let i=0;i<14;i++){pts.push(L2S(m.x+(i%2?-22:22), m.y-20-i*4));} return pts})()", "holdShot": "k3.png", "steps": 5, "dt": 30},
+ {"wait": 300, "eval": "[__game.GAME.S.st.clean, __game.HOME.foam && __game.HOME.foam.length]", "shot": "k4.png"},
+ {"clickSel": "#a-shower", "wait": 1300, "shot": "k5.png"},
+ {"wait": 3200, "eval": "__game.GAME.S.st.clean", "shot": "k6.png"}
+]

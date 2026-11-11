@@ -1,0 +1,27 @@
+FAIL shadow: standing in the middle — the shadow is at his feet  ← {"x":90,"y":270,"w":false,"act":null}
+FAIL shadow: while walking it moves with him (same y as his feet)  ← {"x":69,"y":262,"w":true,"act":null}
+FAIL shadow: he walked up to y 248 and stands there — the shadow too (not left down at the old floor line)  ← {"x":30,"y":248,"w":false,"act":null}
+FAIL shadow: real pixels — darker under his feet, nothing left at the old line  ← {"feet":130.5185185185185,"feet0":160.5185185185185,"old":111.5925925925926,"old0":151.52777777777777}
+FAIL shadow: down at the front edge (y 272) it follows as well  ← {"x":40,"y":272,"w":false,"act":null}
+FAIL shadow: hopping on the spot it stays on the floor under him  ← {"x":40,"y":272,"w":false,"act":"jig"}
+FAIL knobs: both radiator knobs are brown (no red / blue caps)  ← [0,0,7,14]
+FAIL knobs: the fallen one on the floor is brown too  ← [[133,231,13,10],95,14]
+FAIL desk: no drawer-block spot any more  ← [172,181,8,17]
+FAIL desk: right of the chair you see the wall, not black drawers  ← [139,160]
+PASS desk: it still stands on its legs (the left leg is there)
+FAIL desk: the drawer «stash» gag is gone with it (no dead tap spot)  ← ["pigeon","bed","curtains","nightlight","window","knob","valveR","valve","radiator","poster","rug","garland","parcel","bell","rack","plafond","router","linux","hornet","toys","figs","vacuum","stove","cactus","clock","cabinet","drawer","candles","chair","sofa","gondola","washer","sconce","sink","rail","aid","frog","cat","bathmat","fresco","gnome","flowers","flamingo","hammock","desk","dig"]
+FAIL desk: a tap where the drawers were does not rattle a drawer  ← ["drawer","coin"]
+FAIL ducks: mama goes first, papa last  ← ["papa","lash","kid1","kid2","mama"]
+FAIL ducks: …and on the floor mama is in front (walking right she is the rightmost)  ← [["papa",120],["lash",105],["kid1",93],["kid2",80],["mama",64]]
+FAIL ducks: walking left mama is the leftmost  ← [["papa",60],["lash",75],["kid1",87],["kid2",100],["mama",116]]
+FAIL mat: the entrance mat is grey (neutral, not cream)  ← [234,228,217]
+FAIL mat: …and clearly greyer / darker than the old cream (≈ 230)  ← 226
+FAIL rug: a tap on the rug edge → he first walks over (no dancing on the way)  ← {"x":150,"y":250,"w":false,"act":"jig"}
+FAIL rug: a second tap on the way does not make him dance where he is  ← {"x":150,"y":250,"w":false,"act":"jig"}
+FAIL rug: …he dances in the middle of the rug (±3 px)  ← [{"x":150,"y":250,"w":false,"act":"jig"},90,268.5]
+PASS rug: with his jig tune
+FAIL rug: after the dance he stays on the rug  ← {"x":150,"y":250,"w":false,"act":null}
+PASS rug: already in the middle — he dances right away
+PASS no page errors 
+4 passed, 21 failed
+ERRORS

@@ -1,0 +1,16 @@
+FAIL duel jump: ↑ makes him jump (≥ 18 px up)  ← {"top":0}
+FAIL duel jump: a short rest after landing (no jump spam), the press is not lost  ← {"a":{},"b":0,"after":false}
+FAIL duel jump: a swipe up jumps  ← {"top":0}
+PASS duel jump: a sideways drag never jumps
+FAIL duel jump: a quick tap on Абибян jumps, a tap elsewhere only walks  ← {"top":0,"top2":0}
+FAIL duel jump: a banana above his reach stays there on the ground, in a jump he gets it  ← {"ground":0,"left":2,"air":0}
+FAIL duel jump: the controls hint tells about the jump  ← "Управление: веди пальцем или ← →"
+  jump sims: jumper0 W15:10/j8 L12:15/j10 L14:15/j10 L14:15/j12 W15:9/j11 L11:16/j7 | casualj0 L3:16/j13 L10:16/j17 L5:15/j19 L5:15/j17 L6:15/j20 L10:15/j23 | jumper4 L13:15/j9 L8:15/j8 L12:16/j11 L3:15/j7 L4:15/j5 L12:15/j6 | casualj4 L12:15/j18 L4:15/j14 L4:15/j23 L2:15/j14 L13:17/j23 L2:15/j16
+FAIL balance: a good player who jumps for the contested bananas wins most games at the start (≥ 4 of 6)  ← "W15:10/j8 L12:15/j10 L14:15/j10 L14:15/j12 W15:9/j11 L11:16/j7"
+FAIL balance: … and still about half at the last stage (≥ 2 of 6)  ← "L13:15/j9 L8:15/j8 L12:16/j11 L3:15/j7 L4:15/j5 L12:15/j6"
+PASS balance: jumping at random does not win (≤ 2 of 6 at the start, ≤ 1 at the last)
+PASS balance: the bots really jumped
+FAIL catch: crashed — page.evaluate: TypeError: Cannot set properties of undefined (setting 'length')
+PASS no page errors 
+4 passed, 9 failed
+ERRORS

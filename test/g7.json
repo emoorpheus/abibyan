@@ -1,0 +1,7 @@
+[
+ {"wait": 900},
+ {"clickSel": "#nm-ok", "wait": 900},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 300},
+ {"eval": "(()=>{const RD=Date;let off=0;window.__off=(d)=>{off+=d};window.Date=class extends RD{constructor(...a){if(a.length)super(...a);else super(RD.now()+off)}static now(){return RD.now()+off}};const G=__game.GAME,S=G.S,log=[];let grows=[];G.on((e,a)=>{if(e==='grow')grows.push(a)});for(let d=1;d<=21;d++){__off(86400e3);G.dayRoll();const T=G.tasksRoll();const n=G.care(100,'task');const n2=G.care(5,'want');log.push(d+':'+S.grow.stage+'/'+Math.round(S.grow.pts)+'/'+S.grow.days+'/'+S.kg.toFixed(2)+'/'+T.day+'/'+n+'/'+n2)}return {log,grows,ach:Object.keys(S.ach)}})()", "tag": "sim"},
+ {"wait": 1500, "shot": "sim_modal.png"}
+]

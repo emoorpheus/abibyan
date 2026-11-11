@@ -1,0 +1,25 @@
+FAIL build index.html: the main script has no voice data (11.18 MB, was 10.3)  ← 11722190
+FAIL build index.html: the voice comes after it in ≥20 inert blocks of ≤256 KB (groups 1 and 2)  ← {"n":0,"max":0}
+FAIL build index.html: …all of the bank is there (lines 535, words 1700, syl 210, fx 5, rec 179)  ← {"got":{},"bank":{"lines":535,"words":1700,"syl":210,"fx":5,"rec":179}}
+FAIL build abibyan-test.html: the main script has no voice data (11.18 MB, was 10.3)  ← 11722190
+FAIL build abibyan-test.html: the voice comes after it in ≥20 inert blocks of ≤256 KB (groups 1 and 2)  ← {"n":0,"max":0}
+FAIL build abibyan-test.html: …all of the bank is there (lines 535, words 1700, syl 210, fx 5, rec 179)  ← {"got":{},"bank":{"lines":535,"words":1700,"syl":210,"fx":5,"rec":179}}
+FAIL ready: the first game frame at CPU ×1 ≤ 600 ms (was 899): 787 ms  ← [{"ready":787,"voice":0},{"ready":812,"voice":0}]
+FAIL ready: …at CPU ×4 (a mid phone) ≤ 1600 ms (was 3352): 3181 ms  ← [{"ready":3181,"voice":0},{"ready":3225,"voice":0}]
+FAIL ready: …and the voice is all there a moment later (SPEECH.ready 3)  ← {"r1":[{"ready":787,"voice":0},{"ready":812,"voice":0}],"r4":[{"ready":3181,"voice":0},{"ready":3225,"voice":0}]}
+FAIL voice: after the start the whole bank is in SPEECH (ready 3, same counts as the sources)  ← {"n":{"lines":535,"words":1700,"syl":210,"fx":5,"rec":179},"p":"R","t":"WWW","d":[1.436734693877551,0.2612244897959184,1.436734693877551,0.9404081632653061],"dur":1.6819417475728156,"left":0,"durs":[1.38,3]}
+PASS voice: a game line is pre-spoken (TTS / his recording), typed text is glued from words — as before
+PASS voice: clips decode (a line, a word, his recording, a reaction) and say() plays with a duration
+PASS voice: the text blocks are freed from the page after reading
+FAIL site: index.html is light — no voice inside (11.24 MB, was 11.3)  ← 11781331
+FAIL site: voice1.txt (lines, reactions, his recordings) + voice2.txt (words, syllables) hold the whole bank  ← {}
+FAIL site: the service worker precaches both voice files  ← "const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];"
+FAIL site: over http at CPU ×4 the first frame (3039 ms) comes before the voice (0 ms), then all of it arrives  ← {"ready":3039,"voice":0}
+FAIL early: before the voice arrived — SPEECH empty, the line waits  ← {"r":true,"st":null}
+FAIL early: …the voice arrived (ready 3) and the waiting line was spoken  ← {"st":null}
+FAIL offline: the voice files are in the offline cache  ← ["index.html","manifest.webmanifest","icon-512.png","icon-maskable-512.png","apple-touch-icon.png","","icon-192.png"]
+FAIL offline: no network — the game starts and speaks (ready 3)  ← {"game":true,"lines":535}
+FAIL hud: the level / coins in the game HUD are rewritten only when they change (not every frame)  ← {"muts":122,"ch":0}
+PASS no page errors 
+4 passed, 19 failed
+ERRORS

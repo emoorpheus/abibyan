@@ -1,0 +1,4 @@
+[
+ {"eval": "document.querySelector('#nm-ok') && document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); const S=__game.GAME.S; S.st.food=30; S.st.fun=55; S.st.energy=80; S.st.clean=15; __game.UI.refresh(); 1", "wait": 1500, "shot": "q1.png", "clip": [0, 0, 390, 200]}
+]

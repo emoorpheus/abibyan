@@ -1,0 +1,4 @@
+[
+ {"wait": 900},
+ {"eval": "(()=>{const g=document.querySelector('#h-grow .gb');const r=g.getBoundingClientRect();const cs=getComputedStyle(g);return {r:[r.x,r.y,r.width,r.height],pos:cs.position,bg:cs.backgroundColor,disp:cs.display,b:document.querySelector('#h-grow .gb b').style.width, z:cs.zIndex}})()", "tag": "gb"}
+]

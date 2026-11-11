@@ -1,0 +1,8 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.MINI.intro('catch'); 1", "wait": 900, "shot": "g0.png"},
+ {"eval": "__game.UI.closeModal(); __game.MINI.start('catch', 1); 1", "wait": 2500, "shot": "g1.png"},
+ {"eval": "__game.MINI.st", "tag": "st", "wait": 3000, "shot": "g1b.png"},
+ {"eval": "__game.MINI.pause(); 1", "wait": 600, "shot": "g1p.png"},
+ {"eval": "document.querySelectorAll('#modalw button').length && [...document.querySelectorAll('#modalw button')].map(b=>b.id+':'+b.textContent)", "tag": "btns"}
+]

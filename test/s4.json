@@ -1,0 +1,7 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.HOME.goTo('kitchen', true); window.L2S=(x,y)=>{const r=document.getElementById('cv').getBoundingClientRect();return [r.left+x/180*r.width, r.top+y/320*r.height]}; 1", "wait": 1500},
+ {"tag": "drag", "dragJS": "(()=>{const r=document.querySelector('#c-slot').getBoundingClientRect(); const H=__game.HOME, m=H.mk; const mx=m.x, my=m.y+(m.sp?m.sp.mouth.y:-67); return [[r.left+r.width/2, r.top+r.height/2], L2S(mx+30, my+60), L2S(mx+8, my+20), L2S(mx, my+5)]})()", "holdShot": "f1.png", "steps": 8},
+ {"wait": 450, "shot": "f2.png"},
+ {"eval": "__game.GAME.S.kg", "wait": 2500, "shot": "f3.png"}
+]

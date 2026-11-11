@@ -1,0 +1,6 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.HOME.goTo('kitchen', true); [__game.APP.lay, document.documentElement.className]", "tag": "lay", "wait": 1800, "shot": "d1.png"},
+ {"eval": "__game.UI.openWardrobe(); 1", "wait": 1000, "shot": "d2.png"},
+ {"eval": "__game.UI.closeSheet(); __game.MINI.start('balloon', 1); 1", "wait": 1500, "shot": "d3.png"}
+]

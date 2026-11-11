@@ -1,0 +1,50 @@
+=== seq
+FAIL seq: one heart is hidden at a time (24 not found on the screen), the first is №undefined  ← {"open":24,"rooms":["zal","kitchen","bath","hall","balcony","zal","kitchen","bath","zal","kitchen","bath","hall","balcony","zal","kitchen","bath","hall","balcony","zal","kitchen","bath","hall","hall","balcony"],"same":1,"days":true}
+FAIL seq: no day schedule any more; every next heart is in another room (same room twice in a row: 1)  ← ["zal","kitchen","bath","hall","balcony","zal","kitchen","bath","zal","kitchen","bath","hall","balcony","zal","kitchen","bath","hall","balcony","zal","kitchen","bath","hall","hall","balcony"]
+FAIL crashed: page.evaluate: TypeError: D.current is not a function |     at eval (eval at evaluate (:311:30), <anonymous>:1:39) |     at UtilityScript.evaluate (<anonymous>:313:16)
+1 passed, 3 failed
+ERRORS
+=== hide
+FAIL crashed: page.evaluate: TypeError: D.current is not a function |     at eval (eval at evaluate (:311:30), <anonymous>:14:97) |     at UtilityScript.evaluate (<anonymous>:313:16)
+1 passed, 1 failed
+ERRORS
+=== hint
+FAIL crashed: page.evaluate: TypeError: D.current is not a function |     at eval (eval at evaluate (:311:30), <anonymous>:1:56) |     at UtilityScript.evaluate (<anonymous>:313:16)
+1 passed, 1 failed
+ERRORS
+=== album
+FAIL album: 2 found, 1 to look for («»), 21 not hidden yet; it says one at a time  ← {"txt":"Найдено 2 из 24№1Здесь будет записка дл…№2Здесь будет записка дл…№3?Ванная№4?Прихожая№5?Балкон№6?Зал№7?Кухня№8?Ванная№9?Зал№10?Кухня№11?Ванная№12?Прихожая№13?Балкон№14?Зал№15?Кухня№16?Ванная№17?Прихожая№18?Балкон№19?Зал№20?Кухня№21?Ванная№22?Прихожая№23?Прихожая№24?БалконАбибян прячет по квартире сердечки с секретами — каждый день новые. Ищи и трогай!","on":2,"cur":[],"lock":0}
+1 passed, 1 failed
+ERRORS
+=== tut
+FAIL tut 390×844: the card «Обучение 1/14Знакомься —…» is under the HUD, off Абибян and his bubble  ← {"tut":{"l":27,"t":631.609375,"r":363,"b":736},"hud":{"l":19,"t":20,"r":371,"b":96},"mk":{"l":167,"t":556,"r":223,"b":642},"bub":{"l":71,"t":486.703125,"r":319,"b":540.203125},"txt":"Обучение 1/14Знакомься — это Абибян! Погладь его: нажми ему на голову.Пропустить обучение"}
+PASS tut: with the shop open the card stays visible above the sheet
+FAIL tut 375×667: the card «Обучение 1/14Знакомься —…» is under the HUD, off Абибян and his bubble  ← {"tut":{"l":19.5,"t":470.609375,"r":355.5,"b":575},"hud":{"l":11.5,"t":4,"r":363.5,"b":80},"mk":{"l":159.5,"t":456,"r":215.5,"b":542},"bub":{"l":63.5,"t":386.703125,"r":311.5,"b":440.203125},"txt":"Обучение 1/14Знакомься — это Абибян! Погладь его: нажми ему на голову.Пропустить обучение"}
+FAIL tut 430×932: the card «Обучение 1/14Знакомься —…» is under the HUD, off Абибян and his bubble  ← {"tut":{"l":47,"t":675.609375,"r":383,"b":780},"hud":{"l":39,"t":64,"r":391,"b":140},"mk":{"l":187,"t":600,"r":243,"b":686},"bub":{"l":91,"t":530.703125,"r":339,"b":584.203125},"txt":"Обучение 1/14Знакомься — это Абибян! Погладь его: нажми ему на голову.Пропустить обучение"}
+FAIL tut 360×640: the card «Обучение 1/14Знакомься —…» is under the HUD, off Абибян and his bubble  ← {"tut":{"l":12,"t":443.609375,"r":348,"b":548},"hud":{"l":4,"t":4,"r":356,"b":80},"mk":{"l":152,"t":456,"r":208,"b":542},"bub":{"l":56,"t":386.703125,"r":304,"b":440.203125},"txt":"Обучение 1/14Знакомься — это Абибян! Погладь его: нажми ему на голову.Пропустить обучение"}
+2 passed, 4 failed
+ERRORS
+=== url
+FAIL url: docs/GITHUB_PAGES.md — https://emoorpheus.github.io/monkey2d/ and https://emoorpheus.github.io/monkey2d/test.html; the old /abibyan/ link nowhere (docs/superpowers/specs/2026-11-05-r22-gift-design.md
+docs/GITHUB_PAGES.md
+tools/card.py
+test/r22.js)  ← {"stale":"docs/superpowers/specs/2026-11-05-r22-gift-design.md\ndocs/GITHUB_PAGES.md\ntools/card.py\ntest/r22.js"}
+FAIL url: the card's QR code opens https://emoorpheus.github.io/abibyan/  ← ""
+FAIL url: the card says monkey2d  ← "Дашулик,\n\nсс днём\nднём рождения!\nрождения!\n\nЭто Абибян. Теперь он живёт у тебя!\n\n\fКак забрать\nАбибяна домой\n\nemoorpheus.github.io/abibyan\n1\n\nНаведи камеру телефона на код и\nоткрой ссылку в Safari\n\n2\n\nНажми „Поделиться“, потом „На экран\nДомой“\n\n3\n\nОткрой Абибяна с иконки и постучи по\nкоробке\n\nСвечки "
+1 passed, 3 failed
+ERRORS
+=== test21
+FAIL test21: the test build says today is 5.11.2026 at the real time of day, 100 000 coins, the gift box  ← {"d":{"y":2026,"m":11,"d":5,"hm":762,"gift":true,"coins":100390},"rhm":762}
+FAIL test21: open it → her party starts by itself (-1 ms)  ← -1
+FAIL test21: the settings have «null»  ← null
+FAIL test21: «Начать репетицию заново» → the gift box again, nothing done; the real save is not touched  ← {"gift":false,"party":[],"main":"{\"marker\":1}"}
+FAIL crashed: page.evaluate: TypeError: Cannot read properties of null (reading 'click') |     at eval (eval at evaluate (:311:30), <anonymous>:1:41) |     at UtilityScript.evaluate (<anonymous>:313:16)
+1 passed, 5 failed
+ERRORS
+=== site
+FAIL site: dist/site/test.html — the test build with the voice from files; index.html stays the real game  ← {"has":false}
+FAIL crashed: page.waitForFunction: Timeout 20000ms exceeded. |     at page0 (/data/game/test/r23.js:19:85) |     at async /data/game/test/r23.js:185:17
+FAIL no page errors ["console: Failed to load resource: the server responded with a status of 404 (File not found)","console: Failed to load resource: the server responded with a status of 404 (File not found)"]
+0 passed, 3 failed
+ERRORS
+EXIT

@@ -1,0 +1,24 @@
+PASS morning: not before he has been left alone for a while (12 s → still in the zal, nothing started)
+FAIL morning: alone a bit longer → he says he is off to exercise  ← ["Ура! Я Абибян!"]
+FAIL morning: he walks out of the zal at the left side (towards the balcony) and the view follows him to the balcony  ← {"rooms":["zal"],"x":{"zal":[90,90,90]}}
+FAIL morning: on the balcony he walks in from the right edge  ← {"zal":[90,90,90]}
+FAIL morning: he does his exercise there  ← ["shrug","scratch","look"]
+FAIL morning: done — fun and energy up, «сделано» for today  ← {"rt":null,"st":{"food":89.77208888888872,"fun":59.81767111111109,"energy":89.89744000000009,"clean":89.87464888888863},"says":["Ура! Я Абибян!","Ура! Я Абибян!"]}
+FAIL morning: not twice a day  ← ["whine","look","shrug","yawn"]
+FAIL snack: hungry and alone → he says so and goes to the kitchen  ← {"says":["Э-э-э-э-э!","Крот Монти!","Пойдём поиграем?"],"rooms":["balcony"]}
+FAIL snack: he opens the fridge himself and eats a banana from the stock  ← {"fridge":false,"ate":false,"inv":{"banana":2},"food":29.777777777777743}
+PASS snack: not again right away (a rest between snacks)
+FAIL snack: an empty fridge → «Пусто… Купи мне поесть!», nothing eaten  ← {"says":["Пойдём поиграем?","Пуся!","Хочу молочка!"],"fridge":false}
+FAIL bath: evening, a bit dirty → he goes right, out of the kitchen, to the bathroom  ← {"rooms":["kitchen"],"x":{"kitchen":[90,90,90]}}
+FAIL bath: … and asks to be washed (a wash wish)  ← {"want":null,"rt":null,"says":["Хочу молочка!"]}
+PASS bath: clean already → stays where he is
+FAIL night: he yawns and goes to the zal  ← {"acts":["scratch","shrug","whine","shrug","look","belly"],"rooms":["kitchen"]}
+FAIL night: in the zal he asks to switch the light off  ← ["Пойдём поиграем?","Э-э-э-э-э!"]
+FAIL night: the light off → he sleeps  ← false
+PASS rules: never during the tutorial
+PASS rules: not while a sheet is open
+FAIL rules: a tap on the floor while he is leaving → he stays (walks to the tap)  ← {"lv":{"zal":[90,90,90]},"tap":{"room":"zal","x":90}}
+PASS rules: and he does not set off again right after the tap
+PASS no page errors 
+7 passed, 15 failed
+ERRORS

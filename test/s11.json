@@ -1,0 +1,4 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.UI.openShop('home'); 1", "wait": 900, "shot": "p2.png", "clip": [0, 470, 390, 200]}
+]

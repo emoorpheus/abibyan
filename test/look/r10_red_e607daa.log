@@ -1,0 +1,30 @@
+FAIL ducks: every duck is 20–25 % smaller than in Round 9 (w and h × 0.72–0.84)  ← {"papa":[19,16],"mama":[19,15],"kid":[13,10],"lash":[12,10]}
+PASS ducks: papa and mama still bigger than the ducklings, the eyelash one the smallest
+FAIL ducks: they waddle above the room buttons (feet ≤ y 276 — the bar covers y ≥ 277 on a short phone)  ← 303
+FAIL ducks: a real finger tap on papa, a duckling and mama hops + squeaks in every room (390×664)  ← [["hall","papa",null,false],["hall","kid1",null,false],["hall","mama",null,false],["kitchen","papa",null,false],["kitchen","kid1",null,false],["kitchen","mama",null,false],["balcony","papa",null,false],["balcony","kid1",null,false],["balcony","mama",null,false],["zal","papa",null,false],["zal","kid1",null,false],["zal","mama",null,false],["bath","papa",null,false],["bath","kid1",null,false],["bath
+PASS ducks: a real finger tap on papa, a duckling and mama hops + squeaks in every room (390×844)
+FAIL hall: «Картина «Банан Лиза»», «Ковёр на стену» and «Фикус» are not sold any more  ← {"painting":true,"carpet":true,"plant":true,"hall":["Картина «Банан Лиза»","Ковёр на стену","Фикус","Робот-пылесос","Роутер GL.iNet","Фигурки Хорнет","Игрушки на полку","Приставка на Linux","Фигурки Nintendo","Фигурки South Park"]}
+FAIL hall: the «Дом → Прихожая» shop tab has none of them  ← "Балкон\nКухня\nПрихожая\nЗал\nВанная\nКартина «Банан Лиза»\nПодмигивает, если тапнуть\n70\nКовёр на стену\nТапни — и из него выбьют пыль\n160\nур. 3\nФикус\nЗелёный уголок в"
+FAIL hall: their gags are gone (no «carpet», no «painting» wink)  ← ["pigeon","bed","curtains","nightlight","window","radiator","poster","rug","garland","parcel","bell","rack","carpet","painting","plafond","router","linux","hornet","toys","figs","vacuum","stove","cactus","clock","cabinet","drawer","candles","chair","sofa","gondola","washer","sconce","sink","rail","aid","frog","cat","bathmat","fresco","gnome","flowers","flamingo","hammock","desk","dig"]
+PASS hall: «Всё потрогал» (25) still reachable
+FAIL hall: a v6 save with the painting and the ficus → v7, refunded (70 + 60), removed from the hall, with a toast  ← {"v":6,"coins":10,"wa":"painting","pl":1,"own":true,"toast":"","sp":[128,62,40,34]}
+PASS walk: free floor spots to tap on (left and right of him)
+FAIL walk: a tap on the floor → he starts walking (legs step)  ← {"x":90,"y":270,"legs":"stand","w":false}
+FAIL walk: …and gets there (±2 px)  ← [{"x":90,"y":270,"legs":"stand","w":false},[36,262]]
+FAIL walk: he stays where he was sent  ← [{"x":90,"y":270,"legs":"stand","w":false},[36,262]]
+FAIL walk: tap to the right → he walks over there too  ← [{"x":90,"y":270,"legs":"stand","w":false},[150,254],0]
+FAIL walk: a tap on the wall (not the floor) does not move him  ← [{"x":90,"y":270,"legs":"stand","w":false},[20,140]]
+PASS walk: the target is kept inside the room (x 14…166, y 246…272)
+PASS walk: in another room he starts in the middle again
+PASS walk: after a trip (the mirror) he comes back to his own spot
+PASS walk: asleep he does not get up and walk
+FAIL radiator: two knob spots, left and right of the radiator  ← [null,null,[85,158,30,30]]
+FAIL music: a track for home and for each of the 8 mini-games  ← null
+FAIL gsize: in every mini-game he is no bigger than at home (≤ 1.1 ×), at every age  ← [["newborn","catch",0.7,0.42],["newborn","vine",0.6,0.42],["newborn","balloon",0.56,0.42],["newborn","bongo",1,0.42],["newborn","gym",1,0.42],["newborn","stack",0.5,0.42],["newborn","d_catch",0.7,0.42],["newborn","d_bongo",0.85,0.42],["newborn","d_gym",0.95,0.42],["newborn","d_keys",0.78,0.42],["kid","catch",0.7,0.486],["kid","vine",0.6,0.486],["kid","balloon",0.56,0.486],["kid","bongo",1,0.486],[
+FAIL gsize: a Кроха is clearly smaller than an adult in the games too (≤ 0.8 ×)  ← [["catch",0.7,0.7,0.7],["vine",0.6,0.6,0.6],["balloon",0.56,0.56,0.56],["bongo",1,1,1],["gym",1,1,1],["stack",0.5,0.5,0.5],["d_catch",0.7,0.7,0.7],["d_bongo",0.85,0.85,0.85],["d_gym",0.95,0.95,0.95],["d_keys",0.78,0.78,0.78]]
+PASS gsize: «Супер Абибян» / the race keep their small hitbox-sized hero (≤ home size)
+FAIL gsize: the catch zone (hands) is lower for the small one  ← [null,null]
+FAIL seasons: 5 events — Хэллуин, Новый год, Весна балдёжная, Лето-солнышко, День Абибяна  ← null
+PASS no page errors 
+10 passed, 18 failed
+ERRORS

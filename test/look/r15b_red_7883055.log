@@ -1,0 +1,30 @@
+FAIL testlvl: the test build starts at the top level (every shop item unlocked)  ← {"lvl":1,"need":10,"stage":0,"last":9,"coins":100000,"age":"Кроха"}
+FAIL testlvl: …and he is fully grown («Легенда», the last stage)  ← {"lvl":1,"need":10,"stage":0,"last":9,"coins":100000,"age":"Кроха"}
+PASS testlvl: …still 100 000 coins
+PASS testlvl: the real build is untouched (level 1, a baby)
+FAIL mirror: the hall mirror is lower (≤ 112 px tall, was 140), still a floor mirror (bottom at the floor) and taller than him  ← [36,88,30,140]
+PASS mirror: the glass is drawn (bluish pixels inside the frame)
+FAIL knob (stage 8): he climbs onto the corner of the bed to fix it (feet up at the footboard top, ≤ y 184; at the bed's right corner)  ← {"top":{"x":104,"y":248},"bed":[-6,168,104,70],"ph":["go","do","back"]}
+FAIL knob (stage 8): from up there his paw reaches the radiator knob (≤ 8 px from it)  ← [118,192]
+PASS knob (stage 8): the knob is back on and he is down on the floor again
+FAIL knob (stage 2): he climbs onto the corner of the bed to fix it (feet up at the footboard top, ≤ y 184; at the bed's right corner)  ← {"top":{"x":104,"y":248},"bed":[-6,168,104,70],"ph":["go","do","back"]}
+FAIL knob (stage 2): from up there his paw reaches the radiator knob (≤ 8 px from it)  ← [115,208]
+PASS knob (stage 2): the knob is back on and he is down on the floor again
+FAIL zhuk: his character is written down (adventurer, sneaks treats with Абибян, not a thief himself) and shown on his card  ← ""
+FAIL zhuk: …and used in the talk: ≥ 4 heist lines in his chats with Абибян and with Пуся  ← 0
+FAIL zhuk: …and in his party jokes  ← "null[[[\"Жу! Почему ключи всегда теряются?\",\"Они играют в прятки, а я вожу! Жу-хи-хи!\"],[\"Жу! Что сказал ключ замку?\",\"«Открой, это я!» Жу-хи-хи!\"],[\"Жу! Почему я не боюсь темноты?\",\"Я живу в кармане —"
+FAIL zhuk: the card has «Вылазка» (a secret trip to Пуся's treats)
+FAIL heist: «Вылазка» on Жучок's card starts it  ← {"ok":false}
+FAIL heist: Жучок rides on his shoulder and they sneak (slow, on tiptoe) to the kitchen together  ← {"mid":{"fur":false,"sneak":false},"rooms":["hall"]}
+FAIL heist: in the kitchen Пуся is napping; he quietly opens the fridge  ← {"nap":false,"fridge":false}
+FAIL heist: Пуся wakes up and asks who is there; Жучок covers for him  ← []
+FAIL heist: Абибян whispers his lines (voiced)  ← ["Вот так, на место!"]
+FAIL heist: they get away with a treat (+1 in the fridge), +fun, a heist counted  ← {"room":"hall","zhuk":{"mode":"home","room":"hall","fur":false},"nap":false,"loot":[],"fun":0,"n":0}
+PASS heist: back in the hall, Жучок on his hook, Пуся napping no more
+FAIL heist: …then «Вылазка» rests for a while (greyed, «через …»)  ← {"s":"","tx":""}
+FAIL offer: coming into the hall, Жучок sometimes whispers «есть дело…» (an offer)  ← {"said":null,"modal":true}
+FAIL offer: a tap on him right then starts the heist (no card)  ← {"said":null,"modal":true}
+FAIL rheist: crashed — page.evaluate: TypeError: Math.random is not a function
+FAIL no page errors ["console: TypeError: Math.random is not a function\n    at rnd (file:///data/game/dist/index.html:4892:89)\n    at tickFriend (file:///data/game/dist/index.html:5270:54)\n    at Object.update (file:///data/game/dist/index.html:5309:27)\n    at Object.update (file:///data/game/dist/index.html:6405:13)\n    at step (file:///data/game/dist/index.html:8989:80)\n    at Object.advance (file:///data/game/dist/index.html:9016:107)\n    at window.advanceTime (file:///data/game/dist/index.html:9032:34)\n    at window.__adv (eval at evaluate (:311:30), <anonymous>:5:79)\n    at eval (eval at evaluate (:311:30), <anonymous>:3:41)\n    at UtilityScript.evaluate (<anonymous>:313:16)","console: TypeError: Math.random is not a function\n    at rnd (file:///data/game/dist/index.html:4892:89)\n    at tickFriend (file:///data/game/dist/index.html:5270:54)\n    at Object.update (file:///data/game/dist/index.html:5309:27)\n    at Object.update (file:///data/game/dist/index.html:6405:13)\n    at step (file:///data/game/dist/index.html:8989:80)\n    at Object.advance (file:///data/game/dist/index.html:9016:107)\n    at window.advanceTime (file:///data/game/dist/index.html:9032:34)\n    at window.__adv (eval at evaluate (:311:30), <anonymous>:5:79)\n    at eval (eval at evaluate (:311:30), <anonymous>:3:41)\n    at UtilityScript.evaluate (<anonymous>:313:16)","console: TypeError: Math.random is not a function\n    at rnd (file:///data/game/dist/index.html:4892:89)\n    at tickFriend (file:///data/game/dist/index.html:5270:54)\n    at Object.update (file:///data/game/dist/index.html:5309:27)\n    at Object.update (file:///data/game/dist/index.html:6405:13)\n    at step (file:///data/game/dist/index.html:8989:80)\n    at Object.advance (file:///data/game/dist/index.html:9016:107)\n    at window.advanceTime (file:///data/game/dist/index.html:9032:34)\n    at window.__adv (eval at evaluate (:311:30), <anonymous>:5:79)\n    at eval (eval at evaluate (:311:30), <anonymous>:3:41)\n    at UtilityScript.evaluate (<anonymous>:313:16)"]
+6 passed, 22 failed
+ERRORS

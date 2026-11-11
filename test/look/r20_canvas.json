@@ -1,0 +1,23 @@
+{
+ "visited": [
+  "balcony",
+  "kitchen",
+  "hall",
+  "zal",
+  "bath",
+  "catch",
+  "vine",
+  "balloon",
+  "bongo",
+  "gym",
+  "stack",
+  "super",
+  "roofs",
+  "race"
+ ],
+ "m": {
+  "n": 230,
+  "mb": 6.1,
+  "max": 64800
+ }
+}

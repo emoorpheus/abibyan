@@ -1,0 +1,24 @@
+PASS steps: the old four stay first (pet → needs → phone → play)
+FAIL steps: a tour of everything else after them (rooms, food, washing, sleep, friends, gags, walking, shop + wardrobe, achievements)  ← ["pet","needs","phone","play"]
+PASS steps: every step has a short text (≤ 140 chars)
+FAIL skip: every step has a «Пропустить обучение» button  ← [[0,"pet"],[1,"needs"],[2,"phone"],[3,"play"]]
+FAIL skip: crashed — page.evaluate: TypeError: Cannot read properties of null (reading 'click')
+PASS flow: a new player sees step 1
+PASS flow: petting → «his needs»
+PASS flow: «Понятно» → buy the phone
+PASS flow: phone bought → open it
+FAIL flow: the games open right after the phone step (the tour does not lock them)  ← {"open":true,"done":true,"toast":"Достижение «Подрос!» · +30 | Обучение пройдено! Мини-игры открыты."}
+FAIL flow: …and the tour goes on: the rooms  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: changing the room → food  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: food — away from the kitchen it says where to go and lights the arrow to it  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: food — in the kitchen it lights the food slot  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: he ate → washing  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: washing — in the bath the soap is lit  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: washed → sleep  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: sleep — in the zal the light switch is lit  ← {"vis":false,"n":"Обучение 4/4","t":"Ура, телефон есть! Нажми на него вверху — там игры.","next":false,"skip":null,"step":null,"hi":null}
+FAIL flow: crashed — page.evaluate: TypeError: Cannot read properties of null (reading 'click')
+FAIL migrate: a v7 save that finished the old tutorial → v8, done, no tour card  ← [{"v":7,"done":true,"games":true},{"vis":false,"n":"","t":"","next":false,"skip":null,"step":null,"hi":null}]
+FAIL migrate: a v7 save in the middle of it keeps its step (buy the phone)  ← [{"v":7,"tut":2},{"vis":true,"n":"Обучение 3/4","t":"Мини-игры живут в телефоне. Открой магазин и купи телефон — монет как раз хватит!","next":false,"skip":null,"step":"phone","hi":"h-shop"}]
+PASS no page errors 
+7 passed, 15 failed
+ERRORS

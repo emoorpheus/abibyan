@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#2b2433;color:#fff;font:12px monospace}canvas{image-rendering:pixelated}</style></head><body>
+<canvas id="c"></canvas>
+<script src="../src/pixel.js"></script><script src="../src/monkey.js"></script>
+<script>
+const params = new URLSearchParams(location.search); const set = params.get('set') || 'base'; const Z = +(params.get('z') || 3);
+const sets = {
+  base: [ {f:0}, {f:0.35}, {f:0.6}, {f:0.9}, {f:1}, {f:0, eyes:{mode:'happy'}, mouth:'laugh', blush:1}, {f:0, mouth:'open', open:1, pose:'eat'}, {f:0, pose:'wave', eyes:{look:[1,0]}} ],
+  expr: [ {eyes:{mode:'closed'},mouth:'smile'}, {eyes:{mode:'sleep'},mouth:'o'}, {eyes:{mode:'dizzy'},mouth:'wavy'}, {eyes:{mode:'wide'},mouth:'o'}, {mouth:'frown',tear:1}, {mouth:'flat',sweat:1}, {mouth:'chew'}, {mouth:'talk',open:0.5}, {dirt:1} ],
+  poses: Object.keys(MONKEY.POSES).map(k => ({pose:k})),
+  clothes: [ {cloth:{hat:'cap',top:'tshirt',bottom:'shorts',feet:'sneakers'}}, {cloth:{hat:'ushanka',top:'tank',bottom:'sweats',feet:'slippers'}}, {f:1,cloth:{hat:'ushanka',top:'tank',bottom:'sweats',feet:'slippers',neck:'chain'}}, {cloth:{hat:'crown',top:'tux',glasses:'round'}}, {cloth:{hat:'cowboy',top:'hawaii',glasses:'sun'}}, {cloth:{hat:'propeller',top:'hoodie',glasses:'pixel'}}, {cloth:{hat:'tophat',top:'sailor',neck:'bowtie'}}, {cloth:{hat:'headband',neck:'scarf',top:'hoodie'},f:0.6}, {f:0.8,cloth:{top:'tshirt',bottom:'sweats'}} ],
+  small: [ {s:0.62}, {s:0.62,f:1}, {s:0.7}, {s:0.62,eyes:{mode:'happy'},mouth:'laugh'}, {s:0.55}, {s:0.55,f:1}, {s:0.55,pose:'catch'}, {s:0.55,pose:'balloon'}, {s:0.55,pose:'fall',legs:'spread'}, {s:0.55,pose:'liftHigh',f:0.7}, {s:0.55,pose:'drumL'}, {s:0.55,cloth:{hat:'cap',top:'tshirt'}}, {s:0.55,eyes:{mode:'happy'},mouth:'laugh'} ],
+};
+const list = sets[set] || sets.base; const cols = +(params.get('cols') || 4);
+const sprs = list.map(p => { const t0 = performance.now(); const r = MONKEY.compose(Object.assign({s:1}, p)); r.ms = performance.now() - t0; return r; });
+const cw = Math.max(...sprs.map(s => s.w)), ch = Math.max(...sprs.map(s => s.h)) + 10;
+const c = document.getElementById('c'); const rows = Math.ceil(sprs.length / cols); c.width = cw * cols * Z; c.height = ch * rows * Z;
+const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+sprs.forEach((s, i) => { const gx = (i % cols) * cw, gy = Math.floor(i / cols) * ch; x.fillStyle = (i % 2) ? '#efe6dc' : '#e4dace'; x.fillRect(gx * Z, gy * Z, cw * Z, ch * Z);
+  x.drawImage(s.cv, (gx + (cw - s.w) / 2) * Z, (gy + 2) * Z, s.w * Z, s.h * Z); x.fillStyle = '#333'; x.fillText(JSON.stringify(list[i]).slice(0, 40) + ' ' + s.ms.toFixed(1) + 'ms', gx * Z + 3, (gy + ch) * Z - 4); });
+window.__ok = true;
+</script></body></html>

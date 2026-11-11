@@ -1,0 +1,36 @@
+FAIL routine: day 14:00, all needs fine, left alone → he still sets off to do something himself (≤ 40 s)  ← {"rooms":["zal"],"tr":["-"],"t":39900,"cur":null}
+FAIL routine: day (another try) 15:00, all needs fine, left alone → he still sets off to do something himself (≤ 40 s)  ← {"rooms":["zal"],"tr":["-"],"t":39900,"cur":null}
+FAIL routine: evening 19:00, all needs fine, left alone → he still sets off to do something himself (≤ 40 s)  ← {"rooms":["zal"],"tr":["-"],"t":39900,"cur":null}
+FAIL routine: the wait is short — he is off after ≤ 16 s alone (a phone locks the screen after ~30 s)  ← {"rooms":["zal"],"tr":["-"],"t":16400,"cur":null}
+FAIL routine: the first time a toast tells that he lives on his own while you don't touch the screen  ← ""
+PASS routine: after one thing he rests a bit before the next one (nothing new within 12 s)
+FAIL want: the want bubble covers no friend anywhere he stands (5 rooms, visitors too)  ← [{"room":"balcony","x":24,"id":"monty","ix":24,"iy":26,"w":[48,215]},{"room":"balcony","x":36,"id":"monty","ix":17,"iy":27,"w":[60,215]},{"room":"balcony","x":48,"id":"monty","ix":5,"iy":27,"w":[72,216]},{"room":"zal","x":96,"id":"pusya","ix":13,"iy":5,"w":[120,216]},{"room":"zal","x":108,"id":"pusya","ix":24,"iy":5,"w":[132,216]},{"room":"zal","x":120,"id":"pusya","ix":20,"iy":4,"w":[144,215]}]
+FAIL photo: a long caption and the date don't overlap  ← {"W":644,"cap":{"x0":26,"x1":639.4395141601562,"y0":0,"y1":40},"date":{"x0":400.6138458251953,"x1":618,"y0":0,"y1":40},"old":1}
+FAIL photo: both lines fit inside the frame  ← {"W":644,"cap":{"x0":26,"x1":639.4395141601562,"y0":0,"y1":40},"date":{"x0":400.6138458251953,"x1":618,"y0":0,"y1":40},"old":1}
+FAIL photo: drawn with the game font (Pixelify Sans loaded, not a monospace fallback)
+FAIL save: on a phone «Сохранить» opens the share sheet with the photo as a PNG file (→ «Сохранить изображение»)  ← null
+PASS save: without a share sheet it downloads abibyan-ДД-ММ-ГГГГ.png
+FAIL save: the photo can be long-pressed on iOS (touch-callout on for .photo)  ← ["\n.mbox .photo { width: calc(var(--u)*136); border: calc(var(--u)*1) solid var(--ink); image-rendering: pixelated; }"]
+FAIL testbuild: dist/abibyan-test.html is built
+PASS rack: the setup — the rack fell down
+FAIL rack: a tap on the fallen rack → he walks over to it himself  ← {"x0":130,"xs":["130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-","130-"]}
+FAIL rack: he lifts it slowly with effort (≥ 1 s from the floor to upright)  ← {"t0":0,"t1":450}
+FAIL rack: his paws hold the rack's end while it goes up  ← {"n":9,"onIt":0,"d":[58,65,73,82,91,100,108,115,122]}
+PASS rack: it stands again and he is free afterwards
+FAIL kitchen: the counter is lower (top at y ≥ 160, the unit ≤ 68 px tall; was 140 / 88)  ← {"ctr":140,"h":88,"pan":[94,128,20,12],"kettle":[114,114,22,26],"micro":[68,124,26,16],"oven":[92,149,20,74],"drawers":[[70,149,20,13],[114,149,20,13]]}
+PASS kitchen: the pan, the kettle and the microwave stand on the new counter
+PASS kitchen: the oven and the drawers are inside the lower unit
+FAIL stool (Кроха): there is a stool standing in its place in the kitchen
+FAIL stool (Кроха): he fetches it and carries it to the counter before cooking  ← {"seq":[null],"firstCook":{"y":246,"t":1250}}
+FAIL stool (Кроха): he cooks standing on it (feet ≥ 18 px above the floor spot)  ← {"y":246,"t":1250}
+FAIL stool (Кроха): his paw reaches up to the pan (≤ 6 px under the counter top)  ← {"minHand":203,"pan":[94,128,20,12]}
+FAIL stool (Кроха): afterwards he carries it back to its place  ← {"seq":[null]}
+FAIL stool (Взрослый): there is a stool standing in its place in the kitchen
+FAIL stool (Взрослый): he fetches it and carries it to the counter before cooking  ← {"seq":[null],"firstCook":{"y":246,"t":1200}}
+FAIL stool (Взрослый): he cooks standing on it (feet ≥ 18 px above the floor spot)  ← {"y":246,"t":1200}
+FAIL stool (Взрослый): his paw reaches up to the pan (≤ 6 px under the counter top)  ← {"minHand":185,"pan":[94,128,20,12]}
+FAIL stool (Взрослый): afterwards he carries it back to its place  ← {"seq":[null]}
+PASS no page errors 
+7 passed, 26 failed
+ERRORS
+EXIT 1

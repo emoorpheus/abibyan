@@ -1,0 +1,27 @@
+FAIL pair: Жучок → Пуся (kitchen) — the guest sets off to his friend  ← {"ok":false,"pair":null}
+FAIL pair: he comes in from the side of his own room (right edge)  ← []
+FAIL pair: he stays next to his friend while they talk
+FAIL pair: they talk to each other in turns (both speak, ≥ 3 lines, ≥ 2 turns)  ← {"talk":[],"lines":[]}
+FAIL pair: Абибян notices them (a voiced line of his)  ← {"abi":["Ура! Я Абибян!","Почеши мне пузико!"],"peek":[]}
+FAIL pair: then the guest goes home — out at the right edge, back at his place  ← {"mode":"home","room":"hall","last":[]}
+FAIL pair2: Москит → Монти (balcony) — the guest sets off to his friend  ← {"ok":false,"pair":null}
+FAIL pair2: he comes in from the side of his own room (right edge)  ← []
+FAIL pair2: he stays next to his friend while they talk
+FAIL pair2: they talk to each other in turns (both speak, ≥ 3 lines, ≥ 2 turns)  ← {"talk":[],"lines":[]}
+FAIL pair2: Абибян notices them (a voiced line of his)  ← {"abi":["Ура, гости!","Крот Монти!"],"peek":[]}
+FAIL pair2: then the guest goes home — out at the right edge, back at his place  ← {"mode":"home","room":"bath","last":[]}
+FAIL away: Жучок leaves the hall towards the kitchen (the left edge)  ← {"room":"hall","last":[121,121,121]}
+FAIL away: Абибян says where he went («…к Пусе / у Пуси»)  ← []
+FAIL away: in the kitchen he is with Пуся and they are chatting  ← {"talk":[]}
+FAIL join: a tap on them — Абибян asks to join («Можно с вами?»)  ← {"abi":["Мне нравится наш дом!"],"join":[]}
+FAIL join: …a friend answers him  ← []
+FAIL join: …and it is fun (+fun)  ← {"fun0":59.88888888888887,"fun1":59.83555555555553}
+FAIL join: no friend card pops up over the chat
+PASS side: every visitor and party guest comes in from the side of his own room
+FAIL spont: at 13:00, left alone, the friends come over by themselves within 6 min («Все вместе», auto)  ← null
+PASS spont: …only once a day
+PASS spont: …never at night (23:00)
+FAIL ptalk: at the party a friend speaks to another one by name, and that one answers  ← {"pair":null,"talk":[],"lines":[]}
+PASS no page errors 
+4 passed, 21 failed
+ERRORS

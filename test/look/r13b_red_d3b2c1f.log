@@ -1,0 +1,11 @@
+  duel sims: casual0 W16:3 W15:2 W15:4 W15:3 W15:0 W15:6 | human0 W16:0 W15:0 W15:1 W17:5 W15:0 W15:2 | skilled0 W15:0 W15:0 W15:1 W15:4 W15:0 W15:1 | casual4 W15:7 W16:3 W15:6 W15:5 W15:5 W15:6 | human4 W16:2 W15:0 W16:6 W15:1 W15:2 W16:1 | skilled4 W15:0 W17:0 W15:1 W15:3 W15:1 W17:0
+FAIL duel: a casual player (looks every 0.5 s, no dodging) loses to Пуся (≤ 1 of 6)  ← "W16:3 W15:2 W15:4 W15:3 W15:0 W15:6"
+FAIL duel: a good player wins only some of the games (2–4 of 6) — a real fight  ← "W16:0 W15:0 W15:1 W17:5 W15:0 W15:2"
+FAIL duel: Пуся scores a lot — close games (her average ≥ 9 of 15 against a good player)  ← 1.3
+PASS duel: still fair — perfect play beats her (≥ 4 of 6 at the first stage, ≥ 3 of 6 at the last)
+PASS duel: she gets stronger as he grows (a good player wins less at the last stage)
+FAIL drums: red, yellow, green, blue — after > 256 materials in the session  ← {"n0":231,"n1":531,"col":[[223,156,174],[226,163,92],[157,159,166],[125,192,222]]}
+FAIL ducks: on the balcony the ducks in front of the planter are visible (yellow bodies, not just feet under the box)  ← {"n":7,"pos":[["mama",52],["lash",37],["kid1",25],["kid2",12],["papa",-4]]}
+PASS no page errors 
+3 passed, 5 failed
+ERRORS

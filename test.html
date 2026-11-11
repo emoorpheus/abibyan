@@ -14,7 +14,7 @@ body{font-family:'Pixelify Sans','Trebuchet MS',monospace;color:var(--ink)}
 #app{position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#3a2c44 0%,#1d1622 70%)}
 #app:before{content:'';position:absolute;inset:0;opacity:.08;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:18px 18px}
 #stage{position:relative;width:calc(var(--u)*180);height:var(--sh,calc(var(--u)*320));overflow:hidden;background:#2a1a27;background-image:radial-gradient(rgba(255,255,255,.05) calc(var(--u)*1),transparent calc(var(--u)*1));background-size:calc(var(--u)*6) calc(var(--u)*6);touch-action:none;box-shadow:0 0 0 calc(var(--u)*1) rgba(0,0,0,.6),0 calc(var(--u)*6) calc(var(--u)*30) rgba(0,0,0,.5)}
-#cv{position:absolute;left:0;top:var(--ct,0px);width:100%;height:calc(var(--u)*320);box-shadow:0 calc(var(--u)*-1) 0 rgba(255,255,255,.12),0 calc(var(--u)*1) 0 rgba(255,255,255,.12);image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+#cv{position:absolute;left:0;top:var(--ct,0px);width:100%;height:calc(var(--u)*320);box-shadow:0 calc(var(--u)*-1) 0 rgba(255,255,255,.12),0 calc(var(--u)*1) 0 rgba(255,255,255,.12);image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;transform:translateZ(0);will-change:transform}
 #ui{position:absolute;inset:0;pointer-events:none}
 #ui *{pointer-events:auto}
 #ui .np,#ui .np *{pointer-events:none}
@@ -99,7 +99,7 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .btn.sm{min-height:calc(var(--u)*13);font-size:calc(var(--u)*7);padding:0 calc(var(--u)*3)}
 .x{width:calc(var(--u)*15);height:calc(var(--u)*15);padding:0;background:var(--red);border:calc(var(--u)*1) solid var(--ink);box-shadow:inset 0 calc(var(--u)*-2) 0 var(--redD);color:#fff;font-family:inherit;font-size:calc(var(--u)*9);line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 /* sheet */
-#sheet{position:absolute;left:0;right:0;bottom:0;height:calc(var(--u)*176);background:var(--cream);border-top:calc(var(--u)*1) solid var(--ink);box-shadow:0 calc(var(--u)*-2) 0 rgba(59,36,51,.25);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .25s ease-out}
+#sheet{position:absolute;left:0;right:0;bottom:0;height:calc(var(--u)*176);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--cream);border-top:calc(var(--u)*1) solid var(--ink);box-shadow:0 calc(var(--u)*-2) 0 rgba(59,36,51,.25);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .25s ease-out}
 #sheet.open{transform:none}
 .sh-head{display:flex;align-items:center;gap:calc(var(--u)*3);padding:calc(var(--u)*3) calc(var(--u)*4) calc(var(--u)*2)}
 .sh-title{font-size:calc(var(--u)*10);font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -215,7 +215,7 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .tall #hud .stat,.tall #hud .xp,.tall #hud .pill{background:#4b3346}
 .tall #hud .stat{box-shadow:inset 0 0 0 calc(var(--u)*1) #5f455a}
 .tall #hud .name{text-shadow:none}
-.tall #ghud{top:calc(var(--ct) / 2 - var(--u) * 8.5)}
+.tall #ghud{top:max(calc(var(--ct) / 2 - var(--u) * 8.5),env(safe-area-inset-top,0px))}
 .tall #ghud .prog,.tall #ghud .pill{background:#4b3346}
 #ghint{display:none}
 .tall #ghint{display:flex;align-items:center;justify-content:center;position:absolute;left:0;right:0;bottom:0;height:calc(var(--sh) - var(--ct) - var(--u) * 320);font-size:calc(var(--u)*7);color:rgba(255,244,226,.6);pointer-events:none!important}
@@ -331,6 +331,14 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .hcard .htxt{font-size:calc(var(--u)*8.5);line-height:1.3;white-space:pre-wrap;-webkit-user-select:text;user-select:text}
 .hcard .htxt.fin{font-weight:700;color:#c0306a}
 .hcard img.hpic{max-width:100%;max-height:calc(var(--u)*120);border:calc(var(--u)*1) solid var(--ink);object-fit:contain;background:#fff}
+/* Round 26: her question before the first note (the field ≥ 16 px: iOS zooms into smaller ones) */
+.hlock{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*3);width:100%}
+.hlock img.hero{width:calc(var(--u)*33);height:calc(var(--u)*30)}
+.hlock .hq2{font-size:calc(var(--u)*9);font-weight:700;line-height:1.2}
+.hlock input[type=text]{font-size:max(16px,calc(var(--u)*9));text-align:center}
+.hlock .herr{min-height:calc(var(--u)*9);font-size:calc(var(--u)*7.5);color:#c0306a}
+.mbox.shake{animation:shk .35s}
+@keyframes shk{20%,60%{transform:translateX(calc(var(--u)*-3))}40%,80%{transform:translateX(calc(var(--u)*3))}}
 .hs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*2);width:100%;padding:0 calc(var(--u)*2)}
 .hs{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1);min-height:calc(var(--u)*34);padding:calc(var(--u)*3) calc(var(--u)*1) calc(var(--u)*2);background:#fff;border:calc(var(--u)*1) solid var(--cream3);box-shadow:inset 0 calc(var(--u)*-2) 0 var(--cream2);cursor:pointer}
 .hs.on{background:#ffe3ee;border-color:#e0407a}
@@ -343,9 +351,12 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 /* Round 25: the whole phone screen — #ext (FILL) draws the room's surroundings behind the stage; no frame, no backdrop */
 #ext{position:absolute;left:0;top:0;display:none;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
 .fill #ext{display:block;will-change:transform} /* its own layer: the room's every frame does not repaint it (r20 perf) */
+.fill #app{padding:0;background:none}
 .fill #app:before{display:none}
-.fill #stage{background:none;box-shadow:none}
+.fill #stage{background:none;box-shadow:none;height:100%}
 .fill #cv{box-shadow:none}
+.fill #hud{top:max(calc(var(--u)*2),env(safe-area-inset-top,0px))}
+.fill #bar{bottom:max(calc(var(--u)*3),env(safe-area-inset-bottom,0px))}
 .fill.tall #hud .name{text-shadow:0 calc(var(--u)*1) 0 #3b2433,calc(var(--u)*1) 0 0 #3b2433,calc(var(--u)*-1) 0 0 #3b2433,0 calc(var(--u)*-1) 0 #3b2433}
 .fill.tall #ghint{color:#fff4e2;text-shadow:0 calc(var(--u)*1) 0 #3b2433,calc(var(--u)*1) 0 0 #3b2433,calc(var(--u)*-1) 0 0 #3b2433,0 calc(var(--u)*-1) 0 #3b2433}
 
@@ -353,7 +364,7 @@ a.btn{text-decoration:none}
 </style></head>
 <body><div id="app"><canvas id="ext" width="1" height="1"></canvas><div id="stage"><canvas id="cv" width="180" height="320"></canvas><div id="ui"></div></div></div>
 <script>window.ABI_VOICE = 'files';</script>
-<script>window.ABI_TEST = { coins: 100000, top: true, date: [2026, 11, 21] };
+<script>window.ABI_TEST = { coins: 100000, top: true, date: [2026, 11, 21], resetToken: "20261111_fresh1" };
 (function () { var T = window.ABI_TEST; if (!T || !T.date || window.ABI_NODATE || /nodate/.test(location.hash)) return;
   var R = Date, now = R.now(), d = new R(now), off = new R(T.date[0], T.date[1] - 1, T.date[2], d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds()).getTime() - now;
   class D extends R { constructor(...a) { if (a.length) super(...a); else super(R.now() + off); } static now() { return R.now() + off; } }
@@ -1929,7 +1940,7 @@ const ZAL = (() => {
     const lvl = tvLvl(it), tv = TV[lvl], c = tv && sprTV(lvl), ch = spr('chand', 1), b = spr('bed');
     return { light: [CH[0], CH[1], ch.width, ch.height], tv: tv ? [tv.at[0], tv.at[1], c.width, c.height] : null, tvLabel: tv && tv.lab ? tv.lab.slice() : null, fire: FBOX.slice(), window: [GLASS[0] - 4, GLASS[1] - 4, GLASS[2] + 8, GLASS[3] + 8], radiator: [GLASS[0] - 1, 158, 30, 30], knobL: open ? [KNOB.L[0] - 1, KNOB.L[1] - 1, 7, 9] : null, knobR: open && (kn.st === 'on' || kn.st === 'wobble') ? [KNOB.R[0] - 1, KNOB.R[1] - 1, 7, 9] : null, knobFloor: kn.st === 'floor' ? [Math.round(kn.x) - 3, Math.round(kn.y) - 5, 13, 10] : null, poster: it.poster ? [141, 48, 26, 36] : null, nightlight: it.nightlight ? [GLASS[0] + 2, GLASS[1] + GLASS[3] - 12, 16, 16] : null, rug: RUG.slice(), garland: it.garland ? [0, 32, RW, 16] : null, bed: [BED[0], BED[1], b.width, b.height], guitar: it.guitar ? [GTR[0], GTR[1], GW, GH] : null, switch2: hasCon(it, 'switch2') ? [SW2[0], SW2[1], 28, 14] : null, ps5: hasCon(it, 'ps5') ? [PS5[0], PS5[1], 12, 24] : null, cable: lvl && (hasCon(it, 'switch2') || hasCon(it, 'ps5')) ? [CAB_X, tvBottom(lvl), 1, CAB_Y1] /* x, top y, w, bottom y */ : null, soundbar: it.soundbar && sbAt(lvl) ? [...sbAt(lvl), SB_W, SB_H] : null,
       curtainL: curtainK() > 0.5 ? [GLASS[0] - 20, GLASS[1] - 14, 34, FLOOR - GLASS[1] + 14] : [GLASS[0] - 20, GLASS[1] - 14, 22, FLOOR - GLASS[1] + 14],
-      curtainR: curtainK() > 0.5 ? [GLASS[0] + 14, GLASS[1] - 14, 34, FLOOR - GLASS[1] + 14] : [GLASS[0] + GLASS[2] - 2, GLASS[1] - 14, 22, FLOOR - GLASS[1] + 14], sleep: SLEEP.slice(), visit: [146, 273], party: { pusya: [40, 277], monty: [144, 275], mosq: [120, 274, 84], zhuk: [18, 290] } };
+      curtainR: curtainK() > 0.5 ? [GLASS[0] + 14, GLASS[1] - 14, 34, FLOOR - GLASS[1] + 14] : [GLASS[0] + GLASS[2] - 2, GLASS[1] - 14, 22, FLOOR - GLASS[1] + 14], sleep: SLEEP.slice(), visit: [146, 273], party: { pusya: [40, 277], monty: [144, 275], mosq: [120, 274, 84], zhuk: [50, 283] } };
   }
   R.register('zal', { bg, floor: (ctx, P, H) => R.drawFloor(ctx, P, 'cork', FLOOR, H), dyn, night, bedFront, spots, key: () => (closedK() ? 'shut' : ''), thumbs: { guitar: () => guitarSpr(38, 0.62), tv: (v) => (TV[v] ? sprTV(v) : null), soundbar: () => spr('bar'), switch2: () => spr('sw2'), ps5: () => spr('ps5') } });
   return { KNOB, KBROWN, knobUp, TV, FBOX, GLASS, SLEEP, spots, GTR, GO, GW, GH, GK, guitarSpr, guitarHit, RUG, RUG_PAL, rugSpr };
@@ -4204,6 +4215,14 @@ const GAME = (() => {
   function load() {
     // Round 23: «abibyan-test.html#fresh» — the test build starts over (the gift box, her party again); the real save is never touched
     if (TEST && typeof location !== 'undefined' && /(^|[#&])fresh\b/.test(location.hash)) { try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '_album'); } catch (e) { } try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { } }
+    if (TEST && TEST.resetToken) {
+      try {
+        if (localStorage.getItem('abi_test_token') !== TEST.resetToken) {
+          localStorage.removeItem(KEY); localStorage.removeItem(KEY + '_album');
+          localStorage.setItem('abi_test_token', TEST.resetToken);
+        }
+      } catch (e) { }
+    }
     try { const raw = localStorage.getItem(KEY); if (raw) fromSave(JSON.parse(raw)); } catch (e) { storageOK = false; }
     migrate(); tasksRoll(); if (TEST && TEST.coins && !(S.coins >= TEST.coins)) S.coins = TEST.coins; if (TEST && TEST.top) testTop(); return S;
   }
@@ -6839,8 +6858,48 @@ const SEASONS = (() => {
 const DASHA = (() => {
   const C = () => DATA.DASHA, LN = () => DATA.LINES, S = () => GAME.S;
   const pick = (a) => a[Math.floor(Math.random() * a.length)], rnd = (a, b) => a + Math.random() * (b - a), clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const IMG = {}; // build.py: pictures for the secrets from assets/secrets/<n>.jpg|png|webp (data: URLs)
-  const TXT = {}; // build.py: the texts of the notes from docs/24-secrets.md ({n: text, final: text})
+  // Round 26 «записки под замком»: his notes are in the page only as a cipher (build.py + tools/secret_box.py):
+  // SEAL = {v, it, salt, iv, ct, q, hint, n: [the numbers with a note], fin} or null while there are no notes. Her answer (case, ё/е,
+  // spaces and punctuation don't matter) → PBKDF2-SHA256 → the AES-GCM key opens it right in the phone (no server, no internet);
+  // the key stays in her save (D.key): she answers once, at the first heart. Public: only the question, the hint and which numbers.
+  const SEAL = {"v": 1, "it": 600000, "salt": "kSIJBY9GKw4i8uMOwQw3yw==", "iv": "9tQuaFzguf2aTt9S", "ct": "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", "q": "Как ты иногда любя называешь эту обезьянку?", "hint": "Забавное прозвище для нашего плюшевого друга :)", "n": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "fin": true};
+  let TXT = {}, IMG = {}; // the opened seal: texts {n: text, final: text} (docs/24-secrets.md) and pictures {n: data URL} (assets/secrets)
+  let opened = !SEAL, auto = null; // auto: her saved key being tried (started in boot)
+  const b64 = (s) => Uint8Array.from(atob(s), (ch) => ch.charCodeAt(0));
+  const norm = (s) => String(s || '').normalize('NFC').toLowerCase().replace(/ё/g, 'е').replace(/[^\p{L}\p{N}]/gu, ''); // = norm() in tools/secret_box.py
+  async function keyOf(answer) { // her answer → the raw AES key (base64)
+    const cs = crypto.subtle, base = await cs.importKey('raw', new TextEncoder().encode(norm(answer)), 'PBKDF2', false, ['deriveBits']);
+    const bits = await cs.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: b64(SEAL.salt), iterations: SEAL.it }, base, 256);
+    return btoa(String.fromCharCode(...new Uint8Array(bits)));
+  }
+  async function openWith(k) { // true when this key opens the seal: TXT and IMG are filled
+    try {
+      const cs = crypto.subtle, key = await cs.importKey('raw', b64(k), 'AES-GCM', false, ['decrypt']);
+      const o = JSON.parse(new TextDecoder().decode(await cs.decrypt({ name: 'AES-GCM', iv: b64(SEAL.iv) }, key, b64(SEAL.ct))));
+      TXT = o.t || {}; IMG = o.i || {}; opened = true; return true;
+    } catch (e) { return false; }
+  }
+  function withNotes(then) { // the seal is open → then(); her saved key (tried since boot) opens it → then(); else her question at once,
+    if (opened) { then(); return; } // in the same tap (no await): the question shows together with the found heart
+    if (!auto && st().key && window.crypto && crypto.subtle) auto = openWith(st().key);
+    if (!auto) { ask(then); return; }
+    auto.then((good) => { if (good) { then(); return; } auto = null; if (st().key) { delete st().key; GAME.save(true); } ask(then); });
+  }
+  function ask(then) { // her question; «Потом» closes it (the heart stays found, the album asks again); 3 wrong answers → the hint
+    if (document.getElementById('dp')) return;
+    const w = UI.modal(`<div class="hlock"><img class="px hero" src="${art().heart.toDataURL()}" alt=""><h2>Записка под замком</h2><p>Абибян закрыл записки на замок. Ответь на вопрос — и они откроются:</p><p class="hq2">${UI.esc(SEAL.q)}</p><input type="text" id="dp" maxlength="80" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done"><p class="herr"></p><div class="bt"><button class="btn g" id="dp-ok">Открыть</button><button class="btn w" data-close>Потом</button></div></div>`);
+    const inp = w.querySelector('#dp'), err = w.querySelector('.herr'), btn = w.querySelector('#dp-ok'), box = w.querySelector('.mbox'); let tries = 0;
+    const go = async () => {
+      if (btn.disabled || !norm(inp.value)) return;
+      if (!(window.crypto && crypto.subtle)) { err.textContent = 'Тут записки не открыть: нужна ссылка https://'; return; }
+      btn.disabled = true; err.textContent = 'Открываю…';
+      const k = await keyOf(inp.value).catch(() => null), good = !!k && await openWith(k); btn.disabled = false;
+      if (good) { st().key = k; GAME.save(true); UI.closeModal(w); AUDIO.play('star'); then(); return; }
+      tries++; AUDIO.play('nope'); err.textContent = tries >= 3 && SEAL.hint ? 'Не то… Подсказка: ' + SEAL.hint : 'Не то… Попробуй ещё';
+      if (box) { box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); }
+    };
+    btn.onclick = go; inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  }
   const INK = '#3b2433';
   let t = 0, introUntil = 2.5, force = null, goingZal = false, partyWas = false, decorK = { at: -9, v: false };
   const timers = []; const later = (s, fn) => timers.push({ at: t + s, fn });
@@ -7166,8 +7225,8 @@ const DASHA = (() => {
 
   // ---------- (3) «24 секрета» (Round 23: one at a time) ----------
   function slots() { // the secrets with a text, in order (the test build: samples in all 24 while his texts are not in yet)
-    const c = C(), demo = TEST() && !c.secrets.some((x) => x.text);
-    return c.secrets.map((x) => ({ n: x.n, spot: x.spot, text: x.text || TXT[x.n] || (demo ? `Здесь будет записка для ${c.name}а №${x.n} (${rn((c.spots[x.spot] || {}).room)}: ${(c.spots[x.spot] || {}).w || x.spot}). Текст — в docs/24-secrets.md` : ''), img: x.img || IMG[x.n] || '' })).filter((x) => x.text);
+    const c = C(), demo = TEST() && !SEAL && !c.secrets.some((x) => x.text); // Round 26: with real notes the test build is the real hunt
+    return c.secrets.map((x) => ({ n: x.n, spot: x.spot, text: x.text || TXT[x.n] || (demo ? `Здесь будет записка для ${c.name}а №${x.n} (${rn((c.spots[x.spot] || {}).room)}: ${(c.spots[x.spot] || {}).w || x.spot}). Текст — в docs/24-secrets.md` : ''), img: x.img || IMG[x.n] || '', locked: !x.text && !TXT[x.n] && !opened && !!SEAL && SEAL.n.includes(x.n) })).filter((x) => x.text || x.locked);
   }
   function place(x) { const p = C().spots[x.spot] || { room: 'zal', x: 90, y: 150 }; return Object.assign({}, p, { n: x.n, spot: x.spot, text: x.text, img: x.img, found: !!st().found[x.n] }); }
   const nextSlot = () => { const D = st(); return D.gift ? slots().find((x) => !D.found[x.n]) || null : null; };
@@ -7216,7 +7275,7 @@ const DASHA = (() => {
     later(0.45, () => { card(h.n); const all = foundN() >= slots().length; HOME.say(pick(all ? LN().dAllHearts : LN().dHeart), 'happy'); });
   }
   function card(n) {
-    const x = slots().find((q) => q.n === n); if (!x) return; const k = foundN(), N = slots().length, all = k >= N, fin = all && (C().final || TXT.final || '');
+    const x = slots().find((q) => q.n === n); if (!x) return; if (x.locked) { withNotes(() => card(n)); return; } /* Round 26: her question first */ const k = foundN(), N = slots().length, all = k >= N, fin = all && (C().final || TXT.final || '');
     const w = UI.modal(`<div class="hcard"><img class="px hero" src="${art().heart.toDataURL()}" alt=""><h2>Секрет №${n}</h2>${x.img ? `<img class="hpic" src="${x.img}" alt="">` : ''}<p class="htxt">${UI.esc(x.text)}</p>${fin ? `<p class="htxt fin">${UI.esc(fin)}</p>` : ''}<div class="hint">Найдено ${k} из ${N}${all ? ' — все!' : ''}</div><button class="btn g" data-close>${all ? 'Ура!' : 'Искать следующее'}</button></div>`, { dismiss: true });
     return w;
   }
@@ -7224,7 +7283,7 @@ const DASHA = (() => {
     const D = st(), all = slots(), k = foundN(), nx = nextSlot(), RN = {}; for (const r of DATA.ROOMS) RN[r.id] = r.name;
     const hi = art().heart.toDataURL();
     const cells = all.map((x) => { const f = !!D.found[x.n], o = !f && nx && nx.n === x.n, p = C().spots[x.spot] || {};
-      return `<div class="hs notch ${f ? 'on' : o ? 'cur' : 'lock'}" data-n="${x.n}"><span class="hn">№${x.n}</span>${f ? `<img class="px" src="${hi}" alt=""><b>${UI.esc(x.text.slice(0, 22))}${x.text.length > 22 ? '…' : ''}</b>` : o ? `<i class="hq">?</i><b>${RN[p.room] || ''}</b>` : `<i class="hq">${UI.im(UI.I('lock'))}</i><b>Потом</b>`}</div>`; });
+      return `<div class="hs notch ${f ? 'on' : o ? 'cur' : 'lock'}" data-n="${x.n}"><span class="hn">№${x.n}</span>${f ? `<img class="px" src="${hi}" alt=""><b>${x.locked ? 'Под замком' : UI.esc(x.text.slice(0, 22)) + (x.text.length > 22 ? '…' : '')}</b>` : o ? `<i class="hq">?</i><b>${RN[p.room] || ''}</b>` : `<i class="hq">${UI.im(UI.I('lock'))}</i><b>Потом</b>`}</div>`; });
     return `<div class="hint gm-n">Найдено ${k} из ${all.length}</div><div class="hs-grid">${cells.join('')}</div><div class="hint">Абибян прячет сердечки по одному: найдёшь одно — он спрячет следующее, в другой комнате. Ищи и трогай!</div>`;
   }
   function albumBind(body) {
@@ -7275,12 +7334,14 @@ const DASHA = (() => {
   function pause() { if (blow && (blow.mode === 'mic' || blow.mode === 'wait')) { micRelease(); AUDIO.quiet(false); setMode('ask'); } } // the app went to the background: let the microphone go
   // test build: abibyan-test.html#bday (or #bday=2027) — her party right now; #gift — the gift box again
   function boot() {
+    if (SEAL && st().key && window.crypto && crypto.subtle) auto = openWith(st().key); // Round 26: her saved key opens the notes at the start
     // «…/abibyan/#bday» (also in the real game): a rehearsal of her party on any day — on HIS phone, to try the microphone before
     // the day; nothing is marked done, so the real party on 21.11 still comes (#bday=2027: a later year's cake)
     const h = location.hash || '', m = h.match(/bday(?:=(\d{4}))?/);
     if (m) { const y = m[1] ? +m[1] : Math.max(C().year0, new Date().getFullYear()); force = { y, age: C().age0 + (y - C().year0), diff: 0 }; introUntil = 2; }
   }
   return {
+    sealed: () => !opened, // Round 26: the notes are still under the lock (test/r26.js)
     boot, update, check, draw, down, move, up, pause, giftStart, giftOn, hideMk: () => giftOn(), giftBox: () => Object.assign({}, BOX), giftTaps: () => (gift ? gift.taps : 0),
     busy, due, decor, bday, cakeIn, cakeOut, cakeLit: lit, blowStart, gifts, photo, secretsHint, abort, heartsOn, secrets, current, hit, foundN, card, albumHtml, albumBind,
     dbg, heartSize: () => { const A = art().mini; return { w: A.width, h: A.height }; },
@@ -10406,18 +10467,20 @@ const FILL = (() => {
     return n.map((m, ch) => { if (!m) return 1; let c = 0; for (let v = 0; v <= 256; v++) { c += HG[ch * 257 + v]; if (c > m >> 1) return v / 256; } return 1; });
   }
   function sample(cv, scene) {
-    const c = cv.getContext('2d'), home = scene !== 'game', room = home ? HOME.room : null, sl = home && HOME.slide ? HOME.slide() : null, cam = home ? HOME.camY : 0;
+    const home = scene !== 'game', room = home ? HOME.room : null, sl = home && HOME.slide ? HOME.slide() : null, cam = home ? HOME.camY : 0;
+    const srcCv = (home && typeof HOME !== 'undefined' && HOME.off) ? HOME.off : cv; // offscreen canvas avoids GPU-to-CPU stall on Safari
+    const c = srcCv.getContext('2d');
     if (cam < 1) smp.top = edge(c.getImageData(0, 0, RW, 2).data);
     if (!home) smp.bot = mode(c.getImageData(0, RH - 2, RW, 2).data);
     else if (!sl && cam < 1 && g.R1) { const L = light(c.getImageData(0, RH - 8, RW, 8).data, room); if (L) { smp.lit = L; smp.room = room; } else smp.bot = mode(c.getImageData(0, RH - 2, RW, 2).data); }
     sig = [smp.top.a, smp.top.b, smp.top.ph, smp.bot, smp.lit].join('|');
   }
-  function topBand(e, dim) { // the ceiling going on up: its colour (or its dither), 4 dithered steps darker toward the screen's top
+  function topBand(e, dim) { // the ceiling going on up: its natural colour (or its dither)
     if (!g.R0) return; const im = ex.createImageData(g.W, g.R0), d = im.data;
-    for (let y = 0; y < g.R0; y++) { const t = g.R0 > 1 ? (g.R0 - 1 - y) / (g.R0 - 1) : 0, dy = g.R0 - y; // dy: rows above the picture's top
-      for (let x = 0; x < g.W; x++) { const L = Math.max(0, Math.min(3, Math.floor(t * 4 + PX.bayer(x, y)))), k = 1 - 0.13 * L, i = (y * g.W + x) * 4;
+    for (let y = 0; y < g.R0; y++) { const dy = g.R0 - y; // dy: rows above the picture's top
+      for (let x = 0; x < g.W; x++) { const i = (y * g.W + x) * 4;
         const col = e.b && ((((x - g.SX) % 2 + 2) % 2 + dy) % 2 === 0) !== (e.ph === 0) ? e.b : e.a;
-        d[i] = col[0] * k; d[i + 1] = col[1] * k; d[i + 2] = col[2] * k; d[i + 3] = 255; } }
+        d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255; } }
     ex.putImageData(im, 0, 0); if (dim) { ex.fillStyle = dim; ex.fillRect(0, 0, g.W, g.R0); }
   }
   function floorAt(room, dx) { // the room's own floor below the picture, shifted by dx (a slide)
@@ -10434,12 +10497,11 @@ const FILL = (() => {
       else floor = floorAt(room, 0);
       if (floor) { ex.globalCompositeOperation = 'multiply'; ex.fillStyle = rgb(smp.lit.map((v) => v * 255)); ex.fillRect(g.SX, y0, RW, g.R1); ex.globalCompositeOperation = 'source-over'; } }
     if (!floor) { ex.fillStyle = rgb(smp.bot); ex.fillRect(g.SX, y0, RW, g.R1); }
-    ex.fillStyle = SHADE; for (let j = 0; j < g.R1; j++) { ex.globalAlpha = 0.12 * (j + 1) / g.R1; ex.fillRect(g.SX, y0 + j, RW, 1); } ex.globalAlpha = 1; // the front, a little in shadow
     ex.restore();
     mirror(ec, g.SX, y0, g.R1, y0);
     if (o.dim) { ex.fillStyle = o.dim; ex.fillRect(0, y0, g.W, g.R1); }
     // the page behind (iOS 26: the strip under the short viewport may show it): the floor's colour at the bottom
-    const f = home && floor && ROOMS.floorExt(HOME.room, g.R1), base = f ? f.mean : smp.bot, lit = f ? smp.lit : [1, 1, 1], k = 1 - 0.12 * 0.9 * 0.85, dm = o.dim ? 0.4 : 1;
+    const f = home && floor && ROOMS.floorExt(HOME.room, g.R1), base = f ? f.mean : smp.bot, lit = f ? smp.lit : [1, 1, 1], k = 1, dm = o.dim ? 0.4 : 1;
     setBg(base.map((v, i) => v * lit[i] * k * dm));
   }
   function setBg(c) { const s = rgb(c); if (s !== bgCss) { bgCss = s; document.documentElement.style.backgroundColor = s; } }
@@ -10497,8 +10559,10 @@ const APP = (() => {
     const uX = snap(Math.min(vw / 180, vh / (320 + HUD_H + BAR_H)));
     if (vh / u - 320 < HUD_H * 0.7 && uX >= u * 0.88) u = uX;   // prefer moving the HUD out if it costs <12% size
     u = Math.max(0.5, u);
+    const sat = sa.t > 0 ? Math.ceil(sa.t / u) : 0;
     const extra = Math.max(0, Math.min(vh / u - 320, HUD_H + BAR_H));
-    const ct = extra >= HUD_H * 0.7 ? Math.min(HUD_H, extra) : 0, cb = Math.max(0, Math.min(BAR_H, extra - ct));
+    const ct = sat > 0 ? Math.min(HUD_H, sat) : (extra >= HUD_H * 0.7 ? Math.min(HUD_H, extra) : 0);
+    const cb = sat > 0 ? Math.max(0, Math.min(BAR_H, Math.floor(window.innerHeight / u - 320 - ct))) : Math.max(0, Math.min(BAR_H, extra - ct));
     lay = { ct, cb, u };
     const st = document.documentElement.style;
     st.setProperty('--u', u + 'px'); st.setProperty('--ct', (ct * u) + 'px'); st.setProperty('--sh', ((320 + ct + cb) * u) + 'px');
@@ -10579,14 +10643,16 @@ const APP = (() => {
   }
   // Round 20 (battery): full 60 fps in games, for 2.5 s after a touch / key, while a finger is down and while something moves by itself
   // (HOME.lively: a room slide, a walk, a jump, guests); otherwise 30 at home and 15 asleep. Never over 60 (120 Hz screens).
+  // Round 32: desktop (window > 600 or landscape) keeps full 60 fps; 8ms vsync tolerance prevents timer jitter drops on 120 Hz ProMotion
+  const isDesk = () => typeof window !== 'undefined' && (window.innerWidth > 600 || window.innerWidth > window.innerHeight);
   function wantFps() {
-    if (scene !== 'home') return 60; const n = performance.now();
+    if (scene !== 'home' || isDesk()) return 60; const n = performance.now();
     if (n - lastIn < 2500 || (downAt && n - downAt < 20000) || HOME.lively()) return 60;
     return GAME.S.sleeping ? 15 : 30;
   }
   function frame(ts) {
     requestAnimationFrame(frame);
-    const now = ts / 1000; fpsT = wantFps(); if (last && now - last < 1 / fpsT - 0.004) return; // skip this vsync
+    const now = ts / 1000; fpsT = wantFps(); if (last && now - last < 1 / fpsT - 0.008) return; // skip this vsync (8ms tolerance prevents jitter drops)
     let dt = last ? now - last : 1 / 60; last = now; const cap = fpsT < 60 ? 0.1 : 0.05; if (dt > cap) dt = cap; if (dt <= 0) return;
     step(dt);
   }

@@ -1,0 +1,48 @@
+FAIL friends: Жучок ≈15 % smaller (≤ 14×16, was 17×18)  ← {"x":0,"y":0,"w":17,"h":18}
+PASS friends: a well-fed Жучок is still a bit wider
+FAIL friends: every Жучок pose stays in his new size  ← [["idle0",17,18],["idle1",17,18],["happy0",17,18],["happy1",17,18],["talk0",17,18],["talk1",17,18],["fly0",17,18],["fly1",17,18],["walk0",17,18],["walk1",17,18],["brush0",17,18],["brush1",17,18],["lift0",17,18],["lift1",17,18],["bite0",17,18],["bite1",17,18]]
+FAIL friends: Москит ×1.5 (≈ 22–26 × 22–26, was 15×16)  ← {"x":0,"y":0,"w":15,"h":16}
+FAIL friends: every Москит pose stays ×1.5 (no pose falls back to the tiny map)  ← [["idle0",15,16],["idle1",15,16],["happy0",15,16],["happy1",15,16],["talk0",15,16],["talk1",15,16],["fly0",15,16],["fly1",15,16],["walk0",15,16],["walk1",15,16],["brush0",15,16],["brush1",15,16],["lift0",15,16],["lift1",15,16],["bite0",15,16],["bite1",15,16]]
+PASS friends: a well-fed Москит is wider
+PASS friends: Жучок and Москит are drawn symmetric
+FAIL friends: Москит keeps his big googly eyes (white ≥ 20 px) and the sting in his meta  ← {"w":16,"k":30,"mouth":[7,6],"head":[7,1]}
+PASS friends: Монти has no dark dots on his tummy (normal + well fed)
+FAIL friends: crashed — page.evaluate: TypeError: __game.GAME._ownAll is not a function
+PASS growth: Кроха stays as he is (44 px)
+FAIL growth: every stage only a little taller (+1…3 px)  ← {"h":[44,47,50,54,58,61,64,67,70,72],"st":[3,3,4,4,3,3,3,3,2]}
+FAIL growth: the adult is small now (≈ 57 px, was 69)  ← [44,47,50,54,58,61,64,67,70,72]
+FAIL growth: crashed — page.evaluate: TypeError: __game.GAME._ownAll is not a function
+FAIL guitar: crashed — page.evaluate: TypeError: __game.GAME._ownAll is not a function
+FAIL rug: the yarn is cocoa brown — 7 warm brown tones (no lavender)  ← []
+FAIL rug: crashed — page.evaluate: TypeError: __game.GAME._ownAll is not a function
+FAIL shop: guitar, kettle, microwave, candles, vacuum, router, Hornets, toys, Linux, figurines, washer are for sale at their prices / levels  ← [["kettle",null,[40,1]],["micro",null,[90,2]],["candles",null,[35,1]],["guitar",null,[150,2]],["vacuum",null,[200,3]],["router",null,[60,1]],["hornets",null,[80,2]],["toys",null,[70,2]],["linux",null,[60,2]],["figsN",null,[70,2]],["figsSP",null,[90,3]],["washer",null,[180,3]]]
+FAIL shop: every thing in «Дом» has a description  ← ["art_painting","art_carpet","plant","lamp","disco","magnets","cactus","clock","garland","nightlight","poster","duck","bathmat","fern","hammock","gnome","flamingo","feeder","flowers","telescope","lava","radio"]
+PASS shop: a new game has none of them
+FAIL shop: nothing unbought is in the rooms (no spots)  ← {"kettle":[114,114,22,26],"micro":[68,124,26,16],"candles":[118,199,16,18],"router":[144,108,22,22],"hornet":[134,115,42,15],"toys":[134,134,42,22],"linux":[144,171,22,12],"figs":[134,193,42,15],"vacuum":[144,218,32,22],"washer":[136,176,44,52]}
+PASS shop: the furniture and the basics stay free (fridge, stove, fireplace, rug, mirror, shower, toilet, aid kit, cat rug, sconces)
+FAIL shop: before buying — the kettle / microwave do not run, no guitar trip, no vacuum ride  ← {"kettle":"boil","micro":"run","guitarTrip":"guitar","vac":"dock","vacTrip":"vac","calls":["switch","boil","micro","click","step","click","step"]}
+FAIL shop: «kettle» bought → it appears in the kitchen  ← {"b":{"ok":false,"placed":false},"diff":"3%"}
+FAIL shop: «micro» bought → it appears in the kitchen  ← {"b":{"ok":false,"placed":false},"diff":"6%"}
+FAIL shop: «candles» bought → it appears in the kitchen  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «guitar» bought → it appears in the zal  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «vacuum» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «router» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «hornets» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «toys» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «linux» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «figsN» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «figsSP» bought → it appears in the hall  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+FAIL shop: «washer» bought → it appears in the bath  ← {"b":{"ok":false,"placed":false},"diff":"0%"}
+PASS shop: bought things work — kettle boils, microwave runs, candles light
+PASS shop: bought things work — router, Linux box, Hornets, toys, figurines hop
+PASS shop: bought things work — the washer, the guitar (Детёныш), the vacuum ride
+FAIL shop: every new thing has its «Дом» card with a description  ← {}
+FAIL shop: …and its own thumbnail (no two the same)  ← 0
+FAIL shop: «Всё потрогал» (25 gags) stays reachable with the things bought  ← 0
+FAIL shop: a v5 save → v6, keeps every thing it had (owned + placed), with a toast  ← {"v":5,"miss":["kettle","micro","candles","guitar","vacuum","router","hornets","toys","linux","figsN","figsSP","washer"],"toast":""}
+FAIL shop: after a reload — the things stay, the toast does not come back  ← {"miss":["kettle","micro","candles","guitar","vacuum","router","hornets","toys","linux","figsN","figsSP","washer"],"toast":""}
+FAIL shop: a kettle bought in v6 is not taken away (the old polka-dot refund is only for old saves)  ← {"coins":115,"owned":false,"placed":false}
+FAIL shop: an old polka-dot kettle is still refunded (60), and the new glass one is given  ← {"coins":85,"owned":false,"placed":false}
+PASS no page errors 
+11 passed, 35 failed
+ERRORS

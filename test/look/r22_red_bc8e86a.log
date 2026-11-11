@@ -1,0 +1,22 @@
+FAIL gift: a first start shows a gift box «Дашулик, это тебе!» with «Открыть» — no name dialog, the HUD hidden, Абибян hidden inside  ← {"has":false,"nm":true,"cap":"","btn":false,"ui":false,"scene":"boot"}
+FAIL crashed: page.evaluate: TypeError: Cannot read properties of undefined (reading 'giftTaps') |     at eval (eval at evaluate (:311:30), <anonymous>:1:106) |     at UtilityScript.evaluate (<anonymous>:313:16)
+PASS no page errors 
+1 passed, 2 failed
+ERRORS
+PASS blow: test signals made (tools/blow_wavs.py)
+FAIL crashed: page.evaluate: TypeError: Cannot read properties of undefined (reading 'blowInfo') |     at eval (eval at <anonymous> (eval at evaluate (:311:30)), <anonymous>:1:16) |     at eval (eval at evaluate (:311:30), <anonymous>:1:69)
+PASS no page errors 
+2 passed, 1 failed
+ERRORS
+PASS site: ready for GitHub Pages — 10 files (web upload ≤ 100), each < 25 MB, .nojekyll, only relative paths
+FAIL site: docs/GITHUB_PAGES.md — step by step in Russian, the link, microphone needs https  ← 0
+FAIL crashed: page.evaluate: TypeError: Cannot read properties of undefined (reading 'giftOn') |     at eval (eval at evaluate (:311:30), <anonymous>:1:197) |     at async <anonymous>:337:30
+PASS no page errors 
+2 passed, 2 failed
+ERRORS
+FAIL card: tools/card.py makes dist/abibyan-card.pdf + .png  ← "python3: can't open file '/data/game/tools/card.py': [Errno 2] No such file or directory\n"
+FAIL card: its QR code opens   ← "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^\ncv2.error: OpenCV(5.0.0) /io/opencv/modules/objdetect/src/qrcode.cpp:27: error: (-215:Assertion failed) !img.empty() in function 'checkQRInputImage'\n\n"
+FAIL card: 2 pages (front + back), postcard size ()  ← ""
+PASS no page errors 
+1 passed, 3 failed
+ERRORS

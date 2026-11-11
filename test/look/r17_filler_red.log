@@ -1,0 +1,4 @@
+FAIL filler: alone for long enough while he fidgets (an idle act) → he sets off right away, the fidget is dropped (≤ 1.5 s)  ← {"fidget":"think","cur":null,"t":2500,"act":"think"}
+PASS no page errors 
+1 passed, 1 failed
+ERRORS

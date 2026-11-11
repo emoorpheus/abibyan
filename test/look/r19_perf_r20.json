@@ -1,0 +1,68 @@
+{
+ "tag": "r20",
+ "file": "index.html",
+ "date": "2026-11-05T04:47:40.759Z",
+ "size": {
+  "html": 11825623,
+  "site": 11862367,
+  "siteZip": 8032670,
+  "speech": 8811602,
+  "rec": 1918516
+ },
+ "runs": [
+  {
+   "cpu": 1,
+   "wall": 793,
+   "dcl": 670,
+   "load": 739,
+   "ready": 289,
+   "longTasks": 3,
+   "longest": 203,
+   "scriptMs": 244,
+   "taskMs": 766,
+   "heapMB": 3.3,
+   "home": {
+    "busy": 9.6,
+    "script": 6.1,
+    "frames": 241,
+    "p95": 16.7,
+    "over25": 0
+   },
+   "game": {
+    "busy": 11.1,
+    "script": 3.4,
+    "frames": 241,
+    "p95": 16.7,
+    "over25": 0
+   },
+   "errs": []
+  },
+  {
+   "cpu": 4,
+   "wall": 2688,
+   "dcl": 2313,
+   "load": 2545,
+   "ready": 827,
+   "longTasks": 6,
+   "longest": 469,
+   "scriptMs": 650,
+   "taskMs": 2669,
+   "heapMB": 3.6,
+   "home": {
+    "busy": 30.3,
+    "script": 20.7,
+    "frames": 242,
+    "p95": 16.8,
+    "over25": 0
+   },
+   "game": {
+    "busy": 34.4,
+    "script": 10.2,
+    "frames": 241,
+    "p95": 16.7,
+    "over25": 0
+   },
+   "errs": []
+  }
+ ]
+}

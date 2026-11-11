@@ -1,0 +1,10 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); 1", "wait": 800},
+ {"clickSel": "#a-photo", "wait": 2200, "shot": "x1.png"},
+ {"eval": "__game.UI.closeModal(); __game.HOME.goTo('balcony', true); __game.GAME.S.tree.bananas = 4; 1", "wait": 1500, "shot": "x2.png"},
+ {"clickSel": "#a-water", "wait": 1200, "shot": "x3.png"},
+ {"eval": "__game.UI.openProfile(); 1", "wait": 700, "shot": "x4.png"},
+ {"eval": "__game.UI.closeModal(); __game.UI.openSettings(); 1", "wait": 700, "shot": "x5.png"},
+ {"eval": "__game.UI.closeModal(); __game.UI.help(); 1", "wait": 700, "shot": "x6.png"}
+]

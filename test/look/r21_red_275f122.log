@@ -1,0 +1,11 @@
+FAIL voice: game lines, reactions and his recordings are 32 kbit/s (was 40): [{"40k@22050":535},{"40k@22050":8},{"40k@22050":179}]  ← {"lines":{"40k@22050":535},"fx":{"40k@22050":8},"rec":{"40k@22050":179},"words":{"32k@22050":1700},"syl":{"32k@22050":210}}
+FAIL voice: typed-text words and syllables are 24 kbit/s (was 32): [{"32k@22050":1700},{"32k@22050":210}]  ← {"lines":{"40k@22050":535},"fx":{"40k@22050":8},"rec":{"40k@22050":179},"words":{"32k@22050":1700},"syl":{"32k@22050":210}}
+PASS voice: the same clips as before — every key and every duration (and syllable cut) unchanged
+FAIL voice: the whole voice weighs 10.16 MB of base64 (A was 10.16, the A/B page promised B ≈ 7.9)  ← 10655896
+FAIL size: the one-file game abibyan.html is 11.3 MB (was 11.3)  ← 11825623
+FAIL size: the website's voice files are 10.2 MB (was 10.2)  ← {"v1":5896840,"v2":4817420}
+PASS play: a line, a word, a syllable, his recording and a reaction decode in the game (0.5, 0.42, 0.24, 1.49, 0.94 s), say() speaks lines and typed text
+PASS no page errors 
+3 passed, 5 failed
+ERRORS
+EXIT 1

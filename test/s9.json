@@ -1,0 +1,8 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.GAME.S.st.energy=40; __game.HOME.goTo('zal', true); 1", "wait": 1600},
+ {"clickSel": "#a-light", "wait": 2000},
+ {"eval": "__game.HOME.say('Я стал настоящим скуфом, ура!'); 1", "wait": 600, "shot": "b5.png", "clip": [0, 200, 390, 400]},
+ {"clickSel": "#a-light", "wait": 3000},
+ {"eval": "__game.GAME.S.want = {type:'food', id:'banana', until: Date.now()+60000}; __game.HOME.goTo('kitchen', true); 1", "wait": 1500, "shot": "b6.png", "clip": [0, 200, 390, 400]}
+]

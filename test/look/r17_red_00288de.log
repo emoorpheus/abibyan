@@ -1,0 +1,23 @@
+FAIL clothes: 9 new things — Чепчик, Слюнявчик, Панамка, Галстук, Наушники, Кожанка, Кеды, Шляпа-федора, Плащ Легенды  ← ["bonnet","bib","panama","tie","headphones","leather","keds","fedora","cape"]
+FAIL clothes: each one is the gift of its stage (1 … 9) and opens with it  ← {"bonnet":null,"bib":null,"panama":null,"tie":null,"headphones":null,"leather":null,"keds":null,"fedora":null,"cape":null}
+FAIL clothes: every stage after the first has exactly one gift  ← [[],[],[],[],[],[],[],[],[],[]]
+FAIL clothes: …and they can be bought later too (a price)  ← {"bonnet":null,"bib":null,"panama":null,"tie":null,"headphones":null,"leather":null,"keds":null,"fedora":null,"cape":null}
+FAIL art: every new thing is visible on him (≥ 30 px changed) and looks unlike the others of its slot (≥ 20 px)  ← {"bonnet":null,"bib":null,"panama":null,"tie":null,"headphones":null,"leather":null,"keds":null,"fedora":null,"cape":null}
+FAIL art: the cape shows from behind too  ← 0
+FAIL art: crashed — page.evaluate: InvalidStateError: Failed to execute 'drawImage' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0.
+FAIL wardrobe: the new hats are in «Гардероб»; a later stage one is locked by the stage and tagged as a party gift  ← {"panama":null,"bonnet":null,"thumb":false}
+FAIL wardrobe: one of a passed stage can be bought (price shown, no stage lock)  ← {"panama":null,"bonnet":null,"thumb":false}
+FAIL party: the «подрос» card first (the party waits until it is closed)  ← {"modal":true,"text":"Абибян подрос!Теперь он — Детёныш+25\n      Открыто: Доширак, Пельмени, Диет-чай, игра «Лианы», игра «Воздушный шарик», игра «Банановая башня»Ура!","pending":0,"party":null}
+FAIL party: the card closed → the friends come over for a growth party (kind «grow»)  ← {"kinds":[],"here":0}
+FAIL party: a cake with the number candle of the stage (3), he blows it out  ← {"num":null,"lit":false,"blown":false}
+FAIL party: a friend gives the stage gift — Панамка — and he puts it on  ← {"gift":null,"toasts":["Фото в альбом: Новый этап: Детёныш"]}
+FAIL party: …it is his now (in the wardrobe)
+FAIL party: they say it is about him growing up («этап»/«вырос») and he thanks them  ← {"lines":[],"abi":["Смотри, какой я большой!","Поиграем в лианы?","Почеши мне пузико!"]}
+FAIL party: a group photo «Праздник: Детёныш» goes into the album (polaroid shown)  ← {"L":["grow:3 Новый этап: Детёныш"],"pol":false}
+PASS party: then everybody goes home; the daily «Все вместе» is not used up; nothing pending
+FAIL pending: he is asleep → no party yet, it is remembered (stage 5)  ← {"party":null,"pending":0}
+FAIL pending: he wakes up → the growth party happens (gift: Наушники)  ← {"kinds":[],"gift":null,"num":null}
+FAIL owned: the gift is already his → the friends give 30 coins instead (toast)  ← {"toasts":["Фото в альбом: Новый этап: Детёныш","Фото в альбом: Новый этап: Подросток","Фото в альбом: Новый этап: Малыш"],"d":0}
+PASS no page errors 
+2 passed, 19 failed
+ERRORS

@@ -1,0 +1,9 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.MINI.start('catch', 1); 1", "wait": 1500},
+ {"eval": "__game.MINI.api.levelUp(); 1", "wait": 500, "shot": "g2.png"},
+ {"eval": "__game.MINI.api.levelUp(); __game.MINI.api.over(); 1", "wait": 2600, "shot": "g3.png"},
+ {"eval": "[...document.querySelectorAll('#modalw button')].map(b=>b.id)", "tag": "btns"},
+ {"clickSel": "#r-home", "wait": 1500, "shot": "g4.png"},
+ {"eval": "[__game.GAME.S.coins, __game.GAME.S.best]", "tag": "coins"}
+]

@@ -1,0 +1,44 @@
+FAIL card: signed on one line — «С любовью,»  ← ""
+FAIL card: no empty line to sign by hand any more  ← 42011
+FAIL url: docs/GITHUB_PAGES.md — https://emoorpheus.github.io/abibyan/ and https://emoorpheus.github.io/abibyan/test.html; «monkey2d» nowhere (docs/GITHUB_PAGES.md, tools/card.py, build.py, test/r22.js, test/r23.js)  ← {"stale":"docs/GITHUB_PAGES.md, tools/card.py, build.py, test/r22.js, test/r23.js"}
+FAIL url: the card's QR code opens https://emoorpheus.github.io/monkey2d/; the card says github.io/abibyan  ← ""
+FAIL harder: less of each heart shows — at most 60 % (most: 73 %), 52 % on average (was 52 %) [1:0.64 2:0.58 3:0.73 4:0.61 5:0.63 6:0.46 7:0.65 8:0.4 9:0.67 10:0.6 11:0.57 12:0.46 13:0.51 14:0.56 15:0.34 16:0.62 17:0.43 18:0.46 19:0.45 20:0.62 21:0.23 22:0.38 23:0.5 24:0.45]  ← "1:0.64 2:0.58 3:0.73 4:0.61 5:0.63 6:0.46 7:0.65 8:0.4 9:0.67 10:0.6 11:0.57 12:0.46 13:0.51 14:0.56 15:0.34 16:0.62 17:0.43 18:0.46 19:0.45 20:0.62 21:0.23 22:0.38 23:0.5 24:0.45"
+FAIL harder: still easier first — the first 6 show 61 %, the last 6 44 % (≤ 38 %); none lost (≥ 12 %, ≥ 5 px)  ← {"e6":0.6083333333333333,"l6":0.4383333333333334,"lost":[]}
+FAIL harder: it glints 10 times a minute by itself (was 9; 3…5 now)  ← {"n":10,"room":"zal"}
+FAIL harder: a tap 20 px off — no glint (true); 12 px off — it glints (true)  ← {"far":true,"near":true}
+FAIL harder: he helps later — nothing in 80 s, «Тепло» by 100 s (Горячо! Сердечко в этой комнате! | Скажи что-нибудь в микрофон! | Тепло-тепло! Оно где-то здесь!)  ← {"at80":1,"at100":2,"said":["Горячо! Сердечко в этой комнате!","Скажи что-нибудь в микрофон!","Тепло-тепло! Оно где-то здесь!"]}
+PASS ip17_safari: iPhone 17 в Safari (402×681) — the gift opened with a finger; the scene, the top panel and the bottom bar are inside the safe area (top 0, bottom 0); nothing scrolls
+PASS ip17_safari: the tutorial card sits under the top panel
+FAIL ip17_safari: 10 buttons all ≥ 36 px; text fields 19.1531/19.1531/12.7688 px ≥ 16 (no zoom on typing)  ← {"small":[],"n":10,"fsN":19.1531,"fsT":12.7688,"fsI":19.1531}
+PASS ip17_safari: no heart under the panels (none); a finger on heart №1 opens «Секрет №1Здесь будет записка для Дашулик»
+PASS ip17_home: iPhone 17 с экрана «Домой» (402×874) — the gift opened with a finger; the scene, the top panel and the bottom bar are inside the safe area (top 62, bottom 34); nothing scrolls
+PASS ip17_home: the tutorial card sits under the top panel
+FAIL ip17_home: 10 buttons all ≥ 36 px; text fields 20.1/20.1/13.4 px ≥ 16 (no zoom on typing)  ← {"small":[],"n":10,"fsN":20.1,"fsT":13.4,"fsI":20.1}
+PASS ip17_home: no heart under the panels (none); a finger on heart №1 opens «Секрет №1Здесь будет записка для Дашулик»
+PASS ip17pm_home: iPhone 17 Pro Max с экрана «Домой» (440×956) — the gift opened with a finger; the scene, the top panel and the bottom bar are inside the safe area (top 62, bottom 34); nothing scrolls
+PASS ip17pm_home: the tutorial card sits under the top panel
+FAIL ip17pm_home: 10 buttons all ≥ 36 px; text fields 21/21/14 px ≥ 16 (no zoom on typing)  ← {"small":[],"n":10,"fsN":21,"fsT":14,"fsI":21}
+PASS ip17pm_home: no heart under the panels (none); a finger on heart №1 opens «Секрет №1Здесь будет записка для Дашулик»
+PASS ip17e_safari: iPhone 17e в Safari (390×651) — the gift opened with a finger; the scene, the top panel and the bottom bar are inside the safe area (top 0, bottom 0); nothing scrolls
+PASS ip17e_safari: the tutorial card sits under the top panel
+FAIL ip17e_safari: 10 buttons all ≥ 36 px; text fields 18/18/12 px ≥ 16 (no zoom on typing)  ← {"small":[{"id":"h-grow","w":34,"h":34},{"id":"h-phone","w":34,"h":34},{"id":"h-shop","w":34,"h":34},{"id":"h-ach","w":34,"h":34},{"id":"h-set","w":34,"h":34}],"n":10,"fsN":18,"fsT":12,"fsI":18}
+PASS ip17e_safari: no heart under the panels (none); a finger on heart №1 opens «Секрет №1Здесь будет записка для Дашулик»
+PASS ip17e_home: iPhone 17e с экрана «Домой» (390×844) — the gift opened with a finger; the scene, the top panel and the bottom bar are inside the safe area (top 47, bottom 34); nothing scrolls
+PASS ip17e_home: the tutorial card sits under the top panel
+FAIL ip17e_home: 10 buttons all ≥ 36 px; text fields 19.5/19.5/13 px ≥ 16 (no zoom on typing)  ← {"small":[],"n":10,"fsN":19.5,"fsT":13,"fsI":19.5}
+PASS ip17e_home: no heart under the panels (none); a finger on heart №1 opens «Секрет №1Здесь будет записка для Дашулик»
+PASS iphone: the rehearsal on the iPhone 17 — the gift with a finger, her party (23550 ms), «Пальцем», every candle out by finger taps (0 left)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+PASS webkit: abibyan.html starts in WebKit (Safari's engine) — the first picture (57252 px), the voice (3), the gift box
+FAIL webkit: a finger opens the gift and pets him — the tutorial goes on (step 0 → 0)  ← {"gift":{"had":true,"open":true},"t0":0,"t1":0}
+PASS webkit: the test build says 21.11, 100390 coins; her party and every candle out by finger (0 left)
+PASS webkit: a finger on heart №1 → «Секрет №1Здесь будет записка д…», still found after a reload (1)
+PASS webkit: the site from /abibyan/ — the voice comes from voice1/2.txt (3); the offline worker http://localhost:8773/abibyan/
+FAIL private: search engines are asked not to list it — noindex in every page (missing: site/index.html, site/test.html, abibyan.html, abibyan-test.html, index.html)  ← ["site/index.html","site/test.html","abibyan.html","abibyan-test.html","index.html"]
+FAIL private: docs/PRIVATE_RELEASE.md — how to open it only by the link (GitHub Pages, a private repo, Netlify / Cloudflare), linked from GITHUB_PAGES.md  ← 0
+PASS private: the site zip has index.html and test.html on top (drag the folder to Netlify Drop) — 11 files
+PASS private: from a domain's root (Netlify / Cloudflare Pages) — the game starts, the voice loads, the offline worker http://localhost:8773/
+PASS no page errors 
+23 passed, 17 failed
+ERRORS
+EXIT 1

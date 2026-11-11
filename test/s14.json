@@ -1,0 +1,12 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); window.c0 = __game.GAME.S.coins; __game.MINI.start('catch', 1); c0", "tag": "c0", "wait": 1500},
+ {"eval": "__game.MINI.api.levelUp(); __game.MINI.api.levelUp(); __game.MINI.api.over(); 1", "wait": 2600},
+ {"clickSel": "#r-home", "wait": 800},
+ {"eval": "[window.c0, __game.GAME.S.coins, __game.GAME.S.xp, __game.GAME.S.lvl]", "tag": "c1"},
+ {"eval": "__game.MINI.start('vine', 1); 1", "wait": 2500, "shot": "v1.png"},
+ {"eval": "__game.MINI.home && __game.MINI.home(); __game.MINI.start('balloon', 1); 1", "wait": 2000, "shot": "v2.png"},
+ {"eval": "__game.MINI.home(); __game.MINI.start('bongo', 1); 1", "wait": 2500, "shot": "v3.png"},
+ {"eval": "__game.MINI.home(); __game.MINI.start('gym', 1); 1", "wait": 2000, "shot": "v4.png"},
+ {"eval": "__game.MINI.home(); 1", "wait": 800, "shot": "v5.png"}
+]

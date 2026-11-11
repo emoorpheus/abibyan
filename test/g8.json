@@ -1,0 +1,8 @@
+[
+ {"wait": 700},
+ {"eval": "(()=>{__game.GAME.save=()=>{};localStorage.setItem('martyn_tamagotchi_v1', JSON.stringify({name:'Мартын',named:true,created:Date.now()-5*86400e3,last:Date.now()-3600e3,coins:321,xp:5,lvl:4,kg:12.4,st:{food:50,fun:50,energy:50,clean:50},inv:{banana:4,coffee:2},ownedC:{tophat:1},wear:{hat:'tophat',glasses:null,top:null,bottom:null,neck:null,feet:null},stats:{fed:40,maxKg:13},ach:{first_meal:1},daily:{last:'',streak:2,best:3}}));return 1})()"},
+ {"eval": "setTimeout(()=>location.reload(),10)", "wait": 2200},
+ {"eval": "(()=>{const S=__game.GAME.S;return {v:S.v,name:S.name,kg:S.kg,form:__game.GAME.form().name,stage:S.grow.stage,inv:S.inv,coins:S.coins,lvl:S.lvl,tasks:S.tasks.list.map(t=>t.id),wear:S.wear.hat,today:S.grow.today}})()", "tag": "migr"},
+ {"wait": 500, "shot": "migr.png"},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 1500, "shot": "migr2.png"}
+]

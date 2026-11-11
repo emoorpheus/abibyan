@@ -1,0 +1,5 @@
+[
+ {"eval": "document.querySelector('#nm-ok') && document.querySelector('#nm-ok').click(); 1", "wait": 1500},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); [getComputedStyle(document.documentElement).getPropertyValue('--ct'), __game.APP.lay]", "wait": 2500, "shot": "h2.png"},
+ {"eval": "__game.HOME.goTo('kitchen', true); 1", "wait": 1400, "shot": "h3.png"}
+]

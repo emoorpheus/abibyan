@@ -1,0 +1,7 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.GAME.S.st.energy=40; __game.HOME.goTo('zal', true); 1", "wait": 1600},
+ {"clickSel": "#a-light", "wait": 2600, "shot": "b1.png"},
+ {"eval": "__game.GAME.setKg(17); 1", "wait": 1500, "shot": "b1f.png"},
+ {"clickSel": "#a-light", "wait": 1500, "shot": "b1w.png"}
+]

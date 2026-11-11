@@ -1,0 +1,23 @@
+FAIL mosq (idle): six legs — three on each side  ← {"W":25,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":21}
+FAIL mosq (fly): six legs — three on each side  ← {"W":25,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":21}
+FAIL mosq (fat): six legs — three on each side  ← {"W":27,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":23}
+FAIL mosq: a long nose (≥ 12 px) from his mouth down…  ← {"idle":{"W":25,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":21},"fly":{"W":25,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":21},"fat":{"W":27,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":23},"big":{"W":48,"H":50,"legs":1,"nose":4,"low":25,"bodyLow":46}}
+FAIL mosq: …sticking out below his tummy (≥ 2 px)  ← {"W":25,"H":24,"legs":2,"nose":0,"low":-1,"bodyLow":21}
+FAIL mosq: the big portrait (card, duel) has the long nose too (≥ 18 px)  ← {"W":48,"H":50,"legs":1,"nose":4,"low":25,"bodyLow":46}
+FAIL etagere: the pink-purple figure is gone  ← {"t4":["spike","pink","hankey","alien","bear","mole","goomba","towel","bird","shyguy"],"fm":["orang","horse","cat","gnome","coins","spike","shyguy","hornet","alien","hankey","bear","mole","goomba","towel","bird","pink","tux"],"lines":["g_figBird"]}
+FAIL etagere: the red bird («Чирик-чирик!») is gone  ← {"t4":["spike","pink","hankey","alien","bear","mole","goomba","towel","bird","shyguy"],"fm":["orang","horse","cat","gnome","coins","spike","shyguy","hornet","alien","hankey","bear","mole","goomba","towel","bird","pink","tux"],"lines":["g_figBird"]}
+PASS etagere: the rest of the bottom tray stays (Спайк, Скромник, Монти, Хауди-хо, пришелец, Полотенчик, мишка, Гумба)
+FAIL etagere: no pink-purple or bird-red pixels on the bottom tray  ← 31
+FAIL etagere: no figure says «Чирик-чирик» any more  ← ["Зелёный, с синим хохолком!","Спайк! Какой гребешок!","Розово-фиолетовая! Красота!","Хауди-хо!","Хауди-хо!","Пришелец! Мы с миром!","Расписной мишка!","Расписной мишка!","Монти, ты и на полке?","Гумба! Прыг на него!","Чирик-чирик!","Чирик-чирик!","Не забудь полотенце!","Скромник! Не прячься под маской!"]
+voice: recordings F0 / rms-frequency {"n":313,"f0":538,"rf":792}
+FAIL voice: his recordings are higher — median F0 ≥ +2 semitones over Round 8  ← {"v":{"n":313,"f0":538,"rf":792},"base":538}
+FAIL voice: …and squeakier — brighter (rms frequency ≥ 1.15 × Round 8)  ← {"v":{"n":313,"f0":538,"rf":792},"base":792}
+FAIL voice: TTS lines play ≥ 5 % higher (rate ≥ 1.05 at the base voice)  ← {"k":"скучно шучу","rates":[1],"eq":[["highpass",7000,0],["highpass",7000,0]]}
+FAIL voice: …through a squeaky EQ (a presence peak ≥ +3 dB at 2.5–4 kHz, the lows cut)  ← {"k":"скучно шучу","rates":[1],"eq":[["highpass",7000,0],["highpass",7000,0]]}
+FAIL whine: his own «Э-э-э-э-э!» recording is in the bank (≥ 1 s)  ← {"has":false,"dur":0}
+FAIL whine: a baby whine plays HIS recording (not the synth sawtooth)  ← {"calls":["whine"],"clip":false,"saw":1,"bubble":"Э-э-э-э-э!"}
+FAIL ducks: there is a DUCKS module  ← null
+FAIL ducks: crashed — Cannot read properties of null (reading 'line')
+PASS no page errors 
+2 passed, 18 failed
+ERRORS

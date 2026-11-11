@@ -1,0 +1,6 @@
+[
+ {"eval": "document.querySelector('#nm-ok').click(); 1", "wait": 1200},
+ {"eval": "document.querySelectorAll('[data-close]').forEach(b=>b.click()); __game.GAME.setKg(17); __game.GAME.S.st.clean=100; __game.UI.refresh(); __game.HOME.goTo('bath', true); 1", "wait": 2500},
+ {"eval": "__game.UI.hideBubble(); 1", "shot": "sk1.png", "clip": [95, 300, 200, 300]},
+ {"clickSel": "#a-shower", "wait": 900, "shot": "sk2.png", "clip": [95, 150, 200, 450]}
+]

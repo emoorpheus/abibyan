@@ -1,0 +1,14 @@
+[
+ {"wait": 900},
+ {"clickSel": "#nm-ok", "wait": 1200},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 2500},
+ {"eval": "(()=>{const H=__game.HOME;H.mk.nextTalk=999;H.mk.nextIdle=999;H.say('Поиграем в лианы? Я уже большой!');return 1})()", "wait": 350, "shot": "g_talk1.png", "clip": [100, 380, 190, 140]},
+ {"wait": 160, "shot": "g_talk2.png", "clip": [100, 380, 190, 140]},
+ {"eval": "__game.HOME.goTo('zal',true)", "wait": 600},
+ {"eval": "__game.HOME.toggleLight()", "wait": 1500, "shot": "g_bed.png"},
+ {"eval": "__game.HOME.toggleLight()", "wait": 300},
+ {"eval": "__game.HOME.goTo('bath',true)", "wait": 2200, "shot": "g_bath.png"},
+ {"eval": "__game.HOME.goTo('balcony',true)", "wait": 900, "shot": "g_balcony.png"},
+ {"eval": "(()=>{const G=__game.GAME,S=G.S;S.grow.stage=2;S.kg=8*0.78;__game.HOME.goTo('hall',true);return G.form().name})()", "tag": "teen", "wait": 900, "shot": "g_teen.png"},
+ {"eval": "(()=>{const G=__game.GAME,S=G.S;S.grow.stage=3;S.kg=16.5;__game.UI.refresh();return [G.form().name,G.fat()]})()", "tag": "adult", "wait": 900, "shot": "g_adult.png"}
+]

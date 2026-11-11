@@ -1,0 +1,6 @@
+[
+ {"wait": 900},
+ {"clickSel": "#nm-ok", "wait": 900},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 300},
+ {"eval": "(()=>{const S=__game.GAME.S;S.grow.pts=60;__game.UI.refresh();})()", "wait": 400, "shot": "hud3.png", "clip": [230, 0, 60, 45]}
+]

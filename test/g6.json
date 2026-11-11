@@ -1,0 +1,17 @@
+[
+ {"wait": 900},
+ {"clickSel": "#nm-ok", "wait": 900},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 300},
+ {"eval": "__game.MINI.intro('vine')", "wait": 500, "shot": "m_lock.png"},
+ {"eval": "__game.MINI.intro('catch')", "wait": 600, "shot": "m_intro.png"},
+ {"eval": "__game.UI.closeModal();__game.MINI.start('catch',1)", "wait": 1500, "shot": "m_catch.png"},
+ {"eval": "__game.MINI.home()", "wait": 500},
+ {"eval": "__game.MINI.start('bongo',1)", "wait": 1500, "shot": "m_bongo.png"},
+ {"eval": "__game.MINI.home()", "wait": 500},
+ {"eval": "__game.MINI.start('balloon',1)", "wait": 900, "shot": "m_balloon.png"},
+ {"eval": "__game.MINI.home()", "wait": 500},
+ {"eval": "__game.MINI.start('gym',1)", "wait": 1200, "shot": "m_gym.png"},
+ {"eval": "__game.MINI.home()", "wait": 500},
+ {"eval": "__game.MINI.start('vine',1)", "wait": 1200, "shot": "m_vine.png"},
+ {"eval": "__game.MINI.home()", "wait": 500}
+]

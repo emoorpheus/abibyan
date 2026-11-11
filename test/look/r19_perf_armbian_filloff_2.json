@@ -1,0 +1,68 @@
+{
+ "tag": "armbian_filloff_2",
+ "file": "index_filloff.html",
+ "date": "2026-11-08T22:39:29.422Z",
+ "size": {
+  "html": 9781006,
+  "site": 11012126,
+  "siteZip": 6889885,
+  "speech": 7065680,
+  "rec": 1536160
+ },
+ "runs": [
+  {
+   "cpu": 1,
+   "wall": 2497,
+   "dcl": 1805,
+   "load": 2137,
+   "ready": 1030,
+   "longTasks": 7,
+   "longest": 680,
+   "scriptMs": 1179,
+   "taskMs": 2449,
+   "heapMB": 3.7,
+   "home": {
+    "busy": 43.7,
+    "script": 31.9,
+    "frames": 242,
+    "p95": 16.8,
+    "over25": 0
+   },
+   "game": {
+    "busy": 70,
+    "script": 24.1,
+    "frames": 237,
+    "p95": 16.7,
+    "over25": 4
+   },
+   "errs": []
+  },
+  {
+   "cpu": 4,
+   "wall": 9121,
+   "dcl": 6756,
+   "load": 8236,
+   "ready": 3578,
+   "longTasks": 15,
+   "longest": 2566,
+   "scriptMs": 4016,
+   "taskMs": 9023,
+   "heapMB": 3.7,
+   "home": {
+    "busy": 96.4,
+    "script": 69.4,
+    "frames": 64,
+    "p95": 100.1,
+    "over25": 61
+   },
+   "game": {
+    "busy": 97,
+    "script": 38.6,
+    "frames": 86,
+    "p95": 83.3,
+    "over25": 81
+   },
+   "errs": []
+  }
+ ]
+}

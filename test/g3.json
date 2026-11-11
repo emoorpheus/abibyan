@@ -1,0 +1,21 @@
+[
+ {"wait": 900},
+ {"clickSel": "#nm-ok", "wait": 1200},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 2600},
+ {"eval": "(()=>{const H=__game.HOME;H.mk.nextTalk=999;H.mk.nextIdle=999;const r=H.say('Поиграем в лианы? Я уже большой и сильный!');return H.mk.talk&&H.mk.talk.dur})()", "tag":"talkdur", "wait": 250, "shot": "t1.png", "clip": [150, 500, 90, 100]},
+ {"wait": 120, "shot": "t2.png", "clip": [150, 500, 90, 100]},
+ {"wait": 120, "shot": "t3.png", "clip": [150, 500, 90, 100]},
+ {"wait": 120, "shot": "t4.png", "clip": [150, 500, 90, 100]},
+ {"wait": 120, "shot": "t5.png", "clip": [150, 500, 90, 100]},
+ {"shot": "hud.png", "clip": [200, 0, 190, 90]},
+ {"eval": "(()=>{const G=__game.GAME,S=G.S,T=G.tasksRoll();for(const t of T.list){const D=__game.DATA.TASK[t.id];S.stats[D.k]=(T.base[D.k]||0)+D.n;}__game.UI.refresh();return T.list.map(t=>t.id+':'+G.taskReady(t))})()", "tag": "tasks", "wait": 500, "shot": "hud2.png", "clip": [200, 0, 190, 90]},
+ {"clickSel": "#h-grow", "wait": 500, "shot": "g_tasks_ready.png"},
+ {"clickSel": "[data-i='0']", "wait": 400},
+ {"clickSel": "[data-i='1']", "wait": 400},
+ {"clickSel": "[data-i='2']", "wait": 400, "shot": "g_tasks_done.png"},
+ {"clickSel": "[data-b='1']", "wait": 700, "shot": "g_tasks_bonus.png"},
+ {"eval": "(()=>{const S=__game.GAME.S;return {today:S.grow.today,pts:S.grow.pts,days:S.grow.days,coins:S.coins,tasks:S.stats.tasks}})()", "tag": "after"},
+ {"eval": "__game.UI.closeSheet()", "wait": 3200},
+ {"eval": "(()=>{const G=__game.GAME,S=G.S;S.grow.today=99;return G.care(5,'want')})()", "tag": "cap1", "wait": 300},
+ {"eval": "(()=>{const G=__game.GAME;return G.care(5,'want')})()", "tag": "cap2", "wait": 400, "shot": "g_cap.png"}
+]

@@ -1,0 +1,9 @@
+[
+ {"wait": 900},
+ {"clickSel": "#nm-ok", "wait": 900},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 300},
+ {"eval": "__game.GAME.S.coins=999;__game.UI.openWardrobe('hat')", "wait": 700, "shot": "w_hat.png"},
+ {"eval": "__game.UI.closeSheet();__game.UI.openShop('food')", "wait": 400},
+ {"eval": "document.querySelector('#sh-body').scrollTop=9999", "wait": 400, "shot": "w_food.png"},
+ {"clickSel": ".card[data-id='coffee']", "wait": 400, "shot": "w_food_toast.png"}
+]

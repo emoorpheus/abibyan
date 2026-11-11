@@ -1,0 +1,14 @@
+PASS hide: the heart is small — 7×6 px (was 11×10)
+PASS hide: 24 spots measured, nothing else changes there between two frames (noise 0)
+PASS hide: every heart is partly covered / in shadow / behind glass — at most 75 % of a plain heart shows (too plain: none) [1:0.64 2:0.58 3:0.73 4:0.61 5:0.63 6:0.46 7:0.65 8:0.4 9:0.67 10:0.6 11:0.57 12:0.46 13:0.51 14:0.56 15:0.34 16:0.62 17:0.43 18:0.48 19:0.45 20:0.62 21:0.23 22:0.38 23:0.5 24:0.32]
+PASS hide: …but every one can still be seen — ≥ 12 % and ≥ 5 pixels (lost: none)
+PASS hide: no bobbing — the same pixels a second later (moved: none)
+PASS hide: never where Абибян stands (biggest him: none) or a friend sits at home (none)
+PASS hide: each heart can be tapped where it is (missed: none)
+PASS hide: easier first — the first 6 show 61 % on average, the last 6 42 %
+FAIL hide 360×640: no heart under the HUD or the bottom bar — each is seen and tapped (under: 18:wardrobe→#hud, 24:transom→#hud)  ← {"bad":["18:wardrobe→#hud","24:transom→#hud"],"hud":[2,2,178,40],"bar":[2,277,178,317]}
+FAIL hide 375×667: no heart under the HUD or the bottom bar — each is seen and tapped (under: 18:wardrobe→#hud, 24:transom→#hud)  ← {"bad":["18:wardrobe→#hud","24:transom→#hud"],"hud":[2,2,178,40],"bar":[2,290.5,178,330.5]}
+PASS no page errors 
+9 passed, 2 failed
+ERRORS
+EXIT 1

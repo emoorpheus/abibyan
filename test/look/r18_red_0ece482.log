@@ -1,0 +1,15 @@
+FAIL roofs: «Крыши» is a phone game from «Детёныш», pays ×2, has its icon and its own tune  ← null
+FAIL roofs: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL lab: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL gen: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL idle: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL bot: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL parts: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL district: crashed — page.evaluate: TypeError: GAMES[gid] is not a function
+FAIL list: «Крыши» is in the phone games with «Играть»  ← null
+FAIL tour: this week (Mon 2 Nov) has a tournament game he can play  ← null
+FAIL tour: the table — him and the 4 friends, places 1–5, friends with scores, his 0 before he plays  ← null
+FAIL tour: crashed — page.evaluate: TypeError: Cannot read properties of undefined (reading 'cur')
+PASS no page errors 
+1 passed, 12 failed
+ERRORS

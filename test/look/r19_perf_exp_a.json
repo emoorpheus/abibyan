@@ -1,0 +1,68 @@
+{
+ "tag": "exp_a",
+ "file": "exp_a.html",
+ "date": "2026-11-05T03:03:40.691Z",
+ "size": {
+  "html": 1101709,
+  "site": 11870932,
+  "siteZip": 8031103,
+  "speech": 8811602,
+  "rec": 1918516
+ },
+ "runs": [
+  {
+   "cpu": 1,
+   "wall": 513,
+   "dcl": 364,
+   "load": 440,
+   "ready": 338,
+   "longTasks": 2,
+   "longest": 157,
+   "scriptMs": 159,
+   "taskMs": 473,
+   "heapMB": 2.8,
+   "home": {
+    "busy": 13.4,
+    "script": 9.3,
+    "frames": 241,
+    "p95": 16.8,
+    "over25": 0
+   },
+   "game": {
+    "busy": 13.3,
+    "script": 5.3,
+    "frames": 241,
+    "p95": 16.7,
+    "over25": 0
+   },
+   "errs": []
+  },
+  {
+   "cpu": 4,
+   "wall": 1300,
+   "dcl": 919,
+   "load": 1166,
+   "ready": 817,
+   "longTasks": 3,
+   "longest": 451,
+   "scriptMs": 550,
+   "taskMs": 1244,
+   "heapMB": 2.8,
+   "home": {
+    "busy": 39.1,
+    "script": 27.4,
+    "frames": 241,
+    "p95": 16.8,
+    "over25": 0
+   },
+   "game": {
+    "busy": 37.6,
+    "script": 10.1,
+    "frames": 241,
+    "p95": 16.7,
+    "over25": 0
+   },
+   "errs": []
+  }
+ ]
+}

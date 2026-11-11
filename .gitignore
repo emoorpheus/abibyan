@@ -1,0 +1,7 @@
+dist/
+__pycache__/
+*.pyc
+node_modules/
+test/shots/
+test/gallery/
+docs/24-secrets.md

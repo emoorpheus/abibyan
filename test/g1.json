@@ -1,0 +1,20 @@
+[
+ {"wait": 900, "shot": "g_name.png"},
+ {"clickSel": "#nm-ok", "wait": 1500},
+ {"eval": "(()=>{const m=document.querySelector('#modal');return m?m.innerText.slice(0,80):null})()", "tag": "modal"},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 400},
+ {"wait": 1500, "shot": "g_home.png"},
+ {"eval": "(()=>{const A=__game.AUDIO;return {ready:A.voiceReady,lines:Object.keys(SPEECH.lines).length,words:Object.keys(SPEECH.words).length,rate:A._sp.rate,ctx:A.ctx&&A.ctx.state,plan:A._plan('Привет! Я так скучал!').map(s=>s.id).join(' ')}})()", "tag": "voice"},
+ {"clickSel": "#h-grow", "wait": 500, "shot": "g_tasks.png"},
+ {"eval": "document.querySelector('.tab[data-t=grow]').click()", "wait": 500, "shot": "g_grow.png"},
+ {"eval": "(()=>{const b=document.querySelector('#sh-body');b.scrollTop=9999;})()", "wait": 300, "shot": "g_grow2.png"},
+ {"eval": "__game.UI.closeSheet()", "wait": 300},
+ {"eval": "(()=>{const G=__game.GAME;const S=G.S;S.grow.pts=148;S.grow.days=2;const n=G.care(5,'want');return {n,stage:S.grow.stage,kg:S.kg,seen:S.grow.seen}})()", "tag": "grow"},
+ {"wait": 1200, "shot": "g_growup.png"},
+ {"eval": "document.querySelectorAll('#modal [data-close]').forEach(b=>b.click())", "wait": 2500, "shot": "g_kid.png"},
+ {"eval": "__game.HOME.goTo('kitchen',true)", "wait": 800, "shot": "g_kitchen.png"},
+ {"eval": "__game.UI.openShop('food')", "wait": 600, "shot": "g_shop.png"},
+ {"eval": "__game.UI.closeSheet();__game.UI.openGames()", "wait": 600, "shot": "g_games.png"},
+ {"eval": "__game.UI.closeSheet();__game.UI.openProfile()", "wait": 600, "shot": "g_profile.png"},
+ {"eval": "__game.UI.closeModal()", "wait": 200}
+]

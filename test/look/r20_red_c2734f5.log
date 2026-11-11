@@ -1,0 +1,26 @@
+PASS compat: tools/compat.js scans the code (26 files) and finds nothing iOS 15 Safari lacks
+PASS unlock: no sound before the first touch (none)
+FAIL unlock: the very first tap wakes the sound the Safari way — resume() inside the activating pointerup/touchend ([{"f":"new","g":false,"ev":"pointerdown"}])  ← {"st":"suspended","log":[{"f":"new","g":false,"ev":"pointerdown"}]}
+FAIL unlock: put to sleep by the phone (suspended) — one tap brings it back the same way (suspended)  ← {"s2":"suspended","s3":{"st":"suspended","log":[{"f":"resume","g":false,"ev":"pointerdown"}]}}
+FAIL unlock: a silent sample is played on the first wake (old iPhones need a sound started in the gesture): 0  ← 0
+FAIL css: no rubber-band / pull-to-refresh on the page (overscroll-behavior auto, auto)  ← ["auto","auto"]
+FAIL fps: at home, nothing happening — ~30 fps (122 frames for 122 vsyncs, target 60)  ← {"raf":122,"renders":122,"ratio":1,"target":60,"s":2.01}
+PASS fps: a touch / the mouse — full 60 fps right away (62/62, target 60)
+FAIL fps: 2.5 s after the last touch — back to ~30 (62/62)  ← {"raf":62,"renders":62,"ratio":1,"target":60,"s":1.01}
+FAIL fps: asleep with the light off — ~15 fps (122/122, target 60)  ← {"z":{"sl":true,"light":false},"sl":{"raf":122,"renders":122,"ratio":1,"target":60,"s":2.01}}
+PASS fps: advanceTime (tests / catch-up) is not throttled — 1 s = 60 steps (60)
+PASS lively: a room change slides at full 60 fps even without a touch (17/17)
+PASS game: a mini-game always runs at full 60 fps (91/91, target 60)
+FAIL ioshint: iPhone Safari, the site not installed — once a tip: «Поделиться» → «На экран „Домой“» (the save will not be wiped)  ← {"toast":"","flag":null,"plat":null}
+PASS ioshint: …only once (not again after a reload)
+FAIL ioshint: …the same tip and «нет звука — выключи „Без звука“» stay in the settings  ← "\n      \n        1Абибян0\n          62\n        \n          1,3 кг\n      \n      \n      Ура! Я Абибян!\n      СветПовторюшкаФото\n      \n      \n      \n      Настройки\n      ЗвукиВкл\n      МузыкаВкл\n      ПереименоватьКак играть\n      Перенос прогресса на другое устройство:Получить кодВвести код\n      Проф"
+FAIL ioshint: a computer / Android — no tip  ← {"toast":"","plat":null}
+FAIL ioshint: already on the home screen (standalone) — no install tip, the sound tip stays  ← {"toast":"","plat":null}
+PASS canvas: after all 14 rooms and games the live canvases hold 6.1 MB (229 canvases) — far below the iOS limit (~256–384 MB)
+PASS canvas: no single canvas over iOS's 16.7 Mpx (biggest 64800 px)
+FAIL perf: idle at home on a mid phone (CPU ×4) the main thread is busy 32.2% (was 38.6%) — ≤ 28%  ← 32.2
+FAIL ab: dist/abibyan-voice-ab.html — variants  for 0 clips (game lines, glued words, his recordings)  ← null
+PASS no page errors 
+10 passed, 13 failed
+ERRORS
+EXIT 1
