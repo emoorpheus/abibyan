@@ -88,21 +88,32 @@ print('built', out, len(html) // 1024, 'KB')
 # Round 15b #1: …and the top level + the last growth stage («Легенда»): everything in the shop is unlocked
 # Round 23: …and it lives on 21.11.2026 (the real time of day): a rehearsal of her birthday with the money, again and again
 # («Начать репетицию заново» in the settings, or «abibyan-test.html#fresh»); on the website it is test.html
+# Round 33: a clean test build without cheats/bonuses (0 extra coins, level 1, newborn stage) for previewing vanilla first start on 21.11
 SHIFT = '''(function () { var T = window.ABI_TEST; if (!T || !T.date || window.ABI_NODATE || /nodate/.test(location.hash)) return;
   var R = Date, now = R.now(), d = new R(now), off = new R(T.date[0], T.date[1] - 1, T.date[2], d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds()).getTime() - now;
   class D extends R { constructor(...a) { if (a.length) super(...a); else super(R.now() + off); } static now() { return R.now() + off; } }
   window.Date = D; T.shifted = true; })();'''
-def testify(h):
-    h = h.replace('<title>Мой Абибян — плюшевый тамагочи</title>', '<title>Абибян — ТЕСТ (21.11, 100 000 монет)</title>', 1).replace('<script>\n', '<script>window.ABI_TEST = { coins: 100000, top: true, date: [2026, 11, 21], resetToken: "20261111_fresh1" };\n' + SHIFT + '</script>\n<script>\n', 1)
-    assert 'window.ABI_TEST = { coins' in h and 'ТЕСТ' in h and 'T.shifted = true' in h; return h
+def testify(h, coins=100000, top=True, key='martyn_tamagotchi_test_v1', reset_token='20261111_fresh1', title='Абибян — ТЕСТ (21.11, 100 000 монет)'):
+    cfg = {'date': [2026, 11, 21], 'resetToken': reset_token}
+    if coins: cfg['coins'] = coins
+    if top: cfg['top'] = True
+    if key and key != 'martyn_tamagotchi_test_v1': cfg['key'] = key
+    cfg_json = json.dumps(cfg)
+    h = h.replace('<title>Мой Абибян — плюшевый тамагочи</title>', f'<title>{title}</title>', 1)
+    h = h.replace('<script>\n', f'<script>window.ABI_TEST = {cfg_json};\n' + SHIFT + '</script>\n<script>\n', 1)
+    assert 'window.ABI_TEST = ' in h and title in h and 'T.shifted = true' in h
+    return h
 test_html = testify(html)
 (root / 'dist' / 'abibyan-test.html').write_text(test_html); print('built test', root / 'dist' / 'abibyan-test.html')
+fresh_html = testify(html, coins=0, top=False, key='martyn_tamagotchi_fresh_v1', reset_token='20261112_clean1', title='Абибян — 21.11 (чистый запуск)')
+(root / 'dist' / 'abibyan-fresh.html').write_text(fresh_html); print('built fresh', root / 'dist' / 'abibyan-fresh.html')
 
 # ---- website / phone-app package (GitHub Pages, Netlify, any static hosting) ----
 import json, hashlib, shutil, zipfile
 site = root / 'dist' / 'site'; shutil.rmtree(site, ignore_errors=True); site.mkdir(parents=True)
 (site / 'index.html').write_text(html_site)
 (site / 'test.html').write_text(testify(html_site)) # Round 23: …/abibyan/test.html — the rehearsal on the phone (https → the microphone works)
+(site / 'fresh.html').write_text(testify(html_site, coins=0, top=False, key='martyn_tamagotchi_fresh_v1', reset_token='20261112_clean1', title='Абибян — 21.11 (чистый запуск)'))
 (site / 'voice1.txt').write_text('\n'.join(V1)); (site / 'voice2.txt').write_text('\n'.join(V2))
 icons = ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']
 for n in icons: shutil.copy(root / 'assets' / 'icons' / n, site / n)

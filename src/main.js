@@ -146,7 +146,7 @@ const APP = (() => {
     GAME.load(); away = GAME.catchUp(); const s = GAME.S;
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then((p) => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
     AUDIO.set('sfx', s.settings.sfx); AUDIO.set('music', s.settings.music);
-    UI.init(); HOME.init(); HOME.fontsReady(); bindInput(); if (window.ABI_TEST) setTimeout(() => UI.toast(window.ABI_TEST.shifted ? 'Тестовая версия: сегодня 21.11, 100 000 монет, своё сохранение. Заново — в настройках' : 'Тестовая версия: 100 000 монет, макс. уровень, своё сохранение', UI.I('coin'), 'gold', 4200), 1200); GAME.on(onGame); SEASONS.check(); lastWantK = s.want ? s.want.type + (s.want.id || '') + s.want.until : '';
+    UI.init(); HOME.init(); HOME.fontsReady(); bindInput(); if (window.ABI_TEST) setTimeout(() => { const T = window.ABI_TEST, rich = !!(T.coins || T.top); const msg = T.shifted ? (rich ? 'Тестовая версия: сегодня 21.11, 100 000 монет, своё сохранение. Заново — в настройках' : 'Репетиция 21.11: чистый запуск без бонусов. Заново — в настройках') : (rich ? 'Тестовая версия: 100 000 монет, макс. уровень, своё сохранение' : 'Тестовая версия: своё сохранение'); UI.toast(msg, UI.I(rich ? 'coin' : 'star'), 'gold', 4200); }, 1200); GAME.on(onGame); SEASONS.check(); lastWantK = s.want ? s.want.type + (s.want.id || '') + s.want.until : '';
     requestAnimationFrame(frame);
     DASHA.boot();
     const go = () => { if (!s.named || (window.ABI_TEST && /gift/.test(location.hash))) DASHA.giftStart(); else afterIntro(); }; // Round 22: the first start is her gift box (was: «Как его зовут?»)

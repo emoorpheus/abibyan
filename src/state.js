@@ -2,7 +2,7 @@
 // ===== Persistent game state & rules =====
 const GAME = (() => {
   const TEST = typeof window !== 'undefined' && window.ABI_TEST ? window.ABI_TEST : null; // Round 14b: the test build (dist/abibyan-test.html)
-  const KEY = TEST ? 'martyn_tamagotchi_test_v1' : 'martyn_tamagotchi_v1';
+  const KEY = TEST ? (TEST.key || 'martyn_tamagotchi_test_v1') : 'martyn_tamagotchi_v1';
   if (TEST && typeof window !== 'undefined' && window.addEventListener) window.addEventListener('hashchange', () => { if (/(^|[#&])fresh\b/.test(location.hash)) location.reload(); }); // Round 23: «#fresh» typed into an open test build
   // a friend: chats, duel wins/losses, special cooldown (ms timestamp); friendship points/level, mood (60 = calm; drifts back), discovered tastes, today's whim, chats today, treats in the last minutes
   const FDEF = () => ({ chat: 0, w: 0, l: 0, cd: 0, fp: 0, lv: 0, md: 60, mdAt: 0, known: {}, crave: null, cday: '', cn: 0, eat: [], gday: '', gn: 0 });
@@ -101,9 +101,10 @@ const GAME = (() => {
     if (TEST && typeof location !== 'undefined' && /(^|[#&])fresh\b/.test(location.hash)) { try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '_album'); } catch (e) { } try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { } }
     if (TEST && TEST.resetToken) {
       try {
-        if (localStorage.getItem('abi_test_token') !== TEST.resetToken) {
+        const tokKey = (TEST.key && TEST.key !== 'martyn_tamagotchi_test_v1') ? ('abi_test_token_' + TEST.key) : 'abi_test_token';
+        if (localStorage.getItem(tokKey) !== TEST.resetToken) {
           localStorage.removeItem(KEY); localStorage.removeItem(KEY + '_album');
-          localStorage.setItem('abi_test_token', TEST.resetToken);
+          localStorage.setItem(tokKey, TEST.resetToken);
         }
       } catch (e) { }
     }
@@ -128,7 +129,7 @@ const GAME = (() => {
     if (!o || typeof o !== 'object' || typeof o.coins !== 'number' || !o.st || typeof o.kg !== 'number') return false;
     fromSave(o); migrate(); tasksRoll(); S.last = Date.now(); saveT = 0; save(true); return storageOK;
   }
-  function reset() { S = DEF(); try { localStorage.removeItem(KEY); } catch (e) { } save(true); emit('reset'); }
+  function reset() { S = DEF(); try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '_album'); } catch (e) { } save(true); emit('reset'); }
   const on = (fn) => listeners.push(fn); function emit(ev, a) { for (const fn of listeners) try { fn(ev, a); } catch (e) { console.error(e); } }
   const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
   // decay per hour while awake
@@ -324,7 +325,7 @@ const GAME = (() => {
   function water() { if (Date.now() < S.tree.water) return false; S.tree.water = Date.now() + 2 * 3600e3; S.stats.watered = (S.stats.watered || 0) + 1; addXP(1); care(2, 'water'); save(); return true; }
   function fertilize() { if (!(S.inv.fertilizer > 0)) return false; S.inv.fertilizer--; if (!S.inv.fertilizer) delete S.inv.fertilizer; S.tree.n = Math.min(5, S.tree.n + 3); save(); return true; }
   function mood() { const s = S.st; return (s.food + s.fun + s.energy + s.clean) / 4; }
-  return { giftCloth, albumKey: () => KEY + '_album', hasPhone, tutDone, gamesOpen, devLvl, gameDev, devOK, canPlay, buyPhone, tutSet, TUT_AT, isSkuf, skufKg, load, save, reset, exportCode, importCode, on, emit, simulate, catchUp, addCoins, spend, addXP, stat, setKg, fat, form, eat, care, dayRoll, nextAge, ageDef, little, ageOK, adult, hasUp,
+  return { giftCloth, saveKey: () => KEY, albumKey: () => KEY + '_album', hasPhone, tutDone, gamesOpen, devLvl, gameDev, devOK, canPlay, buyPhone, tutSet, TUT_AT, isSkuf, skufKg, load, save, reset, exportCode, importCode, on, emit, simulate, catchUp, addCoins, spend, addXP, stat, setKg, fat, form, eat, care, dayRoll, nextAge, ageDef, little, ageOK, adult, hasUp,
     tasksRoll, taskProg, taskReady, tasksReady, claimTask, claimBonus, buyFood, feedFriend, buyCloth, wear, buyDecor, place, placed, upgrade, upgradeInfo, gameReward, tickWant, wish, fulfill, checkAch, dailyAvailable, claimDaily, harvest, water, fertilize, mood, clamp, takeRefund, spLeft, friendChat, friendSpecial, duelReward, friendship, fgain, fmood, moodAdd, partyReward, dayStr, crave, taste, friendGift, giftToday,
     _ownAll: () => { ownAll(); emit('home'); }, // tests: every Round 9 #2 thing owned and in its place (the old tests' world)
     get S() { return S; }, get storageOK() { return storageOK; } };

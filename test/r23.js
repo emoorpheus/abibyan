@@ -6,7 +6,7 @@
 const { chromium } = require('/vercel/sandbox/node_modules/playwright');
 const { ok, done, want, fs, PAGE_HELPERS, SITE_URL, OLD_NAMES } = require('./lib/h.js');
 const path = require('path'), { spawn, spawnSync } = require('child_process');
-const W = want(), ROOT = path.join(__dirname, '..'), DIST = path.join(ROOT, 'dist'), FILE = 'file://' + path.join(DIST, 'index.html'), TFILE = 'file://' + path.join(DIST, 'abibyan-test.html');
+const W = want(), ROOT = path.join(__dirname, '..'), DIST = path.join(ROOT, 'dist'), FILE = 'file://' + path.join(DIST, 'index.html'), TFILE = 'file://' + path.join(DIST, 'abibyan-test.html'), FFILE = 'file://' + path.join(DIST, 'abibyan-fresh.html');
 const LOOK = path.join(ROOT, 'test', 'look'), PORT = 8771, URL = SITE_URL, ROOMS5 = ['zal', 'kitchen', 'bath', 'hall', 'balcony'];
 const errs = []; let browser = null, srv = null;
 const day = (y, m, d, h = 13) => new Date(y, m - 1, d, h, 0);
@@ -188,15 +188,18 @@ const RECT = (sel) => { const e = document.querySelector(sel); if (!e) return nu
       await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__game && __game.APP, null, { timeout: 20000 }); await p.waitForTimeout(800);
       const staleCheck = await E(p, () => ({ gift: __game.DASHA.giftOn(), named: __game.GAME.S.named, token: localStorage.getItem('abi_test_token') }));
       ok('test21: stale test save without matching token is wiped on boot → fresh gift box', staleCheck.gift && !staleCheck.named && !!staleCheck.token, staleCheck);
+      const f = await page0(ctx, { url: FFILE });
+      const fd = await E(f, () => { const n = new Date(); __game.GAME.save(true); return { y: n.getFullYear(), m: n.getMonth() + 1, d: n.getDate(), gift: __game.DASHA.giftOn(), coins: __game.GAME.S.coins, lvl: __game.GAME.S.lvl, stage: __game.GAME.S.grow.stage, top: !!(window.ABI_TEST && window.ABI_TEST.top), key: __game.GAME.saveKey(), saved: localStorage.getItem('martyn_tamagotchi_fresh_v1') }; });
+      ok('fresh: abibyan-fresh.html is on 21.11, default 60 coins, level 1, gift box, separate save key', fd.y === 2026 && fd.m === 11 && fd.d === 21 && fd.gift && fd.coins === 60 && fd.lvl === 1 && !fd.top && fd.key === 'martyn_tamagotchi_fresh_v1' && !!fd.saved, fd);
       const m = await page0(ctx, { url: FILE }); const md = await E(m, () => { const n = new Date(); return { s: n.toDateString(), test: !!window.ABI_TEST }; });
       ok(`test21: the real game keeps the real date (${md.s})`, md.s === new Date().toDateString() && !md.test, md);
       await browser.close(); browser = null;
     }
     // ================= 8. the site: test.html next to the game (voice from files, https → the microphone) =================
     if (W('site')) {
-      const SITE = path.join(DIST, 'site'), has = fs.existsSync(path.join(SITE, 'test.html'));
-      const th = has ? fs.readFileSync(path.join(SITE, 'test.html'), 'utf8') : '', ih = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
-      ok('site: dist/site/test.html — the test build with the voice from files; index.html stays the real game', has && /window\.ABI_TEST = \{/.test(th) && /ABI_VOICE = 'files'/.test(th) && !/class="vb"/.test(th) && !/window\.ABI_TEST = \{/.test(ih) && /ABI_VOICE = 'files'/.test(ih), { has });
+      const SITE = path.join(DIST, 'site'), has = fs.existsSync(path.join(SITE, 'test.html')), hasF = fs.existsSync(path.join(SITE, 'fresh.html'));
+      const th = has ? fs.readFileSync(path.join(SITE, 'test.html'), 'utf8') : '', fh = hasF ? fs.readFileSync(path.join(SITE, 'fresh.html'), 'utf8') : '', ih = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
+      ok('site: dist/site/test.html & fresh.html — test builds with the voice from files; index.html stays the real game', has && hasF && /window\.ABI_TEST = \{/.test(th) && /window\.ABI_TEST = \{/.test(fh) && /ABI_VOICE = 'files'/.test(th) && !/class="vb"/.test(th) && !/window\.ABI_TEST = \{/.test(ih) && /ABI_VOICE = 'files'/.test(ih), { has, hasF });
       const root = fs.mkdtempSync('/tmp/r23site-'); fs.symlinkSync(SITE, path.join(root, 'abibyan')); await serve(root);
       browser = await launch(); const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
       const p = await page0(ctx, { url: `http://localhost:${PORT}/abibyan/test.html` });
