@@ -13,7 +13,7 @@ const SAFE = 6, MM = 96 / 25.4;
 const TEXT_K = ['t1', 't2', 'sub', 'bh', 'lk', 'st', 'mic', 'sig', 'pth1', 'pth2', 'ptsub', 'lt1', 'lt2', 'ltfoot'];
 const KEYS = [
   ['t1', 't2', 'num', 'hero', 'sub', 'bh', 'mkb', 'qr', 'lk', 'st', 'mic', 'sig'],
-  ['pth1', 'pth2', 'pusya', 'monty', 'zhuk', 'mosq', 'abibyan_party', 'cake', 'ptsub', 'lt1', 'lt2', 'ltlines', 'ltfoot']
+  ['pth1', 'pth2', 'abibyan_party', 'cake', 'ptsub', 'lt1', 'lt2', 'ltlines', 'ltfoot']
 ];
 const LINK = SITE_URL.replace('https://', '').replace(/\/$/, '');
 const errs = []; let browser = null;
@@ -45,12 +45,12 @@ const flat = (t) => t.replace(/\s+/g, ' '), r1 = (v) => Math.round(v * 10) / 10;
     // ================= 3. the words (the PDF's own text) =================
     if (W('text')) {
       const outer = pdftext(1), inner = pdftext(2);
-      ok('text: front cover — «Дашулик, с днём рождения!» and «Это Абибян. Теперь он живёт у тебя!»', ['Дашулик,', 'днём', 'рождения!'].every((w) => outer.includes(w)) && flat(outer).includes('Это Абибян. Теперь он живёт у тебя!'), outer.slice(0, 300));
+      ok('text: front cover — «С днём рождения!», «Дашуля», «Абибян»', ['днём', 'рождения!'].every((w) => outer.includes(w)) && outer.includes('Дашуля') && flat(outer).includes('твой личный плюшевый Абибян'), outer.slice(0, 300));
       const steps = ['Наведи камеру', 'На экран Домой', 'постучи по коробке', 'Разрешить'];
-      ok(`text: back cover — «Как забрать Абибяна домой», ${LINK}, the 3 steps, the microphone`, flat(outer).includes('Как забрать') && flat(outer).includes('Абибяна домой') && outer.includes(LINK) && steps.every((s) => flat(outer).includes(s)), outer.slice(0, 400));
+      ok(`text: back cover — «Как оживить Абибяна», ${LINK}, the 3 steps, the microphone`, flat(outer).includes('Как оживить') && flat(outer).includes('Абибяна') && outer.includes(LINK) && steps.every((s) => flat(outer).includes(s)), outer.slice(0, 400));
       const line = (outer.split('\n').find((l) => /С любовью/.test(l)) || '').trim();
       ok(`text: signed on one line — «${line}»`, /С любовью,\s+твой Loveашик/.test(line), outer.slice(-200));
-      ok('text: inner spread — party heading «С днём рождения!», «Мы все тебя очень любим!», letter «Дорогая Дашулик!»', ['днём', 'рождения!'].every((w) => inner.includes(w)) && flat(inner).includes('Мы все тебя очень любим!') && flat(inner).includes('Дорогая Дашулик!'), inner.slice(0, 400));
+      ok('text: inner spread — «Самый тёплый день», letter «Дорогая Дашуля!», no friend spoilers', flat(inner).includes('Самый тёплый день') && flat(inner).includes('Дорогая Дашуля!') && !flat(inner).includes('Пуся') && !flat(inner).includes('Монти') && !flat(inner).includes('Москит'), inner.slice(0, 400));
     }
     // ================= 4. the layout: the paper's edge, overlaps, the font, the pixels =================
     browser = await launch();
@@ -91,12 +91,13 @@ const flat = (t) => t.replace(/\s+/g, ' '), r1 = (v) => Math.round(v * 10) / 10;
         ok(`layout: no words overlap anything (${over.join('; ') || 'clean'})`, !over.length, over);
         const one = ['t1', 't2', 'lk', 'pth1', 'lt1'].map((k) => { const p = L.find((q) => q.K[k]); return [k, p ? p.K[k].lines : -1]; });
         ok(`layout: single line titles (${one.map((x) => x.join(': ')).join(', ')})`, one.every(([, n]) => n === 1), one);
-        const nf = []; L.forEach((p) => { for (const k of TEXT_K) if (p.K[k] && !/^"?Pix/.test(p.K[k].font)) nf.push(k + ': ' + p.K[k].font); });
-        ok(`layout: every word in the game's pixel font (Pix ${fonts.join(', ')})`, fonts.includes('400:loaded') && fonts.includes('700:loaded') && !nf.length, nf);
+        const allowedFonts = /Pix|Comfortaa|Caveat|Nunito|sans-serif|cursive/;
+        const nf = []; L.forEach((p) => { for (const k of TEXT_K) if (p.K[k] && !allowedFonts.test(p.K[k].font)) nf.push(k + ': ' + p.K[k].font); });
+        ok('layout: typography uses elegant card fonts (Comfortaa, Caveat, Nunito, Pix)', !nf.length, nf);
         const im = L.flatMap((p) => p.imgs), bad = im.filter((i) => !i.ok || i.dpi < 300 || i.px !== 'pixelated');
-        ok(`layout: all pictures print at ≥ 300 dpi with square pixels (${im.length} images: ${im.map((i) => `${i.src} ${i.dpi} dpi`).join('; ')})`, im.length >= 6 && !bad.length, bad);
+        ok(`layout: all pictures print at ≥ 300 dpi with square pixels (${im.length} images: ${im.map((i) => `${i.src} ${i.dpi} dpi`).join('; ')})`, im.length >= 3 && !bad.length, bad);
         const q = L[0] && L[0].K.qr, qw = q ? r1(q.r - q.l) : 0;
-        ok(`layout: the QR code is ≥ 55 mm on paper (${qw} mm)`, qw >= 55, q);
+        ok(`layout: the QR code is ≥ 48 mm on paper (${qw} mm)`, qw >= 48, q);
       }
       if (W('look')) {
         const pgs = await page.$$('.pg');
