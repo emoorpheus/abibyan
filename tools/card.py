@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
-"""Round 22 → Round 34: Birthday booklet card for Дашуля — dist/abibyan-card.pdf + dist/abibyan-card.png.
-Variant 1 (A4 sheet folded in half into an A5 booklet):
-- Sheet size: A4 landscape 297×210 mm.
-- Printed double-sided (flip on short edge / переворот по короткому краю).
-- Page 1 (Outer spread):
-    Left (148.5×210 mm): Back cover (QR-code, instructions, mic reminder, signature «С любовью, твой Loveашик ❤️»).
-    Right (148.5×210 mm): Front cover («С днём рождения, Дашуля! ✨ 24», jumping Абибян, balloons, confetti).
-- Page 2 (Inner spread):
-    Left (148.5×210 mm): Cozy birthday scene with Абибян and festive cake (NO SPOILERS OF FRIENDS!).
-    Right (148.5×210 mm): Decorative lined panel for Vyacheslav's handwritten letter («Дорогая Дашуля! ❤️»).
-- Fold guide tick marks along the center line at 148.5 mm.
-All pixel art pre-scaled ×16 nearest for crisp 300+ dpi printing.
+"""Round 22 → Round 34: Birthday booklet card for Дашуля.
+Generates two PDF deliverables:
+1. dist/abibyan-card.pdf (+ dist/abibyan-card.png) — Standard with 6.5 mm margins (passe-partout, safe for all printers without clipping).
+2. dist/abibyan-card-bleed.pdf (+ dist/abibyan-card-bleed.png) — Full-Bleed (100% background to the paper edge 297×210 mm, no white borders).
+
+Format: A4 landscape (297×210 mm), printed double-sided (flip on short edge / переворот по короткому краю), folded in half into A5 (148.5×210 mm).
+Page 1 (Outer spread): Back cover on left, Front cover on right.
+Page 2 (Inner spread): Cozy scene with Абибян & cake on left (NO SPOILERS), Lined letter for Дашуля on right.
 """
 import os, sys, subprocess, random, html, shutil, glob
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-URL = sys.argv[1] if len(sys.argv) > 1 else 'https://emoorpheus.github.io/abibyan/'
+URL = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else 'https://emoorpheus.github.io/abibyan/'
 DIST = os.path.join(ROOT, 'dist'); WORK = os.path.join(DIST, 'card'); os.makedirs(WORK, exist_ok=True)
 
 try:
@@ -24,7 +20,7 @@ try:
 except ImportError:
     subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', 'segno'], check=True); import segno
 
-# Auto-detect Chrome/Chromium (Linux, macOS, Playwright cache)
+# Auto-detect Chrome/Chromium
 CHROME_CANDS = [
     shutil.which('chromium'),
     shutil.which('google-chrome'),
@@ -101,7 +97,6 @@ def bunting(w=105):
         fl.append(f'<polygon points="{x:.1f},{y:.1f} {x + step * 0.8:.1f},{y:.1f} {x + step * 0.4:.1f},{y + 7.5:.1f}" fill="{cols[i % 5]}" stroke="{BERRY}" stroke-width=".35"/>')
     return f'<svg class="bunt" viewBox="0 0 {w} 15" width="{w}mm" height="15mm"><path d="M0 4.2 Q{w / 2} 8.2 {w} 4.2" fill="none" stroke="{BERRY}" stroke-width=".4"/>{"".join(fl)}</svg>'
 
-# Layout geometry: A4 landscape sheet (297×210 mm) folded in half to A5 (148.5×210 mm)
 SHEET_W, SHEET_H = 297, 210
 HALF_W = SHEET_W / 2          # 148.5 mm
 M = 6.5                        # safe margin from edges and fold (mm)
@@ -111,8 +106,7 @@ PH = SHEET_H - 2 * M           # 197.0 mm panel height
 Z = PW / 105                   # zoom factor from standard 105x148 layout: 1.29048
 OY = (PH - 148 * Z) / 2        # vertical centering offset: ~3.0 mm
 
-# Elegant card border: soft rounded rectangle with delicate corner heart flourishes
-def elegant_frame(w=PW, h=PH):
+def elegant_frame():
     return f'''<div class="card-border">
       <div class="cb-inner"></div>
       <span class="cb-c c-tl">♥</span><span class="cb-c c-tr">♥</span>
@@ -133,98 +127,109 @@ LOCAL_FONTS = f"""
 @font-face {{ font-family: 'Nunito'; src: url('{furl(os.path.join(FONTS_DIR, 'nunito700.woff2'))}') format('woff2'); font-weight: 700; }}
 """
 
-CSS = f"""
-{LOCAL_FONTS}
-@page {{ size: 297mm 210mm; margin: 0; }}
+def make_css(bleed=False):
+    if not bleed:
+        pn_layout = f"""
+        .pn {{ position: absolute; top: {M}mm; width: {PW}mm; height: {PH}mm; overflow: hidden; border-radius: 5mm; }}
+        .pn-left {{ left: {M}mm; }}
+        .pn-right {{ left: {HALF_W + M}mm; }}
+        .card-border {{ position: absolute; inset: 0; border: 1.6pt solid #f0bed2; border-radius: 5mm; pointer-events: none; z-index: 80; }}
+        .inw {{ position: absolute; left: 0; top: {OY:.3f}mm; width: {PW}mm; }}
+        """
+    else:
+        pn_layout = f"""
+        .pn {{ position: absolute; top: 0; width: {HALF_W}mm; height: {SHEET_H}mm; overflow: hidden; }}
+        .pn-left {{ left: 0; }}
+        .pn-right {{ left: {HALF_W}mm; }}
+        .card-border {{ position: absolute; inset: {M}mm; border: 1.6pt solid #f0bed2; border-radius: 5mm; pointer-events: none; z-index: 80; }}
+        .inw {{ position: absolute; left: {M}mm; top: {M + OY:.3f}mm; width: {PW}mm; }}
+        """
 
-* {{ box-sizing: border-box; }}
-html, body {{ margin: 0; padding: 0; }}
-body {{ font-family: 'Nunito', 'Trebuchet MS', -apple-system, sans-serif; color: {INK}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-.pg {{ position: relative; width: 297mm; height: 210mm; overflow: hidden; background: #fff; page-break-after: always; break-after: page; }}
-.pg:last-child {{ page-break-after: auto; break-after: auto; }}
+    return f"""
+    {LOCAL_FONTS}
+    @page {{ size: 297mm 210mm; margin: 0; }}
+    * {{ box-sizing: border-box; }}
+    html, body {{ margin: 0; padding: 0; }}
+    body {{ font-family: 'Nunito', 'Trebuchet MS', -apple-system, sans-serif; color: {INK}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+    .pg {{ position: relative; width: 297mm; height: 210mm; overflow: hidden; background: #fff; page-break-after: always; break-after: page; }}
+    .pg:last-child {{ page-break-after: auto; break-after: auto; }}
 
-/* Fold tick marks */
-.tick {{ position: absolute; left: 148.35mm; width: 0.3mm; background: #dfb2c4; z-index: 90; }}
-.tick.t-top {{ top: 0; height: 4.5mm; }}
-.tick.t-bot {{ bottom: 0; height: 4.5mm; }}
+    /* Fold tick marks */
+    .tick {{ position: absolute; left: 148.35mm; width: 0.3mm; background: #dfb2c4; z-index: 90; }}
+    .tick.t-top {{ top: 0; height: 4.5mm; }}
+    .tick.t-bot {{ bottom: 0; height: 4.5mm; }}
 
-/* Panels */
-.pn {{ position: absolute; top: {M}mm; width: {PW}mm; height: {PH}mm; overflow: hidden; border-radius: 5mm; }}
-.pn-left {{ left: {M}mm; }}
-.pn-right {{ left: {HALF_W + M}mm; }}
+    {pn_layout}
 
-/* Decorative Elegant Frame */
-.card-border {{ position: absolute; inset: 0; border: 1.6pt solid #f0bed2; border-radius: 5mm; pointer-events: none; z-index: 80; }}
-.cb-inner {{ position: absolute; inset: 1.4mm; border: 0.8pt dashed #f5d1df; border-radius: 3.8mm; }}
-.cb-c {{ position: absolute; font-size: 3.2mm; color: #e68cae; line-height: 1; user-select: none; }}
-.c-tl {{ top: 1.2mm; left: 1.8mm; }} .c-tr {{ top: 1.2mm; right: 1.8mm; }}
-.c-bl {{ bottom: 1.2mm; left: 1.8mm; }} .c-br {{ bottom: 1.2mm; right: 1.8mm; }}
+    /* Decorative Elegant Frame */
+    .cb-inner {{ position: absolute; inset: 1.4mm; border: 0.8pt dashed #f5d1df; border-radius: 3.8mm; }}
+    .cb-c {{ position: absolute; font-size: 3.2mm; color: #e68cae; line-height: 1; user-select: none; }}
+    .c-tl {{ top: 1.2mm; left: 1.8mm; }} .c-tr {{ top: 1.2mm; right: 1.8mm; }}
+    .c-bl {{ bottom: 1.2mm; left: 1.8mm; }} .c-br {{ bottom: 1.2mm; right: 1.8mm; }}
 
-.inw {{ position: absolute; left: 0; top: {OY:.3f}mm; width: {PW}mm; }}
-.in {{ position: relative; width: 105mm; height: 148mm; zoom: {Z:.5f}; }}
-.cf i, .cf span {{ position: absolute; display: block; }}
-.cf-star {{ line-height: 1; pointer-events: none; }}
+    .in {{ position: relative; width: 105mm; height: 148mm; zoom: {Z:.5f}; }}
+    .cf i, .cf span {{ position: absolute; display: block; }}
+    .cf-star {{ line-height: 1; pointer-events: none; }}
 
-/* Background Themes */
-.pn-front {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
-.pn-back {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 60%, #fff0e2 100%); }}
-.pn-party {{ background: linear-gradient(175deg, #fff8fb 0%, #ffedf5 50%, #ffe3ef 100%); }}
-.pn-letter {{ background: linear-gradient(175deg, #fffdf9 0%, #fff9f6 60%, #fff2ee 100%); }}
+    /* Background Themes */
+    .pn-front {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
+    .pn-back {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 60%, #fff0e2 100%); }}
+    .pn-party {{ background: linear-gradient(175deg, #fff8fb 0%, #ffedf5 50%, #ffe3ef 100%); }}
+    .pn-letter {{ background: linear-gradient(175deg, #fffdf9 0%, #fff9f6 60%, #fff2ee 100%); }}
 
-.bunt {{ position: absolute; left: 0; top: 0; z-index: 10; }}
+    .bunt {{ position: absolute; left: 0; top: 0; z-index: 10; }}
 
-/* Front Cover */
-.fc-head {{ position: absolute; left: 0; right: 0; top: 14mm; text-align: center; }}
-.fc-h1 {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 8.5mm; font-weight: 700; color: {BERRY}; line-height: 1.15; letter-spacing: -0.1mm; margin: 0; text-shadow: 0 0.4mm 1mm rgba(220,100,140,0.18); }}
-.fc-h2 {{ font-family: 'Caveat', cursive; font-size: 8.0mm; font-weight: 700; color: {ROSE}; line-height: 1; margin-top: 1mm; }}
-.fc-dgs {{ position: absolute; left: 58mm; top: 48mm; display: flex; gap: 1.2mm; }}
-.fc-dgs svg:nth-child(2) {{ margin-top: 3.5mm; }}
-.fc-strings {{ position: absolute; left: 0; top: 0; width: 105mm; height: 148mm; pointer-events: none; }}
-.fc-rug {{ position: absolute; left: 10mm; top: 121mm; width: 54mm; height: 7.5mm; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(132,24,61,0.18) 0%, rgba(132,24,61,0) 70%); }}
-.fc-hero {{ position: absolute; left: 14mm; top: 74mm; width: 46mm; image-rendering: pixelated; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.15)); }}
-.fc-sub {{ position: absolute; left: 8mm; right: 8mm; bottom: 8.5mm; text-align: center; font-size: 4.1mm; font-weight: 600; line-height: 1.25; color: #6b334a; }}
+    /* Front Cover */
+    .fc-head {{ position: absolute; left: 0; right: 0; top: 14mm; text-align: center; }}
+    .fc-h1 {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 8.5mm; font-weight: 700; color: {BERRY}; line-height: 1.15; letter-spacing: -0.1mm; margin: 0; text-shadow: 0 0.4mm 1mm rgba(220,100,140,0.18); }}
+    .fc-h2 {{ font-family: 'Caveat', cursive; font-size: 8.0mm; font-weight: 700; color: {ROSE}; line-height: 1; margin-top: 1mm; }}
+    .fc-dgs {{ position: absolute; left: 58mm; top: 48mm; display: flex; gap: 1.2mm; }}
+    .fc-dgs svg:nth-child(2) {{ margin-top: 3.5mm; }}
+    .fc-strings {{ position: absolute; left: 0; top: 0; width: 105mm; height: 148mm; pointer-events: none; }}
+    .fc-rug {{ position: absolute; left: 10mm; top: 121mm; width: 54mm; height: 7.5mm; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(132,24,61,0.18) 0%, rgba(132,24,61,0) 70%); }}
+    .fc-hero {{ position: absolute; left: 14mm; top: 74mm; width: 46mm; image-rendering: pixelated; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.15)); }}
+    .fc-sub {{ position: absolute; left: 8mm; right: 8mm; bottom: 8.5mm; text-align: center; font-size: 4.1mm; font-weight: 600; line-height: 1.25; color: #6b334a; }}
 
-/* Back Cover (Passport & Onboarding) */
-.bc-head {{ position: absolute; left: 6mm; right: 20mm; top: 8.5mm; text-align: left; }}
-.bc-title {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 5.6mm; font-weight: 700; color: {BERRY}; margin: 0; line-height: 1.15; white-space: nowrap; }}
-.bc-sub {{ font-size: 3.3mm; color: #8e586c; margin-top: 0.8mm; }}
-.bc-qrcard {{ position: absolute; left: 50%; top: 25mm; transform: translateX(-50%); width: 49mm; height: 49mm; background: #fff; border: 1.2pt solid #f0c8d7; border-radius: 4.5mm; box-shadow: 0 2mm 6mm rgba(120,40,70,0.08); display: flex; align-items: center; justify-content: center; padding: 2.5mm; }}
-.bc-qrcard svg {{ width: 100%; height: 100%; display: block; }}
-.bc-link {{ position: absolute; left: 0; right: 0; top: 75.5mm; text-align: center; font-size: 3.8mm; font-weight: 600; color: {ROSE}; font-family: 'Comfortaa', monospace; letter-spacing: -0.1mm; }}
-.bc-steps {{ position: absolute; left: 8mm; right: 8mm; top: 82.5mm; margin: 0; padding: 0; list-style: none; font-size: 3.55mm; line-height: 1.25; color: {INK}; }}
-.bc-steps li {{ display: flex; gap: 2.2mm; align-items: flex-start; margin-bottom: 1.8mm; }}
-.bc-badge {{ flex: none; width: 5.2mm; height: 5.2mm; border-radius: 50%; background: linear-gradient(135deg, #ff7ba8, #d9456e); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 3.2mm; font-weight: 700; font-family: 'Comfortaa', sans-serif; box-shadow: 0 1mm 2mm rgba(217,69,110,0.25); }}
-.bc-steps span {{ padding-top: 0.3mm; }}
-.bc-micbox {{ position: absolute; left: 8mm; right: 8mm; top: 116mm; background: rgba(255,255,255,0.7); border: 0.8pt solid #f2cad9; border-radius: 3mm; padding: 1.8mm 2.5mm; font-size: 3.05mm; line-height: 1.22; color: #733c51; }}
-.bc-sig {{ position: absolute; left: 8mm; right: 8mm; bottom: 8.5mm; font-family: 'Caveat', cursive; font-size: 5.5mm; font-weight: 700; color: {BERRY}; display: flex; align-items: center; justify-content: center; gap: 1.5mm; }}
-.bc-mkb {{ position: absolute; right: 4mm; top: 5.5mm; width: 15mm; image-rendering: pixelated; transform: scaleX(-1); opacity: 0.95; }}
+    /* Back Cover (Passport & Onboarding) */
+    .bc-head {{ position: absolute; left: 6mm; right: 20mm; top: 8.5mm; text-align: left; }}
+    .bc-title {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 5.6mm; font-weight: 700; color: {BERRY}; margin: 0; line-height: 1.15; white-space: nowrap; }}
+    .bc-sub {{ font-size: 3.3mm; color: #8e586c; margin-top: 0.8mm; }}
+    .bc-qrcard {{ position: absolute; left: 50%; top: 25mm; transform: translateX(-50%); width: 49mm; height: 49mm; background: #fff; border: 1.2pt solid #f0c8d7; border-radius: 4.5mm; box-shadow: 0 2mm 6mm rgba(120,40,70,0.08); display: flex; align-items: center; justify-content: center; padding: 2.5mm; }}
+    .bc-qrcard svg {{ width: 100%; height: 100%; display: block; }}
+    .bc-link {{ position: absolute; left: 0; right: 0; top: 75.5mm; text-align: center; font-size: 3.8mm; font-weight: 600; color: {ROSE}; font-family: 'Comfortaa', monospace; letter-spacing: -0.1mm; }}
+    .bc-steps {{ position: absolute; left: 8mm; right: 8mm; top: 82.5mm; margin: 0; padding: 0; list-style: none; font-size: 3.55mm; line-height: 1.25; color: {INK}; }}
+    .bc-steps li {{ display: flex; gap: 2.2mm; align-items: flex-start; margin-bottom: 1.8mm; }}
+    .bc-badge {{ flex: none; width: 5.2mm; height: 5.2mm; border-radius: 50%; background: linear-gradient(135deg, #ff7ba8, #d9456e); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 3.2mm; font-weight: 700; font-family: 'Comfortaa', sans-serif; box-shadow: 0 1mm 2mm rgba(217,69,110,0.25); }}
+    .bc-steps span {{ padding-top: 0.3mm; }}
+    .bc-micbox {{ position: absolute; left: 8mm; right: 8mm; top: 116mm; background: rgba(255,255,255,0.7); border: 0.8pt solid #f2cad9; border-radius: 3mm; padding: 1.8mm 2.5mm; font-size: 3.05mm; line-height: 1.22; color: #733c51; }}
+    .bc-sig {{ position: absolute; left: 8mm; right: 8mm; bottom: 8.5mm; font-family: 'Caveat', cursive; font-size: 5.5mm; font-weight: 700; color: {BERRY}; display: flex; align-items: center; justify-content: center; gap: 1.5mm; }}
+    .bc-mkb {{ position: absolute; right: 4mm; top: 5.5mm; width: 15mm; image-rendering: pixelated; transform: scaleX(-1); opacity: 0.95; }}
 
-/* Inner Left: Cozy Party & Meeting Abibyan (NO SPOILERS) */
-.in-party-head {{ position: absolute; left: 0; right: 0; top: 12mm; text-align: center; }}
-.in-party-title {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 7.2mm; font-weight: 700; color: {BERRY}; margin: 0; }}
-.in-party-sub {{ font-family: 'Caveat', cursive; font-size: 5.6mm; color: {ROSE}; margin-top: 1mm; }}
-.in-stage {{ position: absolute; left: 0; right: 0; top: 32mm; height: 60mm; display: flex; align-items: flex-end; justify-content: center; }}
-.in-cake {{ width: 44mm; image-rendering: pixelated; margin-right: -6mm; z-index: 10; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.18)); }}
-.in-abibyan {{ width: 34mm; image-rendering: pixelated; z-index: 20; margin-left: -4mm; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.18)); }}
-.in-card-note {{ position: absolute; left: 8mm; right: 8mm; top: 96mm; background: #fff; border: 1pt solid #f3cbdb; border-radius: 4mm; padding: 3.5mm 4mm; box-shadow: 0 2mm 5mm rgba(120,40,70,0.06); text-align: center; }}
-.in-note-greet {{ font-family: 'Comfortaa', sans-serif; font-size: 3.8mm; font-weight: 700; color: {BERRY}; margin: 0 0 1.2mm 0; }}
-.in-note-body {{ font-size: 3.25mm; line-height: 1.35; color: #5a2e41; margin: 0 0 1.8mm 0; }}
-.in-note-call {{ font-size: 3.4mm; font-weight: 700; color: {ROSE}; margin: 0; }}
-.in-party-foot {{ position: absolute; left: 0; right: 0; bottom: 8.5mm; text-align: center; font-family: 'Caveat', cursive; font-size: 5.6mm; color: {BERRY}; }}
+    /* Inner Left: Cozy Party & Meeting Abibyan (NO SPOILERS) */
+    .in-party-head {{ position: absolute; left: 0; right: 0; top: 12mm; text-align: center; }}
+    .in-party-title {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 7.2mm; font-weight: 700; color: {BERRY}; margin: 0; }}
+    .in-party-sub {{ font-family: 'Caveat', cursive; font-size: 5.6mm; color: {ROSE}; margin-top: 1mm; }}
+    .in-stage {{ position: absolute; left: 0; right: 0; top: 32mm; height: 60mm; display: flex; align-items: flex-end; justify-content: center; }}
+    .in-cake {{ width: 44mm; image-rendering: pixelated; margin-right: -6mm; z-index: 10; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.18)); }}
+    .in-abibyan {{ width: 34mm; image-rendering: pixelated; z-index: 20; margin-left: -4mm; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.18)); }}
+    .in-card-note {{ position: absolute; left: 8mm; right: 8mm; top: 96mm; background: #fff; border: 1pt solid #f3cbdb; border-radius: 4mm; padding: 3.5mm 4mm; box-shadow: 0 2mm 5mm rgba(120,40,70,0.06); text-align: center; }}
+    .in-note-greet {{ font-family: 'Comfortaa', sans-serif; font-size: 3.8mm; font-weight: 700; color: {BERRY}; margin: 0 0 1.2mm 0; }}
+    .in-note-body {{ font-size: 3.25mm; line-height: 1.35; color: #5a2e41; margin: 0 0 1.8mm 0; }}
+    .in-note-call {{ font-size: 3.4mm; font-weight: 700; color: {ROSE}; margin: 0; }}
+    .in-party-foot {{ position: absolute; left: 0; right: 0; bottom: 8.5mm; text-align: center; font-family: 'Caveat', cursive; font-size: 5.6mm; color: {BERRY}; }}
 
-/* Inner Right: Love Letter for Dasha */
-.lt-title {{ position: absolute; left: 10mm; right: 10mm; top: 12mm; font-family: 'Caveat', cursive; font-size: 7.5mm; font-weight: 700; color: {BERRY}; text-align: center; line-height: 1; letter-spacing: 0.1mm; white-space: nowrap; }}
-.lt-sub {{ position: absolute; left: 10mm; right: 10mm; top: 25mm; font-size: 3.8mm; color: #8e586c; text-align: center; }}
-.lt-lines {{ position: absolute; left: 10mm; right: 10mm; top: 33mm; bottom: 22mm; display: flex; flex-direction: column; justify-content: space-between; }}
-.lt-row {{ width: 100%; height: 13.5mm; border-bottom: 0.9pt solid #ecc2d4; }}
-.lt-foot {{ position: absolute; left: 10mm; right: 10mm; bottom: 8.5mm; display: flex; align-items: center; justify-content: flex-end; gap: 2mm; font-family: 'Caveat', cursive; font-size: 6.0mm; color: {BERRY}; font-weight: 700; }}
+    /* Inner Right: Love Letter for Dasha */
+    .lt-title {{ position: absolute; left: 10mm; right: 10mm; top: 12mm; font-family: 'Caveat', cursive; font-size: 7.5mm; font-weight: 700; color: {BERRY}; text-align: center; line-height: 1; letter-spacing: 0.1mm; white-space: nowrap; }}
+    .lt-sub {{ position: absolute; left: 10mm; right: 10mm; top: 25mm; font-size: 3.8mm; color: #8e586c; text-align: center; }}
+    .lt-lines {{ position: absolute; left: 10mm; right: 10mm; top: 33mm; bottom: 22mm; display: flex; flex-direction: column; justify-content: space-between; }}
+    .lt-row {{ width: 100%; height: 13.5mm; border-bottom: 0.9pt solid #ecc2d4; }}
+    .lt-foot {{ position: absolute; left: 10mm; right: 10mm; bottom: 8.5mm; display: flex; align-items: center; justify-content: flex-end; gap: 2mm; font-family: 'Caveat', cursive; font-size: 6.0mm; color: {BERRY}; font-weight: 700; }}
 
-
-/* Preview page wrapper */
-.side {{ display: flex; flex-direction: column; gap: 10mm; padding: 8mm; background: #261928; width: max-content; }}
-.side .pg {{ box-shadow: 0 3mm 10mm rgba(0,0,0,0.5); }}
-.side-lbl {{ color: #ffe4ee; font-size: 5mm; font-weight: 700; font-family: 'Comfortaa', sans-serif; padding-left: 2mm; }}
-"""
+    /* Preview page wrapper */
+    .side {{ display: flex; flex-direction: column; gap: 10mm; padding: 8mm; background: #261928; width: max-content; }}
+    .side .pg {{ box-shadow: 0 3mm 10mm rgba(0,0,0,0.5); }}
+    .side-lbl {{ color: #ffe4ee; font-size: 5mm; font-weight: 700; font-family: 'Comfortaa', sans-serif; padding-left: 2mm; }}
+    """
 
 FRONT_INNER = f"""
 <div class="inw"><div class="in">
@@ -312,26 +317,39 @@ INNER_PAGE = f"""
 </section>
 """
 
-doc = lambda body, extra='': f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><style>{CSS}{extra}</style></head><body>{body}</body></html>'
-hp = os.path.join(WORK, 'card.html')
-hs = os.path.join(WORK, 'card-side.html')
+doc = lambda body, css, extra='': f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><style>{css}{extra}</style></head><body>{body}</body></html>'
 
-open(hp, 'w', encoding='utf-8').write(doc(OUTER_PAGE + INNER_PAGE))
-open(hs, 'w', encoding='utf-8').write(doc(f'<div class="side"><div class="side-lbl">1. Внешняя сторона (разворот: задник слева, обложка справа)</div>{OUTER_PAGE}<div class="side-lbl">2. Внутренняя сторона (разворот: Абибян слева, письмо справа)</div>{INNER_PAGE}</div>'))
+def build_variant(bleed=False):
+    prefix = 'abibyan-card-bleed' if bleed else 'abibyan-card'
+    css = make_css(bleed=bleed)
+    hp = os.path.join(WORK, f'{prefix}.html')
+    hs = os.path.join(WORK, f'{prefix}-side.html')
 
-pdf, png = os.path.join(DIST, 'abibyan-card.pdf'), os.path.join(DIST, 'abibyan-card.png')
-base = [CHROME, '--headless', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=5000', '--run-all-compositor-stages-before-draw']
+    open(hp, 'w', encoding='utf-8').write(doc(OUTER_PAGE + INNER_PAGE, css))
+    desc = 'без белых полей (Full-Bleed)' if bleed else 'с полями 6.5 мм (паспарту)'
+    open(hs, 'w', encoding='utf-8').write(doc(f'<div class="side"><div class="side-lbl">1. Внешняя сторона {desc}</div>{OUTER_PAGE}<div class="side-lbl">2. Внутренняя сторона {desc}</div>{INNER_PAGE}</div>', css))
 
-for f in (pdf, png):
-    if os.path.exists(f): os.remove(f)
+    pdf = os.path.join(DIST, f'{prefix}.pdf')
+    png = os.path.join(DIST, f'{prefix}.png')
+    base = [CHROME, '--headless', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=5000', '--run-all-compositor-stages-before-draw']
 
-print('Rendering dist/abibyan-card.pdf via Chromium...')
-subprocess.run(base + ['--no-pdf-header-footer', '--print-to-pdf=' + pdf, furl(hp)], check=True, capture_output=True)
+    for f in (pdf, png):
+        if os.path.exists(f): os.remove(f)
 
-W = round((297 + 16) * 96 / 25.4)
-H = round((210 * 2 + 50) * 96 / 25.4)
-print('Rendering dist/abibyan-card.png via Chromium...')
-subprocess.run(base + ['--force-device-scale-factor=2', f'--window-size={W},{H}', '--screenshot=' + png, furl(hs)], check=True, capture_output=True)
+    print(f'Rendering {pdf} via Chromium...')
+    subprocess.run(base + ['--no-pdf-header-footer', '--print-to-pdf=' + pdf, furl(hp)], check=True, capture_output=True)
 
-assert os.path.exists(pdf) and os.path.exists(png), 'chromium made no card'
-print('card:', pdf, os.path.getsize(pdf) // 1024, 'KB;', png, os.path.getsize(png) // 1024, 'KB; QR →', URL)
+    W = round((297 + 16) * 96 / 25.4)
+    H = round((210 * 2 + 50) * 96 / 25.4)
+    print(f'Rendering {png} via Chromium...')
+    subprocess.run(base + ['--force-device-scale-factor=2', f'--window-size={W},{H}', '--screenshot=' + png, furl(hs)], check=True, capture_output=True)
+
+    assert os.path.exists(pdf) and os.path.exists(png), f'chromium made no {prefix}'
+    print(f'{prefix}:', pdf, os.path.getsize(pdf) // 1024, 'KB;', png, os.path.getsize(png) // 1024, 'KB')
+
+# Build standard version
+build_variant(bleed=False)
+# Also build full-bleed version
+build_variant(bleed=True)
+
+print('Card generation completed! QR →', URL)
