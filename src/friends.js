@@ -338,7 +338,7 @@ const FRIENDS = (() => {
           if (r === 'cloth') UI.toast('Подарок от друзей: ' + C.name + '!', UI.clothThumb(gid), 'gold'); else UI.toast('Подарок от друзей: 30 монет!', UI.I('coin'), 'gold');
           HOME.face('happy', 'laugh', 1.6); scene && scene.q.unshift(['a', pick(r === 'cloth' ? GP.thanks : GP.coins), 'happy']); });
         return T + 0.5; },
-      () => bite(ord[0]), () => bite(ord[1]), () => bite(null), ['a', pick(DATA.LINES.pYum), 'happy'], () => { party.cake = null; return 0.3; },
+      () => bite(ord[0]), () => bite(ord[1]), () => bite(ord[2]), () => bite(ord[3]), () => bite(null), ['a', pick(DATA.LINES.pYum), 'happy'], () => { party.cake = null; return 0.3; },
       phase('photo'), ['a', pick(GP.photo), 'happy'], () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 4.5; } return 0.2; }, () => count(3), () => count(2), () => count(1),
       () => { count(0); const top = Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14; HOME.photo({ title: 'Праздник: ' + A.name, cap: S().name + ' и друзья', top, k: 'grow:' + st });
         const ms = S().moments || (S().moments = {}); ms['grow:' + st] = 1; return 1.3; }, ['w', 0.3]];
@@ -352,8 +352,26 @@ const FRIENDS = (() => {
       ['a', pick(LN.dWish), 'happy'], () => { DASHA.blowStart(); return 0.3; }, waitFor(() => !DASHA.cakeLit(), 1e7),
       () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 1.8; hop(f, 95); } return 1.3; },
       fl(ord[2], DP.cheer[ord[2]]), ['a', pick(LN.dYay), 'happy'],
+      phase('dance'),
+      () => {
+        party.lt = 1; party.danceEnd = t + 3.8; party.beat = -1; party.t0 = t;
+        AUDIO.play('disco'); AUDIO.duck(true); HOME.act('dance');
+        for (let k = 0; k < 10; k++) {
+          HOME.fx.spawn('spark', rnd(20, 160), rnd(160, 260), { vy: -rnd(20, 45), life: 1.2 });
+          HOME.fx.spawn('star', rnd(25, 155), rnd(170, 240), { vy: -rnd(15, 30), life: 1.5 });
+        }
+        return 0.3;
+      },
+      fl(ord[0], 'Праздничный танец!', 'happy'),
+      () => Math.max(0.1, (party ? party.danceEnd : 0) - t),
+      () => {
+        if (party) party.lt = 0; AUDIO.duck(false); AUDIO.play('cheer');
+        for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 1.5; hop(f, 90); }
+        HOME.face('happy', 'laugh', 1.5); HOME.hop(90);
+        return 1.0;
+      },
       phase('gift'), fl(giver, DP.gift[giver]), () => DASHA.gifts(F[giver]), ['a', pick(LN.dGifts), 'happy'],
-      () => bite(ord[0]), () => bite(ord[1]), () => bite(null), ['a', pick(LN.pYum), 'happy'],
+      () => bite(ord[0]), () => bite(ord[1]), () => bite(ord[2]), () => bite(ord[3]), () => bite(null), ['a', pick(LN.pYum), 'happy'],
       phase('photo'), ['a', pick(LN.dPhoto), 'happy'], () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 4.5; } return 0.2; }, () => count(3), () => count(2), () => count(1),
       () => { count(0); const top = Math.min(170, Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14); DASHA.photo(top); return 1.3; }, ['w', 0.3]];
     if (DASHA.heartsOn()) L.push(() => DASHA.secretsHint());
@@ -387,15 +405,35 @@ const FRIENDS = (() => {
   // ---- the activities ----
   function count(n) { const ht = HOME.headTop() - (HOME.camY || 0); UI.float(HOME.mk.x, ht - 26, n ? String(n) : 'Банан!', n ? null : UI.I('camera')); AUDIO.play(n ? 'beep' : 'beepGo'); return 0.8; }
   function bite(id) {
-    const ck = party && party.cake; if (!ck) return 0.1; const f = id && F[id], tx = f ? f.x : HOME.mk.x, ty = f ? f.headY + 12 : HOME.headTop() + 34, T = 0.5, g = 300;
-    HOME.fx.spawn('img', ck.x, ck.y - 18, { img: ART.food('cake'), vx: (tx - ck.x) / T, vy: (ty - ck.y + 18 - 0.5 * g * T * T) / T, g, life: T });
+    const ck = party && party.cake; if (!ck) return 0.1;
+    const f = id && F[id];
+    if (f) {
+      const orig = anchor(f), origX = orig[0], origY = orig[1], dir = Math.sign(ck.x - f.x) || 1;
+      const stepX = origX + dir * Math.min(24, Math.abs(ck.x - origX) - 10);
+      const stepY = FLY[f.id] ? Math.min(origY + 14, 236) : origY;
+      f.look = [dir, 0]; f.lookUntil = t + 2.5;
+      moveTo(f, stepX, stepY, FLY[f.id] ? 58 : 46, 0, () => {
+        party.bites++; AUDIO.play('pop'); f.plate = true;
+        f.pose = 'eat'; f.poseUntil = t + 0.9;
+        moveTo(f, origX, origY, FLY[f.id] ? 50 : 38, 0, () => {
+          AUDIO.play('chomp'); later(0.25, () => AUDIO.play('chomp'));
+          HOME.fx.spawn('heart', f.x, f.headY - 8, { vy: -16, life: 1 });
+          for (let i = 0; i < 6; i++) HOME.fx.spawn('crumb', f.x + rnd(-4, 4), f.headY + 12, { c: i % 2 ? '#fff0f4' : '#f2c27a', vx: rnd(-25, 25), vy: rnd(-35, -15), g: 260, life: 0.6 });
+          f.pose = 'happy'; f.poseUntil = t + 1.4; hop(f, 75);
+          later(0.7, () => { f.plate = false; });
+        });
+      });
+      return 1.4;
+    }
     party.bites++; AUDIO.play('pop');
-    later(T, () => {
-      AUDIO.play('chomp'); later(0.25, () => AUDIO.play('chomp')); HOME.fx.spawn('heart', tx, ty - 12, { vy: -16, life: 1 });
-      for (let i = 0; i < 6; i++) HOME.fx.spawn('crumb', tx + rnd(-5, 5), ty, { c: i % 2 ? '#fff0f4' : '#f2c27a', vx: rnd(-30, 30), vy: rnd(-40, -15), g: 260, life: 0.6 });
-      if (f) { f.pose = 'happy'; f.poseUntil = t + 1.4; hop(f, 70); } else { HOME.face('happy', 'smile', 1.4); GAME.stat('food', 6); }
+    HOME.face('happy', 'smile', 1.4);
+    later(0.15, () => {
+      AUDIO.play('chomp'); later(0.25, () => AUDIO.play('chomp'));
+      HOME.fx.spawn('heart', HOME.mk.x, HOME.headTop() + 12, { vy: -18, life: 1 });
+      for (let i = 0; i < 6; i++) HOME.fx.spawn('crumb', HOME.mk.x + rnd(-4, 4), HOME.headTop() + 30, { c: i % 2 ? '#fff0f4' : '#f2c27a', vx: rnd(-25, 25), vy: rnd(-35, -15), g: 260, life: 0.6 });
+      HOME.hop(65); GAME.stat('food', 6);
     });
-    return 1.1;
+    return 1.2;
   }
   function laugh(teller) {
     AUDIO.play('giggle'); HOME.face('happy', 'laugh', 1.8); HOME.hop(70); let k = 0;
@@ -556,6 +594,11 @@ const FRIENDS = (() => {
     if (FLY[f.id]) { y += Math.round(Math.sin(t * 3 + 1) * 2 + (party && party.lights > 0.3 ? Math.sin(t * 12.6) * 3 : 0)); P.shadow(f.x, f.gy + 1, 7, 2, 0.12); }
     else { const ks = Math.max(0.5, 1 + f.jy / 60); P.shadow(f.x, f.y + 1, e.w * 0.36 * ks, 3 * ks, 0.2); }
     const x0 = Math.round(f.x - e.ox), y0 = Math.round(y - e.oy); c.drawImage(e.cv, x0, y0); drawn.push({ kind: 'friend', id: f.id, e, x0, y0 }); f.headY = y0 + e.head[1];
+    if (f.plate) {
+      const px = Math.round(f.x), py = Math.round(y - 4);
+      P.ell(px, py + 1, 7, 2.5, '#3b2433'); P.ell(px, py, 6, 2, '#ffffff');
+      const ckImg = ART.food('cake'); if (ckImg) c.drawImage(ckImg, px - 6, py - 10, 12, 10);
+    }
   }
   // a little gold ball chain: bright and dark links in turn from the hook down to his head loop
   function chainTo(P, x0, y0, x1, y1) { const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0))); for (let i = 0; i <= n; i++) { const k = i / n; P.p(Math.round(x0 + (x1 - x0) * k), Math.round(y0 + (y1 - y0) * k), i % 2 ? '#a88420' : '#f0cc58'); } }

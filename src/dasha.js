@@ -416,7 +416,11 @@ const DASHA = (() => {
   function hit(room, x, y) {
     if (busy()) return null; const h = current(); if (!h || h.room !== room) return null; const d = Math.hypot(h.x - x, h.y - y);
     if (d < 9) return () => findHeart(h);
-    if (d < 18) glintAt = t; // close (Round 24: 18 px, was 26): it glints (a hint, nothing else happens)
+    if (d < 45) {
+      if (d < 18) { glintAt = t; AUDIO.play('chime', 1.6); }
+      else if (d < 30) AUDIO.play('chime', 1.25);
+      else AUDIO.play('chime', 1.0);
+    }
     return null;
   }
   function findHeart(h) {

@@ -223,6 +223,7 @@ const AUDIO = (() => {
       [48, 43, 43, 48, 48, 41, 43, 48].forEach((n, i) => tone(440 * Math.pow(2, (n - 69) / 12), B * 2.6, { type: 'triangle', vol: 0.06, delay: 0.05 + (1 + 3 * i) * B, bus: g })); }, // the bass on each bar (3/4 after the pickup): C G G C C F G C
     pff: () => { tone(R(1250, 1450), 0.07, { type: 'sine', slide: 640, vol: 0.05 }); },
     peel: () => noise(0.3, { f: 1800, f2: 4200, q: 1.2, vol: 0.08 }),
+    chime: (p) => { const pitch = typeof p === 'number' ? p : 1, f = Math.round(1100 * pitch); tone(f, 0.16, { type: 'sine', vol: 0.14 }); tone(f * 1.5, 0.12, { type: 'triangle', vol: 0.06, delay: 0.02 }); tone(f * 2.01, 0.18, { type: 'sine', vol: 0.04, delay: 0.03 }); },
   };
   function play(name, a) { if (!ac) return; try { if (SP.ok && st.sfx && VOX[name]) { if (VOX[name](a)) return; } SFX[name] && SFX[name](a); } catch (e) { } }
 
