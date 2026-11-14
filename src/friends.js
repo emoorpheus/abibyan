@@ -144,13 +144,13 @@ const FRIENDS = (() => {
   // the guest leaves his room at the side of his friend's room (off the hook / the sofa / out of the box first), sits next to the friend,
   // they talk in turns (Абибян looks at whoever speaks and says something; a tap on them — he joins in), then the guest says bye and goes
   // back the same way. Unseen it just takes a while; at the guest's home Абибян misses him («А где Жучок? Наверное, у Пуси!»).
-  const PAIR = { zhuk: 'pusya', pusya: 'zhuk', mosq: 'monty', monty: 'mosq' }, FC = DATA.FCHAT, GUEST_LEN = 45, GUEST_GAP = 150;
+  const PAIR = { zhuk: 'pusya', pusya: 'zhuk', mosq: 'monty', monty: 'mosq' }, PAIRS = { zhuk: ['pusya', 'monty', 'mosq'], pusya: ['zhuk', 'monty', 'mosq'], mosq: ['monty', 'pusya', 'zhuk'], monty: ['mosq', 'pusya', 'zhuk'] }, FC = DATA.FCHAT, GUEST_LEN = 45, GUEST_GAP = 150;
   const GSPOT = { zhuk: [60, 244], pusya: [130, 262], mosq: [74, 222, 256], monty: [36, 286] }, WALKY = { zhuk: 250, pusya: 246, monty: 270 };
   let guest = null, guestT = 90;
   const gspot = (id) => { const v = GSPOT[id]; return [v[0], v[1], v[2] || v[1]]; };
   const babble = () => !!GAME.ageDef().babble;
-  function startGuest(id) {
-    const host = PAIR[id], f = F[id], h = host && F[host]; if (!h || guest || party || heist || visitorId() || f.mode !== 'home' || h.mode !== 'home' || f.onFur || f.path || S().sleeping) return false;
+  function startGuest(id, targetHost) {
+    const host = targetHost || PAIR[id], f = F[id], h = host && F[host]; if (!h || guest || party || heist || visitorId() || f.mode !== 'home' || h.mode !== 'home' || f.onFur || f.path || S().sleeping) return false;
     const room = HOMES[host].room, from = HOMES[id].room; if (scene && (scene.id === id || scene.id === host)) cancelScene();
     guest = { id, host, room, from, ph: 'go', until: t + GUEST_LEN, n: 0 }; guestT = t + GUEST_LEN + GUEST_GAP; f.mode = 'guest';
     if (HOME.room === from) { // seen leaving
@@ -203,8 +203,14 @@ const FRIENDS = (() => {
   }
   function tryGuest() {
     if (guest || !canVisit() || t < guestT || Math.random() > 0.3) return false;
-    const r = HOME.room, ids = IDS.filter((id) => PAIR[id] && F[id].mode === 'home' && F[PAIR[id]].mode === 'home'), seen = ids.filter((id) => HOMES[PAIR[id]].room === r || HOMES[id].room === r);
-    const id = (seen.length && Math.random() < 0.85) ? pick(seen) : ids.length ? pick(ids) : null; return id ? startGuest(id) : false;
+    const r = HOME.room;
+    if (Math.random() < 0.7) {
+      const ids = IDS.filter((id) => PAIR[id] && F[id].mode === 'home' && F[PAIR[id]].mode === 'home'), seen = ids.filter((id) => HOMES[PAIR[id]].room === r || HOMES[id].room === r);
+      const id = (seen.length && Math.random() < 0.85) ? pick(seen) : ids.length ? pick(ids) : null; return id ? startGuest(id, PAIR[id]) : false;
+    }
+    const ids = IDS.filter((id) => F[id].mode === 'home'); const id = ids.length ? pick(ids) : null; if (!id) return false;
+    const hosts = (PAIRS[id] || []).filter((h) => F[h].mode === 'home'); if (!hosts.length) return false;
+    return startGuest(id, pick(hosts));
   }
   function onGuestRoom(r, prev) { // returns true when the guest takes over this room (no greeting then)
     const g = guest; if (!g) return false; const f = F[g.id];
