@@ -16,17 +16,15 @@ const fs = require('fs');
   await page.goto('http://127.0.0.1:8080/test.html');
   
   // Wait for speech bank to be ready
-  await page.waitForFunction(() => typeof window.SPEECH !== 'undefined' && (window.SPEECH.ready & 1), { timeout: 15000 });
+  await page.waitForFunction(() => window.__game && window.__game.AUDIO && (window.__game.AUDIO.voiceState().ready & 1), { timeout: 15000 });
   await page.waitForTimeout(500);
 
   // 1. Verify Audio & Voice
   const audioInfo = await page.evaluate(() => {
     const ac = __game.AUDIO;
-    const sp = window.SPEECH || {};
+    const vs = ac.voiceState();
     return {
-      speechReady: sp.ready,
-      recCount: Object.keys(sp.rec || {}).length,
-      linesCount: Object.keys(sp.lines || {}).length,
+      voiceReady: vs.ready,
       acRunning: ac ? true : false
     };
   });
