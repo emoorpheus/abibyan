@@ -121,9 +121,18 @@ const FRIENDS = (() => {
   // more, so there too they simply come in from the edge (zal & bath → right, kitchen & balcony → left). The front door is not for friends.
   const ORDER = DATA.ROOMS.map((q) => q.id), idx = (q) => ORDER.indexOf(q);
   function enterRoom(f, r, fast, from, to) {
-    from = from || HOMES[f.id].room; const v = to || vspot(f, r), y = v[1]; f.room = r; f.gy = v[2]; f.jy = 0; f.vy = 0;
-    f.x = idx(from) < idx(r) ? -26 : 206; f.y = y;
-    moveTo(f, v[0], y, fast ? 95 : 55, 0, null); return f.path.dur;
+    from = from || HOMES[f.id].room; const v = to || vspot(f, r), sp = fast ? 95 : 55;
+    f.room = r; f.gy = v[2]; f.jy = 0; f.vy = 0;
+    const fromR = idx(from) > idx(r);
+    f.x = fromR ? 206 : -26;
+    if (r === 'kitchen' && !FLY[f.id] && fromR && v[0] < 110 && v[1] < 260) {
+      f.y = 268;
+      const d1 = Math.abs(f.x - v[0]) / sp, d2 = Math.abs(268 - v[1]) / sp;
+      moveTo(f, v[0], 268, sp, 0, () => moveTo(f, v[0], v[1], sp, 0, null));
+      return d1 + d2;
+    }
+    f.y = v[1];
+    moveTo(f, v[0], v[1], sp, 0, null); return f.path.dur;
   }
   function startVisit(id) {
     const f = F[id], r = HOME.room; if (HOMES[id].room === r || visitorId()) return false;
@@ -132,8 +141,12 @@ const FRIENDS = (() => {
     ALBUM.moment('friend:' + id, { title: FD[id].name + ' в гостях', delay: d + 1.6, room: r }); AUDIO.play(SND[id]); run(id, [['w', d + 0.2], ...FD[id].visit, ...(g ? [() => { gift(id); return 2.4; }] : [])]); return true;
   }
   function goAway(f) {
-    if (f.mode !== 'leave') return; const home = HOMES[f.id].room;
-    moveTo(f, idx(home) < idx(f.room) ? -30 : 210, f.y, 60, 0, () => goHome(f));
+    if (f.mode !== 'leave') return; const home = HOMES[f.id].room, out = idx(home) < idx(f.room) ? -30 : 210, sp = 60;
+    if (f.room === 'kitchen' && !FLY[f.id] && out > 180 && f.x < 110 && f.y < 260) {
+      moveTo(f, f.x, 268, sp, 0, () => moveTo(f, out, 268, sp, 0, () => goHome(f)));
+    } else {
+      moveTo(f, out, f.y, sp, 0, () => goHome(f));
+    }
   }
   function leave(f, quiet) {
     if (f.mode !== 'visit') return; f.mode = 'leave'; if (scene && scene.id === f.id) cancelScene();
@@ -154,7 +167,10 @@ const FRIENDS = (() => {
     const room = HOMES[host].room, from = HOMES[id].room; if (scene && (scene.id === id || scene.id === host)) cancelScene();
     guest = { id, host, room, from, ph: 'go', until: t + GUEST_LEN, n: 0 }; guestT = t + GUEST_LEN + GUEST_GAP; f.mode = 'guest';
     if (HOME.room === from) { // seen leaving
-      const out = idx(room) < idx(from) ? -30 : 210, gy = FLY[id] ? f.y : WALKY[id] || 250, go = () => moveTo(f, out, gy, FLY[id] ? 70 : 60, 0, arrive);
+      const out = idx(room) < idx(from) ? -30 : 210, sp = FLY[id] ? 70 : 60;
+      let gy = FLY[id] ? f.y : WALKY[id] || 250;
+      if (from === 'kitchen' && !FLY[id] && out > 180) gy = 268;
+      const go = () => moveTo(f, out, gy, sp, 0, arrive);
       if (!FLY[id] && Math.abs(f.y - gy) > 3) moveTo(f, f.x + (out < 0 ? -6 : 6), gy, 110, 9, go); else go();
       AUDIO.play(SND[id]); f.pose = 'happy'; f.poseUntil = t + 1;
     } else arrive();
@@ -187,14 +203,25 @@ const FRIENDS = (() => {
     const g = guest; if (!g || g.ph !== 'there') return; const f = F[g.id]; g.ph = 'back'; if (scene && scene.id === 'fchat') cancelScene();
     if (HOME.room !== g.room) { comeHome(); return; }
     const d = fsay(g.id, FC.bye[g.id] || 'Пока!'); f.pose = 'happy'; f.poseUntil = t + 1; lookEach(g);
-    later(Math.min(1.4, d + 0.2), () => { if (guest !== g || f.room !== g.room) return; moveTo(f, idx(g.from) < idx(g.room) ? -30 : 210, f.y, FLY[g.id] ? 70 : 60, 0, comeHome); });
+    later(Math.min(1.4, d + 0.2), () => {
+      if (guest !== g || f.room !== g.room) return;
+      const out = idx(g.from) < idx(g.room) ? -30 : 210, sp = FLY[g.id] ? 70 : 60;
+      if (g.room === 'kitchen' && !FLY[g.id] && out > 180 && f.x < 110 && f.y < 260) {
+        moveTo(f, f.x, 268, sp, 0, () => moveTo(f, out, 268, sp, 0, comeHome));
+      } else {
+        moveTo(f, out, f.y, sp, 0, comeHome);
+      }
+    });
   }
   function comeHome() {
     const g = guest; if (!g) return; const f = F[g.id], hm = HOMES[g.id];
     if (HOME.room !== g.from) { goHome(f); guest = null; return; }
-    const gy = FLY[g.id] ? hm.y : WALKY[g.id] || 250; f.room = g.from; f.x = idx(g.room) < idx(g.from) ? -26 : 206; f.y = gy; f.gy = hm.gy || hm.y; f.jy = 0; f.vy = 0; g.ph = 'home';
+    const sp = FLY[g.id] ? 70 : 55, fromR = idx(g.room) > idx(g.from);
+    let gy = FLY[g.id] ? hm.y : WALKY[g.id] || 250;
+    if (g.from === 'kitchen' && !FLY[g.id] && fromR && hm.x < 110) gy = 268;
+    f.room = g.from; f.x = fromR ? 206 : -26; f.y = gy; f.gy = hm.gy || hm.y; f.jy = 0; f.vy = 0; g.ph = 'home';
     const done = () => { goHome(f); if (guest === g) guest = null; };
-    moveTo(f, hm.x, gy, FLY[g.id] ? 70 : 55, 0, () => { if (Math.abs(gy - hm.y) > 3) moveTo(f, hm.x, hm.y, 130, 10, done); else done(); });
+    moveTo(f, hm.x, gy, sp, 0, () => { if (Math.abs(gy - hm.y) > 3) moveTo(f, hm.x, hm.y, 130, 10, done); else done(); });
   }
   function guestTick() {
     const g = guest; if (!g) return; const f = F[g.id];

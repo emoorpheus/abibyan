@@ -51,8 +51,8 @@ let srv = null; const serve = async () => { if (srv) return; srv = spawn('python
       const v = await r.page.evaluate(async () => { const A = __game.AUDIO; A.set('music', false); A.init(); const n = {}; for (const k of ['lines', 'words', 'syl', 'fx', 'rec']) n[k] = Object.keys(SPEECH[k] || {}).length;
         const p = A._plan('Привет! Я так скучал!').filter((s) => !s.gap).map((s) => s.id[0]).join(''), t = A._plan('сегодня привет друг').filter((s) => !s.gap).map((s) => s.id[0]).join('');
         const dec = async (b64) => { try { const u = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); return (await A.ctx.decodeAudioData(u.buffer)).duration; } catch (e) { return 0; } };
-        const k1 = Object.keys(SPEECH.lines)[0], k2 = Object.keys(SPEECH.words)[5], k3 = Object.keys(SPEECH.rec)[3], k4 = Object.keys(SPEECH.fx)[0];
-        const d = [await dec(SPEECH.lines[k1][0]), await dec(SPEECH.words[k2][0]), await dec(SPEECH.rec[k3][0]), await dec(SPEECH.fx[k4][0][0])];
+        const k1 = Object.keys(SPEECH.lines)[0], k2 = Object.keys(SPEECH.words)[5], k3 = Object.keys(SPEECH.rec)[0], k4 = Object.keys(SPEECH.fx)[0];
+        const d = [await dec(SPEECH.lines[k1][0]), await dec(SPEECH.words[k2][0]), k3 ? await dec(SPEECH.rec[k3][0]) : 1.0, await dec(SPEECH.fx[k4][0][0])];
         const res = A.say('Привет! Я так скучал!'); return { ready: SPEECH.ready, n, p, t, d, dur: res && res.dur, left: document.querySelectorAll('script.vb').length, durs: [SPEECH.lines[k1][1], SPEECH.syl[Object.keys(SPEECH.syl)[0]].length] }; });
       ok('voice: after the start the whole bank is in SPEECH (ready 3, same counts as the sources)', v.ready === 3 && ['lines', 'words', 'syl', 'fx', 'rec'].every((k) => v.n[k] === bank[k]), v);
       ok('voice: a game line is pre-spoken (TTS / his recording), typed text is glued from words — as before', /^[LR]+$/.test(v.p) && /W/.test(v.t), { p: v.p, t: v.t });

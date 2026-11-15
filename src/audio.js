@@ -275,10 +275,10 @@ const AUDIO = (() => {
   function vsrc(c, when, rate, o = {}) {
     const len = Math.max(0.02, Math.min(c.buf.duration - c.off, o.len || 99)), gl = o.glide || 1, wall = len / (rate * (1 + gl) / 2);
     const src = ac.createBufferSource(); src.buffer = c.buf; src.playbackRate.setValueAtTime(rate, when); if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, when + wall);
-    const g = ac.createGain(), v = 0.85 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
-    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.012); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
+    const g = ac.createGain(), v = 1.2 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
+    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.004); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
     let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
-    if (o.sq) { via('highpass', 200, 0.7); } // Round 35: remove peaking 3.2kHz that clipped plosives/sibilants
+    if (o.sq) { via('highpass', 200, 0.7); via('peaking', 3200, 1.2, 4); } // Round 9 #11: the TTS lines get his recordings' squeaky EQ (tools/rec.py SQUEAK)
     if (o.lp) via('lowpass', o.lp);
     node.connect(g); g.connect(sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
@@ -372,13 +372,13 @@ const AUDIO = (() => {
     SP.busy = t0 + e[1] / r + 0.05; return true;
   }
   const VOX = {
-    call: () => { const rec = SPEECH.rec || {}; if (rec['уи-и'] || rec['у-у-у']) { say(Math.random() < 0.5 ? 'уи-и' : 'у-у-у', { rate: R(0.98, 1.04) }); return true; } return free() ? fx('happy', R(1.02, 1.08)) : true; },
-    happy: () => { const rec = SPEECH.rec || {}; if (rec['уи-и'] || rec['у-у-у']) { say(Math.random() < 0.5 ? 'уи-и' : 'у-у-у', { rate: R(0.98, 1.04) }); return true; } return free() ? fx('happy', R(0.98, 1.06)) : true; },
+    call: () => free() ? fx('happy', R(1.02, 1.08)) : true,
+    happy: () => free() ? fx('happy', R(0.98, 1.06)) : true,
     giggle: () => free() ? fx('giggle', R(1.0, 1.08)) : true,
     sad: () => free() ? fx('sad', 0.95, { lp: 4500 }) : true,
     yawn: () => { hush(); return fx('yawn', 0.9, { glide: 0.9, lp: 3200 }); },
     boop: () => free() ? fx('boop', R(1.05, 1.15)) : true,
-    whine: () => { if (!(SPEECH.rec || {})[WHINE]) return false; say('Э-э-э-э-э!', { rate: R(0.98, 1.04) }); return true; }, // Round 9 #13: his own «Э-э-э-э-э!»
+    whine: () => false,
   };
   function setRate(r) { SP.rate = r > 0 ? r : 1; }
   // animalese-like chatter
