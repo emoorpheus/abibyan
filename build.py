@@ -102,7 +102,20 @@ def testify(h, coins=100000, top=True, key='martyn_tamagotchi_test_v1', reset_to
     h = h.replace('<title>Мой Абибян — плюшевый тамагочи</title>', f'<title>{title}</title>', 1)
     test_btn = '<button id="btn-test-voice" onclick="if(window.__game&&window.__game.AUDIO){window.__game.AUDIO.init();window.__game.AUDIO.say(\'С днём рождения, Дашулик!\');}" style="position:fixed;top:6px;right:6px;z-index:99999;background:#ffd04a;color:#1a1016;border:2px solid #1a1016;border-radius:6px;padding:5px 9px;font-size:11px;font-family:sans-serif;font-weight:bold;cursor:pointer;box-shadow:0 2px 0 #1a1016;">🔊 Тест голоса</button>'
     h = h.replace('<div id="view">', test_btn + '<div id="view">', 1)
-    h = h.replace('<script>\n', f'<script>window.ABI_TEST = {cfg_json};\n' + SHIFT + '</script>\n<script>\n', 1)
+    kill_cache = """(function() {
+      window.ABI_REV = 'v35_' + Date.now();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          for (var i = 0; i < regs.length; i++) regs[i].unregister();
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(ks) {
+          for (var i = 0; i < ks.length; i++) caches.delete(ks[i]);
+        });
+      }
+    })();"""
+    h = h.replace('<script>\n', f'<script>window.ABI_TEST = {cfg_json};\n' + SHIFT + '\n' + kill_cache + '</script>\n<script>\n', 1)
     assert 'window.ABI_TEST = ' in h and title in h and 'T.shifted = true' in h
     return h
 test_html = testify(html)

@@ -241,7 +241,8 @@ const AUDIO = (() => {
   function voiceDone(g) { SPEECH.ready |= g; if (!(g & 1)) return; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 1500) say(p.text, p.o); }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
   function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
-    const get = (f) => fetch(f).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
+    const rev = (typeof window !== 'undefined' && window.ABI_REV) || 'v35_4';
+    const get = (f) => fetch(f + '?v=' + rev, { cache: 'reload' }).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
     const step = (SPEECH.ready & 1) ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); voiceDone(1); });
     step.then(() => get('voice2.txt')).then((t) => { voiceText(t); voiceDone(2); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 3000 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
   }
@@ -278,7 +279,9 @@ const AUDIO = (() => {
     const g = ac.createGain(), v = 0.85 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
     g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.008); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
     let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
-    via('highshelf', 6500, 0.7, -3.0);
+    via('peaking', 5000, 1.5, -8.0);
+    via('peaking', 3200, 1.0, -3.0);
+    via('lowpass', 7200, 0.7);
     if (o.lp) via('lowpass', o.lp);
     node.connect(g); g.connect(voxG || sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
