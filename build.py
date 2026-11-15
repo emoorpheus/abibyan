@@ -1,4 +1,4 @@
-import re, base64, pathlib, json
+import re, base64, pathlib, json, hashlib
 root = pathlib.Path(__file__).resolve().parent; src = root / 'src'  # Round 26: the folder build.py is in (a copy of the repo builds into its own dist/)
 order = ['pixel', 'monkey', 'items', 'rooms', 'zal', 'hall', 'kitchen', 'bath', 'balcony', 'data', 'voicebank', 'audio', 'state', 'ui', 'friends_art', 'friends', 'gags', 'album', 'tour', 'ducks', 'seasons', 'dasha', 'home', 'games', 'tut', 'routine', 'fill', 'main']
 # Round 25 (restored 2026-11-08 from the live build 43ac3ef): fill.js + <canvas id="ext"> — FILL, the room's surroundings over the rest of the phone's screen
