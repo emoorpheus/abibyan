@@ -13,7 +13,7 @@ const AUDIO = (() => {
     master = ac.createGain(); master.gain.value = 0.8; master.connect(ac.destination);
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(master);
     sfxG = ac.createGain(); sfxG.gain.value = st.sfx ? 0.55 : 0; sfxG.connect(comp);
-    voxG = ac.createGain(); voxG.gain.value = st.sfx ? 0.65 : 0; voxG.connect(master);
+    voxG = ac.createGain(); voxG.gain.value = st.sfx ? 0.65 : 0; voxG.connect(comp);
     musG = ac.createGain(); musG.gain.value = st.music ? 0.16 : 0; musG.connect(comp);
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     if (st.music) music.start();
@@ -40,7 +40,7 @@ const AUDIO = (() => {
   // long appliance sounds (kettle, microwave) go through their own gain so a tap can stop them early
   const live = {};
   function liveBus(name, dur) { stop(name); const t = now(), g = ac.createGain(); g.gain.setValueAtTime(1, t); g.connect(sfxG); live[name] = g; setTimeout(() => { if (live[name] === g) delete live[name]; }, dur * 1000 + 200); return g; }
-  function stop(name) { const g = live[name]; if (!g || !ac) return; delete live[name]; try { const t = now(); g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08); } catch (e) { } }
+  function stop(name) { const g = live[name]; if (!g || !ac) return; delete live[name]; if (name === 'hbd') duck(false); try { const t = now(); g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08); } catch (e) { } }
   const SFX = {
     click: () => tone(1046, 0.05, { vol: 0.12 }),
     tab: () => { tone(784, 0.04, { vol: 0.1 }); tone(1046, 0.05, { vol: 0.1, delay: 0.03 }); },
@@ -220,6 +220,8 @@ const AUDIO = (() => {
     // a short pure sine blip (no noise: with the mic open our own sound must never look like a blow)
     hbd: () => { const B = 0.34, M = [[67, .75], [67, .25], [69, 1], [67, 1], [72, 1], [71, 2], [67, .75], [67, .25], [69, 1], [67, 1], [74, 1], [72, 2], [67, .75], [67, .25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 2], [77, .75], [77, .25], [76, 1], [72, 1], [74, 1], [72, 2.5]];
       const tot = M.reduce((a, m) => a + m[1], 0) * B, g = liveBus('hbd', tot + 1); let d = 0.05;
+      duck(true);
+      setTimeout(() => { if (!live['hbd']) duck(false); }, (tot + 1) * 1000);
       for (const [n, b] of M) { const f = 440 * Math.pow(2, (n + 12 - 69) / 12); tone(f, Math.max(0.3, b * B * 1.3), { type: 'triangle', vol: 0.09, delay: d, bus: g }); tone(f * 2, 0.18, { type: 'sine', vol: 0.03, delay: d, bus: g }); d += b * B; }
       [48, 43, 43, 48, 48, 41, 43, 48].forEach((n, i) => tone(440 * Math.pow(2, (n - 69) / 12), B * 2.6, { type: 'triangle', vol: 0.06, delay: 0.05 + (1 + 3 * i) * B, bus: g })); }, // the bass on each bar (3/4 after the pickup): C G G C C F G C
     pff: () => { tone(R(1250, 1450), 0.07, { type: 'sine', slide: 640, vol: 0.05 }); },
@@ -241,8 +243,8 @@ const AUDIO = (() => {
   function voiceDone(g) { SPEECH.ready |= g; if (!(g & 1)) return; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 1500) say(p.text, p.o); }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
   function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
-    const rev = (typeof window !== 'undefined' && window.ABI_REV) || 'v35_4';
-    const get = (f) => fetch(f + '?v=' + rev, { cache: 'reload' }).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
+    const rev = (typeof window !== 'undefined' && window.ABI_REV) || ('v35_' + Date.now());
+    const get = (f) => fetch(f + '?v=' + rev, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
     const step = (SPEECH.ready & 1) ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); voiceDone(1); });
     step.then(() => get('voice2.txt')).then((t) => { voiceText(t); voiceDone(2); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 3000 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
   }
@@ -266,22 +268,19 @@ const AUDIO = (() => {
   }
   function prep(buf) {
     const d = buf.getChannelData(0), sr = buf.sampleRate; let mx = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > mx) mx = a; }
-    let i0 = 0; const th = Math.max(0.002, mx * 0.015); while (i0 < d.length && Math.abs(d[i0]) < th) i0++;
+    let i0 = 0; const th = Math.max(0.003, mx * 0.02); while (i0 < d.length && Math.abs(d[i0]) < th) i0++;
     const W = Math.round(sr * 0.025), n = Math.max(1, Math.ceil((d.length - i0) / W)), env = new Float32Array(n); let em = 1e-4;
     for (let j = 0; j < n; j++) { let q = 0; const a = i0 + j * W, b = Math.min(d.length, a + W); for (let x = a; x < b; x++) q += d[x] * d[x]; env[j] = Math.sqrt(q / Math.max(1, b - a)); if (env[j] > em) em = env[j]; }
     for (let j = 0; j < n; j++) env[j] = Math.min(1, env[j] / em * 1.3);
-    return { buf, off: Math.max(0, i0 / sr - 0.008), env };
+    return { buf, off: Math.max(0, i0 / sr - 0.003), env };
   }
   // play a decoded clip at a pitch/speed rate (optional glide to rate*glide); returns wall-clock seconds
   function vsrc(c, when, rate, o = {}) {
     const len = Math.max(0.02, Math.min(c.buf.duration - c.off, o.len || 99)), gl = o.glide || 1, wall = len / (rate * (1 + gl) / 2);
     const src = ac.createBufferSource(); src.buffer = c.buf; src.playbackRate.setValueAtTime(rate, when); if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, when + wall);
-    const g = ac.createGain(), v = 0.85 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
-    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.008); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
+    const g = ac.createGain(), v = 1.1 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
+    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.004); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
     let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
-    via('peaking', 5000, 1.5, -8.0);
-    via('peaking', 3200, 1.0, -3.0);
-    via('lowpass', 7200, 0.7);
     if (o.lp) via('lowpass', o.lp);
     node.connect(g); g.connect(voxG || sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };

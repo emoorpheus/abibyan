@@ -230,10 +230,11 @@ const DASHA = (() => {
     row(front, 275, 0); row(back, 271, 1.8);
     cake = { n, age: b.age, y: b.y, C: Cs, k: 0, dim: 0 }; AUDIO.play('pop'); later(0.25, () => AUDIO.play('twinkle'));
     for (let k = 0; k < 16; k++) HOME.fx.spawn('spark', CK.x + rnd(-30, 30), 284 + rnd(-14, 16), { vy: -22, life: 0.9 });
+    AUDIO.duck(true);
     later(0.5, () => AUDIO.play('hbd')); return 1.3;
   }
   const lit = () => (cake ? cake.C.filter((q) => q.lit).length : 0);
-  function cakeOut() { if (!cake) return; for (let k = 0; k < 8; k++) HOME.fx.spawn('puff', CK.x + rnd(-26, 26), 292 + rnd(-10, 10), { c: '#ffffff', r0: 2, r1: 7, life: 0.5, alpha: 0.8 }); cake = null; }
+  function cakeOut() { if (!cake) return; AUDIO.stop('hbd'); AUDIO.duck(false); for (let k = 0; k < 8; k++) HOME.fx.spawn('puff', CK.x + rnd(-26, 26), 292 + rnd(-10, 10), { c: '#ffffff', r0: 2, r1: 7, life: 0.5, alpha: 0.8 }); cake = null; }
   function drawCake(c, P) {
     const k = cake, e = 1 - Math.pow(1 - Math.min(1, k.k), 3), oy = Math.round((1 - e) * 46), x = CK.x, y = CK.base + oy;
     P.ell(x, y + 1, 33, 4, 'rgba(30,14,30,0.35)'); P.ell(x, y, 32, 4, INK); P.ell(x, y - 0.5, 31, 3.2, '#f4f4f0'); P.ell(x, y - 1, 26, 2, '#ffffff');
@@ -334,7 +335,7 @@ const DASHA = (() => {
     const n = lit(); if (!n) allOut(); else if (n <= 3 && !blow.saidA && cake.n > 6) { blow.saidA = 1; later(0.3, () => { if (blow && lit()) HOME.say(pick(LN().dAlmost), 'happy'); }); }
   }
   function allOut() {
-    micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); setMode('done'); AUDIO.play('tada'); later(0.25, () => AUDIO.play('cheer'));
+    micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); AUDIO.duck(false); setMode('done'); AUDIO.play('tada'); later(0.25, () => AUDIO.play('cheer'));
     HOME.fx.spawn('ring', CK.x, 272, { r0: 4, r1: 34, life: 0.5, c: '#ffd04a', sy: 0.5 });
     for (let k = 0; k < 40; k++) HOME.fx.spawn('confetti', rnd(10, 170), rnd(20, 80), { c: pick(FLAGS), vx: rnd(-30, 30), vy: rnd(-10, 40), g: 90, drag: 0.8, life: rnd(1.6, 2.6), wob: 5 });
     HOME.face('happy', 'laugh', 1.6); HOME.hop(170);
@@ -375,7 +376,7 @@ const DASHA = (() => {
     const ms = S().moments || (S().moments = {}); ms['dasha:' + b.y] = 1; GAME.save(true);
   }
   function secretsHint() { const D = st(); D.seen = 1; GAME.save(true); lastHint = t; const d = HOME.say(pick(LN().dSecrets), 'happy') || 3; return d + 0.6; }
-  function abort() { micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); const w = panel(); if (w) w.remove(); blow = null; finger = null; cake = null; introUntil = t + 3; }
+  function abort() { micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); AUDIO.duck(false); const w = panel(); if (w) w.remove(); blow = null; finger = null; cake = null; introUntil = t + 3; }
 
   // ---------- (3) «24 секрета» (Round 23: one at a time) ----------
   function slots() { // the secrets with a text, in order (the test build: samples in all 24 while his texts are not in yet)

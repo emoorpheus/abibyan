@@ -116,6 +116,7 @@ def testify(h, coins=100000, top=True, key='martyn_tamagotchi_test_v1', reset_to
       }
     })();"""
     h = h.replace('<script>\n', f'<script>window.ABI_TEST = {cfg_json};\n' + SHIFT + '\n' + kill_cache + '</script>\n<script>\n', 1)
+    h = h.replace("navigator.serviceWorker.register('sw.js')", "// test build: no sw")
     assert 'window.ABI_TEST = ' in h and title in h and 'T.shifted = true' in h
     return h
 test_html = testify(html)
@@ -140,12 +141,19 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v35-neural-%s';
+sw = '''const CACHE = 'abibyan-v35-clean-neural-%s';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './voice1.txt', './voice2.txt', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const r = e.request; if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
+  if (r.url.includes('voice1.txt') || r.url.includes('voice2.txt')) {
+    e.respondWith(fetch(r, { cache: 'no-store' }).then((res) => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
+      return res;
+    }).catch(() => caches.match(r, { ignoreSearch: true })));
+    return;
+  }
   e.respondWith(fetch(r).then((res) => {
     if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
     return res;
