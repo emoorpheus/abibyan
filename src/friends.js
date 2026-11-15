@@ -275,8 +275,8 @@ const FRIENDS = (() => {
     }
     if (r === HOMES.zhuk.room && t >= offerT && heistOK() && Math.random() < 0.3) { offerT = t + 600; later(3.9, offer); } // Round 15b #3: sometimes Жучок whispers «есть дело…»
   }
-  // the names he calls them by (recorded: tools/rec.py); [little ones, the rest]
-  const CALL = { pusya: [['Пуся!'], ['Пуся, привет!', 'Пуся!']], monty: [['Крот Монти!'], ['Крот Монти!']], mosq: [['Комар!', 'Москит!'], ['Москит!', 'Комарик!', 'Комар!']], zhuk: [['Жучок!'], ['Жучок!', 'Ура, Жучок!', 'Жучок, это ты?']] };
+  // the lines he calls them by (neural TTS: SPEECH.lines); [little ones, the rest]
+  const CALL = { pusya: [['Пуся, как я рад!'], ['Привет, Пуся, как дела?']], monty: [['Монти!'], ['Привет, Монти!']], mosq: [['Доктор Москит!'], ['Доктор Москит, а вы болеете?']], zhuk: [['Жучок, привет, малыш!'], ['Ты красавчик, Жучок!']] };
   let greetNow = false;
 
   // ================= Round 15b #3: «Вылазка» — Жучок is no thief, but always in on Абибян's adventures: they sneak Пуся's treats while she naps =================

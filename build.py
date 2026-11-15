@@ -125,17 +125,16 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-%s';
+sw = '''const CACHE = 'abibyan-v35r-%s';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './voice1.txt', './voice2.txt', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const r = e.request; if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
-  e.respondWith(caches.match(r, { ignoreSearch: true }).then((hit) => {
-    if (hit && self.navigator.onLine === false) return hit;
-    const net = fetch(r).then((res) => { if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); } return res; }).catch(() => hit);
-    return hit || net;
-  }));
+  e.respondWith(fetch(r).then((res) => {
+    if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
+    return res;
+  }).catch(() => caches.match(r, { ignoreSearch: true })));
 });
 ''' % (ver, ', '.join("'./%s'" % n for n in icons))
 (site / 'sw.js').write_text(sw)

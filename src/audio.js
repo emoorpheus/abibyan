@@ -239,8 +239,8 @@ const AUDIO = (() => {
   // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 1.5 s; its bubble is shown already)
   function voiceDone(g) { SPEECH.ready |= g; if (!(g & 1)) return; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 1500) say(p.text, p.o); }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
-  function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions, recordings), then voice2.txt (words, syllables)
-    const get = (f) => fetch(f).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
+  function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
+    const get = (f) => fetch(f + '?v=35r').then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
     const step = (SPEECH.ready & 1) ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); voiceDone(1); });
     step.then(() => get('voice2.txt')).then((t) => { voiceText(t); voiceDone(2); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 3000 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
   }
@@ -275,10 +275,9 @@ const AUDIO = (() => {
   function vsrc(c, when, rate, o = {}) {
     const len = Math.max(0.02, Math.min(c.buf.duration - c.off, o.len || 99)), gl = o.glide || 1, wall = len / (rate * (1 + gl) / 2);
     const src = ac.createBufferSource(); src.buffer = c.buf; src.playbackRate.setValueAtTime(rate, when); if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, when + wall);
-    const g = ac.createGain(), v = 1.2 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
+    const g = ac.createGain(), v = 0.95 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
     g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.004); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
     let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
-    if (o.sq) { via('highpass', 200, 0.7); via('peaking', 3200, 1.2, 4); } // Round 9 #11: the TTS lines get his recordings' squeaky EQ (tools/rec.py SQUEAK)
     if (o.lp) via('lowpass', o.lp);
     node.connect(g); g.connect(sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
@@ -322,21 +321,17 @@ const AUDIO = (() => {
       w.split('-').filter(Boolean).forEach((p, i) => { if (i) segs.push({ gap: 0.03 }); if (Wd[p]) segs.push({ id: 'W' + p, e: Wd[p] }); else spell(p, segs); });
     });
   }
-  // whole line if known; otherwise sentence by sentence / clause by clause (known phrases whole), the rest word by word.
-  // Round 8 #8: his own recordings (SPEECH.rec) come first — a recorded line, sentence or clause (a friend's name: «Пуся!») is
-  // played whole even inside a longer TTS line
+  // whole line if known; otherwise sentence by sentence / clause by clause, the rest word by word. Pure neural TTS (SPEECH.lines).
   function plan(text) {
-    const L = SPEECH.lines, R = SPEECH.rec || {}, k = normT(text); if (R[k]) return [{ id: 'R' + k, e: R[k] }];
-    const sents = String(text).match(/[^.!?…]+[.!?…]*/g) || [], cls = (sn) => sn.split(/[,;:—–]+/), recIn = (sn) => !!R[normT(sn)] || cls(sn).some((cl) => !!R[normT(cl)]);
-    if (L[k] && !sents.some(recIn)) return [{ id: 'L' + k, e: L[k] }];
+    const L = SPEECH.lines, k = normT(text); if (L[k]) return [{ id: 'L' + k, e: L[k] }];
+    const sents = String(text).match(/[^.!?…]+[.!?…]*/g) || [], cls = (sn) => sn.split(/[,;:—–]+/);
     const segs = [];
     sents.forEach((sn, si) => {
       const ks = normT(sn); if (!ks) return; if (segs.length) segs.push({ gap: 0.2 });
       const n0 = segs.length;
-      if (R[ks]) segs.push({ id: 'R' + ks, e: R[ks] });
-      else if (L[ks] && !recIn(sn)) segs.push({ id: 'L' + ks, e: L[ks] });
-      else cls(sn).forEach((cl) => { const kc = normT(cl); if (!kc) return; if (segs.length > n0) segs.push({ gap: 0.12 }); if (R[kc]) segs.push({ id: 'R' + kc, e: R[kc] }); else if (L[kc]) segs.push({ id: 'L' + kc, e: L[kc] }); else words(kc, segs); });
-      const last = segs[segs.length - 1], end = (sn.match(/[.!?…]+\s*$/) || [''])[0].trim(); if (last && !last.gap && !'LR'.includes(last.id[0])) last.end = end.includes('?') ? '?' : end.includes('!') ? '!' : '.';
+      if (L[ks]) segs.push({ id: 'L' + ks, e: L[ks] });
+      else cls(sn).forEach((cl) => { const kc = normT(cl); if (!kc) return; if (segs.length > n0) segs.push({ gap: 0.12 }); if (L[kc]) segs.push({ id: 'L' + kc, e: L[kc] }); else words(kc, segs); });
+      const last = segs[segs.length - 1], end = (sn.match(/[.!?…]+\s*$/) || [''])[0].trim(); if (last && !last.gap && !last.id.startsWith('L')) last.end = end.includes('?') ? '?' : end.includes('!') ? '!' : '.';
     });
     return segs;
   }
@@ -351,7 +346,7 @@ const AUDIO = (() => {
     const segs = plan(text), items = []; let t = 0;
     segs.forEach((s, i) => {
       if (s.gap) { t += s.gap / base; return; }
-      const len = Math.max(0.02, Math.min(s.e[1], s.len || s.e[1])), r = base * (s.r || 1) * (s.id[0] === 'R' ? 1 : TTS_UP), glide = s.end === '?' ? 1.12 : s.end === '!' ? 1.03 : s.end === '.' ? 0.95 : 1;
+      const len = Math.max(0.02, Math.min(s.e[1], s.len || s.e[1])), r = base * (s.r || 1) * TTS_UP, glide = s.end === '?' ? 1.12 : s.end === '!' ? 1.03 : s.end === '.' ? 0.95 : 1;
       const wall = len / (r * (1 + glide) / 2); items.push({ s, t0: t, wall, len, r, glide }); t += wall - (s.cut ? 0.006 : 0);
     });
     if (!items.length) return null;
@@ -359,7 +354,7 @@ const AUDIO = (() => {
     res.env = (x) => { x -= res.lag; for (const it of items) if (x >= it.t0 && x < it.t0 + it.wall) { if (!it.c) return 0.3; const k = Math.floor((x - it.t0) / it.wall * it.len / 0.025); return it.c.env[Math.min(it.c.env.length - 1, k)] || 0; } return 0; };
     Promise.all(items.map((it) => clip(it.s.id, it.s.e[0]).then((c) => { it.c = c; }, () => { }))).then(() => {
       if (tok !== SP.tok) return; const s0 = Math.max(t0 + 0.06, now() + 0.015); res.lag = s0 - t0;
-      for (const it of items) if (it.c) { vsrc(it.c, s0 + it.t0, it.r, { len: it.len, glide: it.glide, lp, cut: it.s.cut, sq: it.s.id[0] !== 'R' }); SP.played++; }
+      for (const it of items) if (it.c) { vsrc(it.c, s0 + it.t0, it.r, { len: it.len, glide: it.glide, lp, cut: it.s.cut }); SP.played++; }
       SP.busy = s0 + t;
     });
     SP.busy = t0 + t + 0.1; return res;
@@ -368,7 +363,7 @@ const AUDIO = (() => {
   const free = () => now() > SP.busy;
   function fx(kind, rate, o = {}) {
     const L = SPEECH.fx[kind]; if (!L || !L.length) return false; const i = Math.floor(Math.random() * L.length), e = L[i], t0 = now(), r = rate * SP.rate * TTS_UP, tok = SP.tok;
-    clip('F' + kind + i, e[0]).then((c) => { if (tok === SP.tok && now() - t0 < 0.5) SP.busy = now() + vsrc(c, Math.max(now() + 0.01, t0 + 0.02), r, Object.assign({ sq: 1 }, o)); }, () => { });
+    clip('F' + kind + i, e[0]).then((c) => { if (tok === SP.tok && now() - t0 < 0.5) SP.busy = now() + vsrc(c, Math.max(now() + 0.01, t0 + 0.02), r, o); }, () => { });
     SP.busy = t0 + e[1] / r + 0.05; return true;
   }
   const VOX = {
