@@ -30,6 +30,20 @@ const FRIENDS = (() => {
 
   // ---------- movement ----------
   function moveTo(f, x, y, sp, arc, then) { const d = Math.hypot(x - f.x, y - f.y); f.path = { x0: f.x, y0: f.y, x1: x, y1: y, t: 0, dur: Math.max(0.15, d / sp), arc: arc || 0, then }; }
+  const crossKitchen = (x0, y0, x1, y1) => Math.min(x0, x1) < 178 && Math.max(x0, x1) > 106 && (y0 < 266 || y1 < 266);
+  function walkTo(f, x, y, sp, arc, then) {
+    if (f.room === 'kitchen' && !FLY[f.id] && crossKitchen(f.x, f.y, x, y)) {
+      const sp_ = sp || 55;
+      if (f.y < 272) {
+        moveTo(f, f.x, 272, sp_, 0, () => moveTo(f, x, 272, sp_, 0, () => moveTo(f, x, y, sp_, arc || 0, then)));
+      } else {
+        moveTo(f, x, 272, sp_, 0, () => moveTo(f, x, y, sp_, arc || 0, then));
+      }
+      return;
+    }
+    moveTo(f, x, y, sp, arc, then);
+  }
+  const behindTable = () => IDS.some((id) => { const f = F[id]; return f.room === 'kitchen' && !f.onFur && f.y < 252 && f.x >= 106 && f.x <= 178; });
   function anchor(f) { if (f.mode === 'party') { const v = pslot(f, f.room); return [v[0], v[1]]; } if (f.mode === 'visit' || f.mode === 'leave') { const v = vspot(f, f.room); return [v[0], v[1]]; } const h = HOMES[f.id]; return [h.x, h.y]; }
   function goHome(f) { const h = HOMES[f.id]; Object.assign(f, { onFur: false, mode: 'home', room: h.room, x: h.x, y: h.y, gy: h.gy || h.y, path: null, jy: 0, vy: 0 }); }
   function hop(f, v) { if (f.jy >= 0 && !FLY[f.id]) f.vy = -v; }
@@ -80,9 +94,9 @@ const FRIENDS = (() => {
     if (GAME.spLeft(id) > 0) { run(id, [['f', Fd.spCd]]); return 'cd'; }
     if (id === 'mosq' && s.st.energy > 85) { run(id, [['f', Fd.spFull]]); return 'full'; }
     if (id === 'zhuk' && s.st.clean > 85) { run(id, [['f', Fd.spFull]]); return 'full'; }
-    extend(f); const back = () => { const a = anchor(f); moveTo(f, a[0], a[1], FLY[id] ? 70 : 60, FLY[id] ? 0 : (Math.abs(a[1] - f.y) > 20 ? 18 : 0)); return 0.1; };
+    extend(f); const back = () => { const a = anchor(f); walkTo(f, a[0], a[1], FLY[id] ? 70 : 60, FLY[id] ? 0 : (Math.abs(a[1] - f.y) > 20 ? 18 : 0)); return 0.1; };
     if (id === 'pusya') {
-      run(id, [...Fd.spGo, () => { const tx = f.x < HOME.mk.x ? HOME.mk.x - 30 : HOME.mk.x + 30; moveTo(f, tx, GY + 3, 70, Math.abs(f.y - GY) > 20 ? 18 : 0); return f.path.dur + 0.15; },
+      run(id, [...Fd.spGo, () => { const tx = f.x < HOME.mk.x ? HOME.mk.x - 30 : HOME.mk.x + 30; walkTo(f, tx, GY + 3, 70, Math.abs(f.y - GY) > 20 ? 18 : 0); return (f.path ? f.path.dur : 0.5) + 0.15; },
         () => { f.pose = 'knead'; f.poseUntil = t + 2.6; AUDIO.play('purr'); HOME.face('happy', 'smile', 2.8, { blush: 1 }); for (let k = 0; k < 6; k++) HOME.fx.spawn('heart', HOME.mk.x + rnd(-18, 18), HOME.mk.y - rnd(30, 70), { vy: -18, life: 1.3, wob: 5, fadeIn: k * 0.2 }); later(0.9, () => AUDIO.play('purr')); return 2.6; },
         () => { GAME.friendSpecial(id); gain('+12', 'energy'); return 0.3; }, ...Fd.spDone, back]);
     } else if (id === 'zhuk') {
@@ -125,14 +139,13 @@ const FRIENDS = (() => {
     f.room = r; f.gy = v[2]; f.jy = 0; f.vy = 0;
     const fromR = idx(from) > idx(r);
     f.x = fromR ? 206 : -26;
-    if (r === 'kitchen' && !FLY[f.id] && fromR && v[0] < 110 && v[1] < 260) {
-      f.y = 268;
-      const d1 = Math.abs(f.x - v[0]) / sp, d2 = Math.abs(268 - v[1]) / sp;
-      moveTo(f, v[0], 268, sp, 0, () => moveTo(f, v[0], v[1], sp, 0, null));
-      return d1 + d2;
+    if (r === 'kitchen' && !FLY[f.id] && fromR && v[0] < 178) {
+      f.y = 272;
+      walkTo(f, v[0], v[1], sp, 0, null);
+      return Math.abs(f.x - v[0]) / sp + Math.abs(272 - v[1]) / sp;
     }
     f.y = v[1];
-    moveTo(f, v[0], v[1], sp, 0, null); return f.path.dur;
+    walkTo(f, v[0], v[1], sp, 0, null); return f.path ? f.path.dur : 0.5;
   }
   function startVisit(id) {
     const f = F[id], r = HOME.room; if (HOMES[id].room === r || visitorId()) return false;
@@ -142,11 +155,7 @@ const FRIENDS = (() => {
   }
   function goAway(f) {
     if (f.mode !== 'leave') return; const home = HOMES[f.id].room, out = idx(home) < idx(f.room) ? -30 : 210, sp = 60;
-    if (f.room === 'kitchen' && !FLY[f.id] && out > 180 && f.x < 110 && f.y < 260) {
-      moveTo(f, f.x, 268, sp, 0, () => moveTo(f, out, 268, sp, 0, () => goHome(f)));
-    } else {
-      moveTo(f, out, f.y, sp, 0, () => goHome(f));
-    }
+    walkTo(f, out, FLY[f.id] ? f.y : (f.room === 'kitchen' && out > 180 ? 272 : f.y), sp, 0, () => goHome(f));
   }
   function leave(f, quiet) {
     if (f.mode !== 'visit') return; f.mode = 'leave'; if (scene && scene.id === f.id) cancelScene();
@@ -169,9 +178,9 @@ const FRIENDS = (() => {
     if (HOME.room === from) { // seen leaving
       const out = idx(room) < idx(from) ? -30 : 210, sp = FLY[id] ? 70 : 60;
       let gy = FLY[id] ? f.y : WALKY[id] || 250;
-      if (from === 'kitchen' && !FLY[id] && out > 180) gy = 268;
-      const go = () => moveTo(f, out, gy, sp, 0, arrive);
-      if (!FLY[id] && Math.abs(f.y - gy) > 3) moveTo(f, f.x + (out < 0 ? -6 : 6), gy, 110, 9, go); else go();
+      if (from === 'kitchen' && !FLY[id] && out > 180) gy = 272;
+      const go = () => walkTo(f, out, gy, sp, 0, arrive);
+      if (!FLY[id] && Math.abs(f.y - gy) > 3) walkTo(f, f.x + (out < 0 ? -6 : 6), gy, 110, 9, go); else go();
       AUDIO.play(SND[id]); f.pose = 'happy'; f.poseUntil = t + 1;
     } else arrive();
     return true;
@@ -206,11 +215,7 @@ const FRIENDS = (() => {
     later(Math.min(1.4, d + 0.2), () => {
       if (guest !== g || f.room !== g.room) return;
       const out = idx(g.from) < idx(g.room) ? -30 : 210, sp = FLY[g.id] ? 70 : 60;
-      if (g.room === 'kitchen' && !FLY[g.id] && out > 180 && f.x < 110 && f.y < 260) {
-        moveTo(f, f.x, 268, sp, 0, () => moveTo(f, out, 268, sp, 0, comeHome));
-      } else {
-        moveTo(f, out, f.y, sp, 0, comeHome);
-      }
+      walkTo(f, out, FLY[g.id] ? f.y : (g.room === 'kitchen' && out > 180 ? 272 : f.y), sp, 0, comeHome);
     });
   }
   function comeHome() {
@@ -218,10 +223,10 @@ const FRIENDS = (() => {
     if (HOME.room !== g.from) { goHome(f); guest = null; return; }
     const sp = FLY[g.id] ? 70 : 55, fromR = idx(g.room) > idx(g.from);
     let gy = FLY[g.id] ? hm.y : WALKY[g.id] || 250;
-    if (g.from === 'kitchen' && !FLY[g.id] && fromR && hm.x < 110) gy = 268;
+    if (g.from === 'kitchen' && !FLY[g.id] && fromR && hm.x < 178) gy = 272;
     f.room = g.from; f.x = fromR ? 206 : -26; f.y = gy; f.gy = hm.gy || hm.y; f.jy = 0; f.vy = 0; g.ph = 'home';
     const done = () => { goHome(f); if (guest === g) guest = null; };
-    moveTo(f, hm.x, gy, sp, 0, () => { if (Math.abs(gy - hm.y) > 3) moveTo(f, hm.x, hm.y, 130, 10, done); else done(); });
+    walkTo(f, hm.x, gy, sp, 0, () => { if (Math.abs(gy - hm.y) > 3) moveTo(f, hm.x, hm.y, 130, 10, done); else done(); });
   }
   function guestTick() {
     const g = guest; if (!g) return; const f = F[g.id];
@@ -772,6 +777,6 @@ const FRIENDS = (() => {
     return { fat, f: fr, party: party ? { kind: party.kind, act: party.act, auto: party.auto, lights: Math.round(party.lights * 100) / 100, bites: party.bites } : null, here: IDS.filter((id) => F[id].room === room).map((id) => ({ id, x: Math.round(F[id].x), y: Math.round(F[id].y), mode: F[id].mode })), visitor: visitorId(), scene: scene ? scene.id : null, bubble: UI.fbubbleText || null, speaker: bub ? bub.who : null, guest: guest ? { id: guest.id, host: guest.host, room: F[guest.id].room, ph: guest.ph, mode: F[guest.id].mode } : null, heist: heist ? { ph: heist.ph, src: heist.src } : null, offer: t < offerUntil, nap: !!F.pusya.nap,
       pillows: room === 'zal' ? { carrot: asleep ? 'hug' : pillowOpts(PIL.carrot).mood, pepper: asleep ? 'sleep' : pillowOpts(PIL.pepper).mood } : null };
   }
-  return { levelUp, boxes, _gift: gift, party: (o) => startParty(o), _party: (o) => startParty(Object.assign({ force: true }, o)), _endParty: endParty, _tryParty: tryParty, partyOn: () => !!party, partyKind: () => (party ? party.kind : null), dashaParty: (b) => startParty({ kind: 'dasha', force: true, bday: b }), doorT: () => 0, update, render, at, tap, hold, release, card, chat, special, info, feed, feedPick, busy: () => !!scene, hosting: () => !!(party || visitorId() || heist), growParty: (st) => startParty({ kind: 'grow', stage: st, force: true }), _cake: () => (party && party.cake) || null, heist: (src) => startHeist(src || 'api'), heistOK, heistLeft, PAIR, _guest: startGuest, HOMES, VSPOT, IDS,
+  return { behindTable, levelUp, boxes, _gift: gift, party: (o) => startParty(o), _party: (o) => startParty(Object.assign({ force: true }, o)), _endParty: endParty, _tryParty: tryParty, partyOn: () => !!party, partyKind: () => (party ? party.kind : null), dashaParty: (b) => startParty({ kind: 'dasha', force: true, bday: b }), doorT: () => 0, update, render, at, tap, hold, release, card, chat, special, info, feed, feedPick, busy: () => !!scene, hosting: () => !!(party || visitorId() || heist), growParty: (st) => startParty({ kind: 'grow', stage: st, force: true }), _cake: () => (party && party.cake) || null, heist: (src) => startHeist(src || 'api'), heistOK, heistLeft, PAIR, _guest: startGuest, HOMES, VSPOT, IDS,
     _joke: joke, _visit: startVisit, _greetNow: () => { greetNow = true; greetT = -1; }, CALL, _reset: () => { party = null; guest = null; heist = null; offerUntil = 0; offerT = 0; HOME.sneak(false); F.pusya.nap = false; F.zhuk.ride = false; AUDIO.stop('disco'); cancelScene(); timers = []; for (const id of IDS) goHome(F[id]); }, _skip: (s) => { t += s; }, _F: F, _PIL: PIL, get t() { return t; }, get drawn() { return drawn; } };
 })();

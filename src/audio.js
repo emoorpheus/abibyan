@@ -251,7 +251,7 @@ const AUDIO = (() => {
   if (typeof window !== 'undefined' && window.ABI_VOICE === 'files' && SP.ok) voiceFetch();
   function warm() { if (!ac || SP.warm) return; const k = Object.keys(SPEECH.lines)[0]; if (!k) return; SP.warm = 1; clip('L' + k, SPEECH.lines[k][0]).catch(() => { }); }
   // Pure neural monkey voice (Silero TTS -> WORLD -> EQ matched to assets/voice_src)
-  const TTS_UP = 1.0, WHINE = 'э-э-э-э-э';
+  const TTS_UP = 1.095, WHINE = 'э-э-э-э-э';
   const normT = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\- ]+/g, ' ').replace(/(^|\s)-+|-+(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
   function b2u(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
   // decoded clip (LRU cache): {buf, off = first audible sample (skips the mp3 decoder delay), env = 25 ms loudness 0..1}
@@ -281,7 +281,9 @@ const AUDIO = (() => {
     const g = ac.createGain(), v = 1.1 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
     g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.004); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
     let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
-    if (o.lp) via('lowpass', o.lp);
+    via('highpass', 220, 0.7);
+    via('peaking', 2500, 1.2, 3.5);
+    via('lowpass', o.lp || 7200, 0.7);
     node.connect(g); g.connect(voxG || sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
     return wall;
@@ -318,7 +320,7 @@ const AUDIO = (() => {
   function words(k, segs) {
     const L = SPEECH.lines, Wd = SPEECH.words;
     k.replace(/\d+/g, (m) => ' ' + (m.length > 6 ? m.split('').map((c) => num(+c)).join(' ') : num(+m)) + ' ').split(' ').filter(Boolean).map((w) => /[a-z]/.test(w) ? translit(w) : w).forEach((w, wi) => {
-      if (wi) segs.push({ gap: 0.07 });
+      if (wi) segs.push({ gap: 0.045 });
       if (Wd[w]) { segs.push({ id: 'W' + w, e: Wd[w] }); return; }
       if (L[w]) { segs.push({ id: 'L' + w, e: L[w] }); return; }
       w.split('-').filter(Boolean).forEach((p, i) => { if (i) segs.push({ gap: 0.03 }); if (Wd[p]) segs.push({ id: 'W' + p, e: Wd[p] }); else spell(p, segs); });

@@ -331,7 +331,7 @@ const HOME = (() => {
     FRIENDS.render(c, P, 'fur'); const duckFirst = room === 'bath'; if (duckFirst) DUCKS.render(c, P); // Round 9 #12: the rubber ducks, on the floor in front of him. Round 13b: after the room's front things (the balcony planter ends at y 274, above their lane 276); only the bath fern (pot down to y 290) stands in front of them
     if (inBed) { ROOMS.bedFront(c, H, mk.x); FRIENDS.render(c, P, 'hug'); }
     if (s.st.clean < 20 && !showerSt) drawStink(c);
-    ROOMS.front(c, room, H, t, { behind: !!(trip && trip.kind === 'fridge' && !trip.climb && trip.my < 250), seat: trip && trip.kind === 'pc' ? trip.seat : 0, chairDx, g: GAGS.view() });
+    ROOMS.front(c, room, H, t, { behind: !!((trip && trip.kind === 'fridge' && !trip.climb && trip.my < 250) || (room === 'kitchen' && FRIENDS.behindTable && FRIENDS.behindTable())), seat: trip && trip.kind === 'pc' ? trip.seat : 0, chairDx, g: GAGS.view() });
     if (!duckFirst) DUCKS.render(c, P);
     ROOMS.ambient(c, room, s.light);
     if (room === 'zal' && !s.light) ROOMS.night(c, H, t);
