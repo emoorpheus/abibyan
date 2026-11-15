@@ -1,7 +1,7 @@
 'use strict';
 // ===== WebAudio: SFX, monkey voice (SPEECH, tools/tts.py) + synth fallback, chiptune music, mic repeat =====
 const AUDIO = (() => {
-  let ac = null, master, sfxG, musG, noiseBuf; const st = { sfx: true, music: true };
+  let ac = null, master, sfxG, musG, voxG, noiseBuf; const st = { sfx: true, music: true };
   // Round 20 (ios-safari-quirks): main.js calls init() on pointerdown AND on pointerup / touchend / click / keys — on a phone only the
   // latter count as a gesture, and iOS wants resume() plus a sound started right inside it (one silent sample; older iPhones need it)
   let unlockedN = 0;
@@ -13,6 +13,7 @@ const AUDIO = (() => {
     master = ac.createGain(); master.gain.value = 0.8; master.connect(ac.destination);
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(master);
     sfxG = ac.createGain(); sfxG.gain.value = st.sfx ? 0.55 : 0; sfxG.connect(comp);
+    voxG = ac.createGain(); voxG.gain.value = st.sfx ? 0.65 : 0; voxG.connect(master);
     musG = ac.createGain(); musG.gain.value = st.music ? 0.16 : 0; musG.connect(comp);
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     if (st.music) music.start();
@@ -246,9 +247,8 @@ const AUDIO = (() => {
   }
   if (typeof window !== 'undefined' && window.ABI_VOICE === 'files' && SP.ok) voiceFetch();
   function warm() { if (!ac || SP.warm) return; const k = Object.keys(SPEECH.lines)[0]; if (!k) return; SP.warm = 1; clip('L' + k, SPEECH.lines[k][0]).catch(() => { }); }
-  // Round 9 #11: a little higher and squeakier. His recordings are pitched +3 semitones offline (tools/rec.py SQUEAK, tempo kept);
-  // the TTS lines and reactions (the 2nd voice, ~554 Hz vs his 496 Hz before) go +1 semitone at playback + the same EQ, so both meet at ≈ 590 Hz
-  const TTS_UP = Math.pow(2, 1 / 12), WHINE = 'э-э-э-э-э';
+  // Pure neural monkey voice (Silero TTS -> WORLD -> EQ matched to assets/voice_src)
+  const TTS_UP = 1.0, WHINE = 'э-э-э-э-э';
   const normT = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\- ]+/g, ' ').replace(/(^|\s)-+|-+(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
   function b2u(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
   // decoded clip (LRU cache): {buf, off = first audible sample (skips the mp3 decoder delay), env = 25 ms loudness 0..1}
@@ -265,21 +265,22 @@ const AUDIO = (() => {
   }
   function prep(buf) {
     const d = buf.getChannelData(0), sr = buf.sampleRate; let mx = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > mx) mx = a; }
-    let i0 = 0; const th = Math.max(0.003, mx * 0.02); while (i0 < d.length && Math.abs(d[i0]) < th) i0++;
+    let i0 = 0; const th = Math.max(0.002, mx * 0.015); while (i0 < d.length && Math.abs(d[i0]) < th) i0++;
     const W = Math.round(sr * 0.025), n = Math.max(1, Math.ceil((d.length - i0) / W)), env = new Float32Array(n); let em = 1e-4;
     for (let j = 0; j < n; j++) { let q = 0; const a = i0 + j * W, b = Math.min(d.length, a + W); for (let x = a; x < b; x++) q += d[x] * d[x]; env[j] = Math.sqrt(q / Math.max(1, b - a)); if (env[j] > em) em = env[j]; }
     for (let j = 0; j < n; j++) env[j] = Math.min(1, env[j] / em * 1.3);
-    return { buf, off: Math.max(0, i0 / sr - 0.003), env };
+    return { buf, off: Math.max(0, i0 / sr - 0.008), env };
   }
   // play a decoded clip at a pitch/speed rate (optional glide to rate*glide); returns wall-clock seconds
   function vsrc(c, when, rate, o = {}) {
     const len = Math.max(0.02, Math.min(c.buf.duration - c.off, o.len || 99)), gl = o.glide || 1, wall = len / (rate * (1 + gl) / 2);
     const src = ac.createBufferSource(); src.buffer = c.buf; src.playbackRate.setValueAtTime(rate, when); if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, when + wall);
-    const g = ac.createGain(), v = 0.95 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
-    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.004); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
+    const g = ac.createGain(), v = 0.85 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
+    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.008); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
     let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
+    via('highshelf', 6500, 0.7, -3.0);
     if (o.lp) via('lowpass', o.lp);
-    node.connect(g); g.connect(sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
+    node.connect(g); g.connect(voxG || sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
     return wall;
   }
@@ -480,7 +481,7 @@ const AUDIO = (() => {
     return { start() { if (!ac || timer) return; next = ac.currentTime + 0.1; timer = setInterval(sched, 60); }, stop() { clearInterval(timer); timer = null; }, track, get id() { return cur; }, log };
   })();
   function track(id) { if (!ac && st.music) init(); music.track(id); } // a mini-game starts from a tap, so it's fine to wake the audio up here
-  function set(k, v) { st[k] = v; if (!ac) return; if (k === 'sfx') sfxG.gain.value = v ? 0.55 : 0; if (k === 'music') { musG.gain.value = v ? 0.16 : 0; v ? music.start() : music.stop(); } }
+  function set(k, v) { st[k] = v; if (!ac) return; if (k === 'sfx') { sfxG.gain.value = v ? 0.55 : 0; if (voxG) voxG.gain.value = v ? 0.65 : 0; } if (k === 'music') { musG.gain.value = v ? 0.16 : 0; v ? music.start() : music.stop(); } }
   function duck(on) { if (ac && musG) musG.gain.setTargetAtTime(quietF || on ? 0 : (st.music ? 0.16 : 0), ac.currentTime, 0.05); }
   // Round 22: silence the music (and her birthday song) while the microphone listens for a blow — it must not hear the game
   let quietF = false;

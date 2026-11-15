@@ -100,6 +100,8 @@ def testify(h, coins=100000, top=True, key='martyn_tamagotchi_test_v1', reset_to
     if key and key != 'martyn_tamagotchi_test_v1': cfg['key'] = key
     cfg_json = json.dumps(cfg)
     h = h.replace('<title>Мой Абибян — плюшевый тамагочи</title>', f'<title>{title}</title>', 1)
+    test_btn = '<button id="btn-test-voice" onclick="if(window.__game&&window.__game.AUDIO){window.__game.AUDIO.init();window.__game.AUDIO.say(\'С днём рождения, Дашулик!\');}" style="position:fixed;top:6px;right:6px;z-index:99999;background:#ffd04a;color:#1a1016;border:2px solid #1a1016;border-radius:6px;padding:5px 9px;font-size:11px;font-family:sans-serif;font-weight:bold;cursor:pointer;box-shadow:0 2px 0 #1a1016;">🔊 Тест голоса</button>'
+    h = h.replace('<div id="view">', test_btn + '<div id="view">', 1)
     h = h.replace('<script>\n', f'<script>window.ABI_TEST = {cfg_json};\n' + SHIFT + '</script>\n<script>\n', 1)
     assert 'window.ABI_TEST = ' in h and title in h and 'T.shifted = true' in h
     return h
@@ -125,7 +127,7 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v35r-%s';
+sw = '''const CACHE = 'abibyan-v35-neural-%s';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './voice1.txt', './voice2.txt', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -143,3 +145,7 @@ zp = root / 'dist' / 'moy-abibyan-site.zip'
 with zipfile.ZipFile(zp, 'w', zipfile.ZIP_DEFLATED) as z:
     for f in sorted(site.iterdir()): z.write(f, f.name)
 print('site', site, '->', zp, zp.stat().st_size // 1024, 'KB')
+for f in site.iterdir():
+    if not f.name.endswith('.zip'):
+        (root / f.name).write_bytes(f.read_bytes())
+print('copied site assets to repo root')
