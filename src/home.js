@@ -106,7 +106,7 @@ const HOME = (() => {
     yawn: { dur: 1.8, start: () => AUDIO.play('yawn'), pose: (k, p) => { p.pose = k > 0.12 && k < 0.88 ? 'up' : 'idle'; p.mouth = 'open'; p.open = q3(Math.sin(k * Math.PI) * 1.2); p.eyes.mode = 'closed'; } },
     belly: { dur: 1.7, pose: (k, p) => { p.pose = 'belly'; const b = Math.floor(k * 8) % 2; p.armL = b ? [-8, -30, 1] : [-10, -26, 1]; p.armR = b ? [10, -26, 1] : [8, -30, 1]; p.eyes.mode = 'happy'; p.mouth = 'smile'; } },
     rub: { dur: 2.4, pose: (k, p) => { p.pose = 'belly'; const b = Math.floor(k * 6) % 2; p.armL = b ? [-9, -31, 1] : [-6, -27, 1]; p.armR = b ? [6, -27, 1] : [9, -31, 1]; p.eyes.mode = 'closed'; p.mouth = 'smile'; } },
-    hop: { dur: 0.9, start: () => hop(150), pose: (k, p) => { if (mk.jy < -2) { p.pose = 'up'; p.legs = 'tuck'; } p.eyes.mode = 'happy'; p.mouth = 'laugh'; } },
+    hop: { dur: 0.9, start: () => { hop(150); if (Math.random() < 0.6) AUDIO.play('happy'); }, pose: (k, p) => { if (mk.jy < -2) { p.pose = 'up'; p.legs = 'tuck'; } p.eyes.mode = 'happy'; p.mouth = 'laugh'; } },
     // Round 9 #3: on the rug — his own jig: a giggle and a little tune, hops from foot to foot, brown fluff off the rug on every landing,
     // notes popping just over HIS head (by his height), «та-да» with both arms up at the end
     jig: { dur: 3.3, fast: 1, start: (a) => { a.beat = -1; a.air = false; AUDIO.play('giggle'); AUDIO.play('jig'); },
@@ -533,7 +533,7 @@ const HOME = (() => {
     // Round 6 D: the hall mirror — he stands right of it, faces us and strikes a pose; his reflection repeats it (no wardrobe any more)
     mirror: { path: [[84, 246]], dur: 2.6, wait: false, lead: 0, open: () => {} },
     // Round 7 #8: the guitar — he stands left of the bag, unzips it, takes the guitar out, strums (badly), puts it back and zips it up
-    guitar: { path: [[88, 250]], dur: 6, wait: false, lead: 0, open: () => {} },
+    guitar: { path: [[88, 250]], dur: 8.5, wait: false, lead: 0, open: () => {} },
     // Round 7 #6: a console — he sits down on the floor in front of the TV (back to us) with the controller, the TV shows the console's menu
     console: { path: [[150, 266]], sit: true, floor: true, dur: 0.7, wait: true, lead: 0.35, open: () => UI.openGames('tv') },
     // Round 8 #12: the robot vacuum — he walks over, hops on and rides it round the hall (GAGS drives it), hops off at the dock and comes back
@@ -636,7 +636,7 @@ const HOME = (() => {
   function phone() {
     if (APP.scene !== 'home' || trans) return; const s = S();
     if (s.sleeping) { UI.toast('Тсс, ' + s.name + ' спит', UI.I('moon')); return; }
-    if (!GAME.hasPhone()) { AUDIO.play('nope'); say(pick(DATA.LINES.noPhone), 'sad'); UI.openShop('tech'); return; }
+    if (!GAME.hasPhone()) { AUDIO.play('nope'); later(0.2, () => say(pick(DATA.LINES.noPhone))); UI.openShop('tech'); return; }
     if (trip) return; mk.act = null; cancelTool(); phoneT = t; AUDIO.play('phone'); if (Math.random() < 0.5) say(pick(DATA.LINES.phone));
     later(0.6, () => { if (APP.scene === 'home' && !UI.sheetOpen && !UI.hasModal()) UI.openGames('phone'); });
   }
@@ -663,8 +663,8 @@ const HOME = (() => {
     P.r(x - 4, y - 8, 9, 13, '#16161c'); P.r(x - 3, y - 7, 7, 11, '#34343e'); P.r(x - 3, y - 7, 7, 1, '#4a4a56'); P.r(x - 2, y - 6, 2, 2, '#0c0c10'); P.p(x - 2, y - 6, '#5a6a8a'); P.p(x + 2, y - 2, '#4a4a56');
     c.fillStyle = '#a8e4ff'; c.globalAlpha = 0.8; c.fillRect(x - 4, y - 9, 9, 1); c.globalAlpha = 1;
   }
-  // ---------- Round 7 #8: the guitar in its bag in the zal — he cannot play: sloppy strums, wrong strings, a wince, crooked notes ----------
-  const GT = { zip: 0.45, take: 0.9, strum: 1.3, pack: 5.3, zip2: 5.6, shut: 5.9 };
+  // Round 35: Smooth guitar unpack & pack with bag lock animation and seamless arm layering
+  const GT = { reach: 0.2, zip: 0.8, open: 1.0, take: 1.0, strum: 2.0, pack: 5.8, settle: 7.0, zip2: 7.3, shut: 8.0 };
   const gSmall = () => GAME.little();
   const gDir = (a) => { const r = a * Math.PI / 180; return { hx: Math.sin(r), hy: -Math.cos(r), ux: Math.cos(r), uy: Math.sin(r) }; }; // towards the head / across the strings
   function guitarCase() { const tr = trip; return tr && tr.kind === 'guitar' && !tr.baby && tr.ph === 'do' && tr.t >= GT.zip && tr.t < GT.shut ? 'open' : 'closed'; }
@@ -674,10 +674,10 @@ const HOME = (() => {
   function gPos(tr) { // where the guitar is now: { x, y (its body centre), a (degrees), inCase }
     const C = { x: ZAL.GO[0], y: ZAL.GO[1], a: 0, sc: 1, inCase: true }, t = tr.t; if (tr.ph !== 'do') return C;
     const mv = (k, from, to) => { const e = k * k * (3 - 2 * k); return { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e - Math.sin(Math.PI * k) * 8, a: from.a + (to.a - from.a) * e, sc: from.sc + (to.sc - from.sc) * e, inCase: false }; };
-    if (t < GT.take || t >= GT.zip2) return C;
+    if (t < GT.take || t >= GT.settle) return C;
     if (t < GT.strum) return mv((t - GT.take) / (GT.strum - GT.take), C, gHeld());
     if (t < GT.pack) return Object.assign(gHeld(), { inCase: false });
-    return mv((t - GT.pack) / (GT.zip2 - GT.pack), gHeld(), C);
+    return mv((t - GT.pack) / (GT.settle - GT.pack), gHeld(), C);
   }
   // Round 9 #1: a baby (Кроха, Малыш, Карапуз) can't unzip the bag — he slaps it three times (a dull «бздынь», the bag shakes on its stand),
   // then whines «Э-э-э-э-э!» and a hint says the guitar opens from «Детёныш»; then he toddles back
@@ -696,8 +696,8 @@ const HOME = (() => {
   function guitarTick(tr, dt) {
     if (tr.baby) { babyGuitar(tr, dt); return; }
     const t = tr.t, L = DATA.LINES, ag = GAME.ageDef();
-    tr.gp = t < GT.take ? 'open' : t < GT.strum ? 'take' : t < GT.pack ? 'strum' : 'pack';
-    if (!tr.z1) { tr.z1 = 1; AUDIO.play('zip'); }
+    tr.gp = t < GT.take ? 'open' : t < GT.strum ? 'take' : t < GT.pack ? 'strum' : t < GT.settle ? 'pack' : 'zip';
+    if (t >= GT.reach && !tr.z1) { tr.z1 = 1; AUDIO.play('zip'); }
     if (t >= GT.zip2 && !tr.z2) { tr.z2 = 1; AUDIO.play('zip'); }
     tr.wince = Math.max(0, (tr.wince || 0) - dt);
     if (tr.gp === 'strum') {
@@ -728,10 +728,19 @@ const HOME = (() => {
     }
     const s = GAME.ageDef().s, g = gPos(tr), d = gDir(g.a), gp = tr.gp, b = Math.floor(tr.t * 3) % 2;
     const M = (x, y) => [Math.round((x - mk.x) / s), Math.round((y - mk.y - mk.jy) / s), 1]; // a screen point → an arm target (in front of him)
-    if (gp === 'open' || (gp === 'pack' && tr.t >= GT.zip2)) { // runs the zip along the bag's side, then looks in, pleased
-      const k = gp === 'open' ? Math.min(1, tr.t / GT.zip) : Math.min(1, (tr.t - GT.zip2) / 0.3), zy = Math.max(ZAL.GTR[1] + 7 + 43 * (gp === 'open' ? k : 1 - k), mk.y - 70 * s);
+    if (gp === 'open') { // reaches for the lock, runs the zip down the bag's side, then looks in pleased
+      if (tr.t < GT.reach) { p.armR = M(ZAL.GTR[0] + 8, ZAL.GTR[1] + 8); p.armL = [-17, -15]; p.eyes.look = [1, 0]; return; }
+      const k = Math.min(1, (tr.t - GT.reach) / (GT.zip - GT.reach));
+      const zy = Math.max(ZAL.GTR[1] + 7 + 43 * k, mk.y - 70 * s);
       p.armR = M(ZAL.GTR[0] + (zy - ZAL.GTR[1] < 33 ? 8 : 3), zy); p.armL = [-17, -15]; p.eyes.look = [1, zy < mk.y - 60 * s ? -1 : 0];
-      if (gp === 'open' && tr.t >= GT.zip) { p.eyes.mode = 'happy'; if (!mk.talk) p.mouth = 'smile'; }
+      if (tr.t >= GT.zip) { p.eyes.mode = 'happy'; if (!mk.talk) p.mouth = 'smile'; }
+      return;
+    }
+    if (gp === 'zip') { // zips the case back up: hand pulls from bottom to top lock
+      if (tr.t >= GT.shut) { p.armR = [19, -40]; p.armL = [-17, -15]; p.eyes.mode = 'happy'; if (!mk.talk) p.mouth = 'smile'; return; }
+      const k = Math.max(0, Math.min(1, (tr.t - GT.zip2) / (GT.shut - GT.zip2)));
+      const zy = Math.max(ZAL.GTR[1] + 7 + 43 * (1 - k), mk.y - 70 * s);
+      p.armR = M(ZAL.GTR[0] + (zy - ZAL.GTR[1] < 33 ? 8 : 3), zy); p.armL = [-17, -15]; p.eyes.look = [1, 0];
       return;
     }
     if (gp === 'take' || gp === 'pack') { p.armR = M(g.x + d.hx * 14, g.y + d.hy * 14); p.armL = M(g.x - d.ux * 2, g.y - d.uy * 2); p.eyes.look = [g.x > mk.x + 4 ? 1 : 0, 1]; return; }
@@ -748,9 +757,37 @@ const HOME = (() => {
     if (g.inCase ? front || guitarCase() !== 'open' : !front) return;
     const gc = ZAL.guitarSpr(g.a, g.sc); c.drawImage(gc, Math.round(g.x) - gc.width / 2, Math.round(g.y) - gc.height / 2);
     if (!sp) return;
-    for (const h of [sp.handL, sp.handR]) {
-      if (!h) continue; const hx = x0 + sp.ox + h.x, hy = y0 + sp.oy + h.y, sc = GAME.ageDef().s;
-      c.save(); c.beginPath(); c.ellipse(hx, hy, 4.4 * sc + 1.6, 4.9 * sc + 1.8, 0, 0, Math.PI * 2); c.clip(); c.drawImage(sp.cv, x0, y0); c.restore();
+    const sc = GAME.ageDef().s;
+    // Round 35: Draw left strumming arm and paw smoothly OVER the guitar body so the forearm never clips/disappears behind it
+    if (sp.armL) {
+      const sh = [x0 + sp.ox + sp.armL.sh[0], y0 + sp.oy + sp.armL.sh[1]];
+      const ctrl = [x0 + sp.ox + sp.armL.ctrl[0], y0 + sp.oy + sp.armL.ctrl[1]];
+      const hand = [x0 + sp.ox + sp.armL.hand[0], y0 + sp.oy + sp.armL.hand[1]];
+      const w = 7.5 * sc;
+      c.save();
+      c.beginPath();
+      const seg = (p1, p2) => {
+        const dx = p2[0] - p1[0], dy = p2[1] - p1[1], L = Math.hypot(dx, dy) || 1;
+        const nx = -dy / L * w, ny = dx / L * w;
+        c.moveTo(p1[0] + nx, p1[1] + ny);
+        c.lineTo(p2[0] + nx, p2[1] + ny);
+        c.lineTo(p2[0] - nx, p2[1] - ny);
+        c.lineTo(p1[0] - nx, p1[1] - ny);
+        c.closePath();
+      };
+      seg(sh, ctrl);
+      seg(ctrl, hand);
+      c.ellipse(sh[0], sh[1], w, w, 0, 0, Math.PI * 2);
+      c.ellipse(ctrl[0], ctrl[1], w, w, 0, 0, Math.PI * 2);
+      c.ellipse(hand[0], hand[1], w * 1.1, w * 1.15, 0, 0, Math.PI * 2);
+      c.clip();
+      c.drawImage(sp.cv, x0, y0);
+      c.restore();
+    }
+    // Also draw the fretting paw on the guitar neck
+    if (sp.handR) {
+      const hx = x0 + sp.ox + sp.handR.x, hy = y0 + sp.oy + sp.handR.y;
+      c.save(); c.beginPath(); c.ellipse(hx, hy, 5.5 * sc + 1.8, 6.0 * sc + 2.0, 0, 0, Math.PI * 2); c.clip(); c.drawImage(sp.cv, x0, y0); c.restore();
     }
   }
   function tripOpen() { const tr = trip; if (!tr || tr.opened) return; tr.opened = true;

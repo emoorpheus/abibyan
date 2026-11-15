@@ -40,7 +40,8 @@ const UI = (() => {
     bathmat: () => ROOMS.FUR.mat(), fern: () => ROOMS.FUR.fern(), nightlight: () => ROOMS.FUR.nightlight(), poster: () => ROOMS.FUR.poster(),
     hammock: () => ROOMS.upThumb('hammock'), gnome: () => ROOMS.FUR.gnome(), flamingo: () => ROOMS.FUR.flamingo(),
     feeder: () => ROOMS.upThumb('feeder'), flowers: () => ROOMS.upThumb('flowers'), telescope: () => ROOMS.upThumb('telescope'), lava: () => ROOMS.upThumb('lava'), radio: () => ROOMS.upThumb('radio'), soundbar: () => ROOMS.upThumb('soundbar'),
-    ...Object.fromEntries(DATA.BOUGHT9.map((id) => [id, () => trim(ROOMS.upThumb(id))])), // Round 9 #2: drawn by their rooms, cut to their pixels switch2: () => ROOMS.upThumb('switch2'), ps5: () => ROOMS.upThumb('ps5'),
+    ...Object.fromEntries(DATA.BOUGHT9.map((id) => [id, () => trim(ROOMS.upThumb(id))])), // Round 9 #2: drawn by their rooms, cut to their pixels
+    switch2: () => ROOMS.upThumb('switch2'), ps5: () => ROOMS.upThumb('ps5'),
   };
   function upIcon(k, v) { const key = 'up_' + k + '_' + v; if (thumbs[key]) return thumbs[key]; const cv = ROOMS.upThumb(k, v); return (thumbs[key] = cv ? fitThumb(cv) : I('home')); }
   function decorThumb(id) {

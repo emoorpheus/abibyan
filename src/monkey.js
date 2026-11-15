@@ -510,7 +510,9 @@ const MONKEY = (() => {
     const cv = PX.canvas(W, H); const id = new ImageData(new Uint8ClampedArray(gcol.buffer.slice(0)), W, H); cv.getContext('2d').putImageData(id, 0, 0);
     return { cv, w: W, h: H, ox: OX, oy: OY, s,
       mouth: { x: 0, y: hmy(ym) * s }, head: { x: 0, y: hmy(hc[1]) * s, rx: hr[0] * kh * s, ry: hr[1] * kh * s }, nose: { x: 0, y: hmy(-63.4 + bob) * s, r: 4.6 * kh * s }, age, body: { x: 0, y: bc[1] * s, rx: br[0] * s, ry: br[1] * s },
-      belly: { x: 0, y: ec[1] * s, rx: er[0] * s, ry: er[1] * s }, handR: armsInfo.r ? { x: armsInfo.r.hand[0] * s, y: armsInfo.r.hand[1] * s } : null, handL: armsInfo.l ? { x: armsInfo.l.hand[0] * s, y: armsInfo.l.hand[1] * s } : null };
+      belly: { x: 0, y: ec[1] * s, rx: er[0] * s, ry: er[1] * s }, handR: armsInfo.r ? { x: armsInfo.r.hand[0] * s, y: armsInfo.r.hand[1] * s } : null, handL: armsInfo.l ? { x: armsInfo.l.hand[0] * s, y: armsInfo.l.hand[1] * s } : null,
+      armL: armsInfo.l ? { sh: [armsInfo.l.sh[0] * s, armsInfo.l.sh[1] * s], ctrl: [armsInfo.l.ctrl[0] * s, armsInfo.l.ctrl[1] * s], hand: [armsInfo.l.hand[0] * s, armsInfo.l.hand[1] * s] } : null,
+      armR: armsInfo.r ? { sh: [armsInfo.r.sh[0] * s, armsInfo.r.sh[1] * s], ctrl: [armsInfo.r.ctrl[0] * s, armsInfo.r.ctrl[1] * s], hand: [armsInfo.r.hand[0] * s, armsInfo.r.hand[1] * s] } : null };
   }
   function smooth(a, b, x) { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 
