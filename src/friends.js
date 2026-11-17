@@ -413,7 +413,7 @@ const FRIENDS = (() => {
       phase('photo'), ['a', pick(LN.dPhoto), 'happy'], () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 4.5; } return 0.2; }, () => count(3), () => count(2), () => count(1),
       () => { count(0); const top = Math.min(170, Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14); DASHA.photo(top); return 1.3; }, ['w', 0.3]];
     if (DASHA.heartsOn()) L.push(() => DASHA.secretsHint());
-    L.push(() => { party.cake = null; DASHA.cakeOut(); return 0.4; }, phase('bye'), ['a', pick(LN.dBye), 'happy'], () => { partyReward(); return 0.6; }, fl(ord[3], DP.bye[ord[3]]),
+    L.push(() => { party.cake = null; DASHA.cakeOut(); return 0.4; }, phase('bye'), ['a', pick(LN.dBye), 'happy'], fl(ord[3], DP.bye[ord[3]]),
       () => { HOME.act('wave'); for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 1.2; } return 0.6; });
     return L;
   }

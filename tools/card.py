@@ -26,7 +26,7 @@ CHROME_CANDS = [
     shutil.which('google-chrome'),
     '/usr/local/bin/chromium',
     '/usr/bin/chromium'
-] + glob.glob(os.path.expanduser('~/Library/Caches/ms-playwright/chromium-*/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'))
+] + glob.glob(os.path.expanduser('~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome')) + glob.glob(os.path.expanduser('~/Library/Caches/ms-playwright/chromium-*/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'))
 CHROME = next((c for c in CHROME_CANDS if c and os.path.exists(c)), None)
 assert CHROME, 'Chromium / Chrome binary not found'
 
@@ -99,12 +99,20 @@ def bunting(w=105):
 
 SHEET_W, SHEET_H = 297, 210
 HALF_W = SHEET_W / 2          # 148.5 mm
-M = 6.5                        # safe margin from edges and fold (mm)
-PW = HALF_W - 2 * M            # 135.5 mm panel width
-PH = SHEET_H - 2 * M           # 197.0 mm panel height
 
-Z = PW / 105                   # zoom factor from standard 105x148 layout: 1.29048
-OY = (PH - 148 * Z) / 2        # vertical centering offset: ~3.0 mm
+# Hardware-safe centering for Canon PIXMA TS3300 (which requires >=16.7mm bottom margin on plain paper)
+# and universal consumer printers:
+# Top margin = 18.0 mm, Bottom margin = 18.0 mm (100% symmetric vertical centering)
+# Panel height: PH = 210 - 2 * 18.0 = 174.0 mm
+# Exact proportional zoom from standard 105×148 mm: Z = PH / 148 = 1.175676
+# Panel width: PW = 105 * Z = 123.446 mm
+# Symmetrical horizontal margin: MX = (HALF_W - PW) / 2 = 12.527 mm
+MY = 18.0                      # top and bottom margins (mm)
+PH = SHEET_H - 2 * MY          # 174.0 mm
+Z = PH / 148                   # 1.17568 (exact aspect ratio)
+PW = 105 * Z                   # 123.446 mm
+MX = (HALF_W - PW) / 2         # 12.527 mm
+OY = 0                         # exact proportional fit!
 
 def elegant_frame():
     return f'''<div class="card-border">
@@ -113,36 +121,56 @@ def elegant_frame():
       <span class="cb-c c-bl">♥</span><span class="cb-c c-br">♥</span>
     </div>'''
 
+def crop_marks():
+    c_len = 4.0
+    lx0, lx1 = MX, MX + PW
+    rx0, rx1 = HALF_W + MX, HALF_W + MX + PW
+    y0, y1 = MY, MY + PH
+    marks = [
+        f'<line x1="{HALF_W:.2f}" y1="0" x2="{HALF_W:.2f}" y2="5" stroke="#caa2b4" stroke-width="0.3"/>',
+        f'<line x1="{HALF_W:.2f}" y1="{SHEET_H-5:.2f}" x2="{HALF_W:.2f}" y2="{SHEET_H:.2f}" stroke="#caa2b4" stroke-width="0.3"/>'
+    ]
+    for x0, x1 in ((lx0, lx1), (rx0, rx1)):
+        marks.append(f'<line x1="{x0:.2f}" y1="{y0-c_len:.2f}" x2="{x0:.2f}" y2="{y0:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x0-c_len:.2f}" y1="{y0:.2f}" x2="{x0:.2f}" y2="{y0:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x1:.2f}" y1="{y0-c_len:.2f}" x2="{x1:.2f}" y2="{y0:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x1:.2f}" y1="{y0:.2f}" x2="{x1+c_len:.2f}" y2="{y0:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x0:.2f}" y1="{y1:.2f}" x2="{x0:.2f}" y2="{y1+c_len:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x0-c_len:.2f}" y1="{y1:.2f}" x2="{x0:.2f}" y2="{y1:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x1:.2f}" y2="{y1+c_len:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+        marks.append(f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x1+c_len:.2f}" y2="{y1:.2f}" stroke="#caa2b4" stroke-width="0.3"/>')
+    return f'<svg class="crop-marks" style="position:absolute;inset:0;width:297mm;height:210mm;pointer-events:none;z-index:95;">{"".join(marks)}</svg>'
+
 qr = segno.make(URL, error='m')
 QR = qr.svg_inline(scale=1, border=2, dark=INK, light='#ffffff', omitsize=True)
 link = URL.replace('https://', '').rstrip('/')
 
 FONTS_DIR = os.path.join(ROOT, 'assets', 'fonts')
-LOCAL_FONTS = f"""
-@font-face {{ font-family: 'Pix'; src: url('{furl(os.path.join(ROOT, 'assets', 'pix400.woff2'))}') format('woff2'); font-weight: 400; }}
-@font-face {{ font-family: 'Pix'; src: url('{furl(os.path.join(ROOT, 'assets', 'pix700.woff2'))}') format('woff2'); font-weight: 700; }}
-@font-face {{ font-family: 'Comfortaa'; src: url('{furl(os.path.join(FONTS_DIR, 'comfortaa700.woff2'))}') format('woff2'); font-weight: 700; }}
-@font-face {{ font-family: 'Caveat'; src: url('{furl(os.path.join(FONTS_DIR, 'caveat700.woff2'))}') format('woff2'); font-weight: 700; }}
-@font-face {{ font-family: 'Nunito'; src: url('{furl(os.path.join(FONTS_DIR, 'nunito400.woff2'))}') format('woff2'); font-weight: 400; }}
-@font-face {{ font-family: 'Nunito'; src: url('{furl(os.path.join(FONTS_DIR, 'nunito700.woff2'))}') format('woff2'); font-weight: 700; }}
-"""
+import base64
+def _font64(rel):
+    # embed the font bytes: Chromium on file:// may block relative font URLs and fall back to Times New Roman
+    with open(os.path.join(ROOT, 'assets', rel), 'rb') as fh: return 'data:font/woff2;base64,' + base64.b64encode(fh.read()).decode('ascii')
+_FF = [('Pix', 'pix400.woff2', 400), ('Pix', 'pix700.woff2', 700), ('Comfortaa', 'fonts/comfortaa700.woff2', 700),
+       ('Caveat', 'fonts/caveat700.woff2', 700), ('Nunito', 'fonts/nunito400.woff2', 400), ('Nunito', 'fonts/nunito700.woff2', 700)]
+LOCAL_FONTS = ''.join(f"@font-face {{ font-family: '{n}'; src: url('{_font64(f)}') format('woff2'); font-weight: {w}; }}\n" for n, f, w in _FF)
+
 
 def make_css(bleed=False):
     if not bleed:
         pn_layout = f"""
-        .pn {{ position: absolute; top: {M}mm; width: {PW}mm; height: {PH}mm; overflow: hidden; border-radius: 5mm; }}
-        .pn-left {{ left: {M}mm; }}
-        .pn-right {{ left: {HALF_W + M}mm; }}
-        .card-border {{ position: absolute; inset: 0; border: 1.6pt solid #f0bed2; border-radius: 5mm; pointer-events: none; z-index: 80; }}
-        .inw {{ position: absolute; left: 0; top: {OY:.3f}mm; width: {PW}mm; }}
+        .pn {{ position: absolute; top: {MY:.2f}mm; width: {PW:.2f}mm; height: {PH:.2f}mm; overflow: hidden; border-radius: 4.5mm; }}
+        .pn-left {{ left: {MX:.2f}mm; }}
+        .pn-right {{ left: {HALF_W + MX:.2f}mm; }}
+        .card-border {{ position: absolute; inset: 0; border: 1.6pt solid #f0bed2; border-radius: 4.5mm; pointer-events: none; z-index: 80; }}
+        .inw {{ position: absolute; left: 0; top: 0; width: {PW:.2f}mm; }}
         """
     else:
         pn_layout = f"""
         .pn {{ position: absolute; top: 0; width: {HALF_W}mm; height: {SHEET_H}mm; overflow: hidden; }}
         .pn-left {{ left: 0; }}
         .pn-right {{ left: {HALF_W}mm; }}
-        .card-border {{ position: absolute; inset: {M}mm; border: 1.6pt solid #f0bed2; border-radius: 5mm; pointer-events: none; z-index: 80; }}
-        .inw {{ position: absolute; left: {M}mm; top: {M + OY:.3f}mm; width: {PW}mm; }}
+        .card-border {{ position: absolute; inset: {MY:.2f}mm {MX:.2f}mm; border: 1.6pt solid #f0bed2; border-radius: 4.5mm; pointer-events: none; z-index: 80; }}
+        .inw {{ position: absolute; left: {MX:.2f}mm; top: {MY:.2f}mm; width: {PW:.2f}mm; }}
         """
 
     return f"""
@@ -209,18 +237,18 @@ def make_css(bleed=False):
     .in-party-head {{ position: absolute; left: 0; right: 0; top: 12mm; text-align: center; }}
     .in-party-title {{ font-family: 'Comfortaa', cursive, sans-serif; font-size: 7.2mm; font-weight: 700; color: {BERRY}; margin: 0; }}
     .in-party-sub {{ font-family: 'Caveat', cursive; font-size: 5.6mm; color: {ROSE}; margin-top: 1mm; }}
-    .in-stage {{ position: absolute; left: 0; right: 0; top: 32mm; height: 60mm; display: flex; align-items: flex-end; justify-content: center; }}
+    .in-stage {{ position: absolute; left: 0; right: 0; top: 24mm; height: 58mm; display: flex; align-items: flex-end; justify-content: center; }}
     .in-cake {{ width: 44mm; image-rendering: pixelated; margin-right: -6mm; z-index: 10; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.18)); }}
     .in-abibyan {{ width: 34mm; image-rendering: pixelated; z-index: 20; margin-left: -4mm; filter: drop-shadow(0 2mm 3mm rgba(120,40,70,0.18)); }}
-    .in-card-note {{ position: absolute; left: 8mm; right: 8mm; top: 96mm; background: #fff; border: 1pt solid #f3cbdb; border-radius: 4mm; padding: 3.5mm 4mm; box-shadow: 0 2mm 5mm rgba(120,40,70,0.06); text-align: center; }}
+    .in-card-note {{ position: absolute; left: 8mm; right: 8mm; top: 85mm; background: #fff; border: 1pt solid #f3cbdb; border-radius: 4mm; padding: 3.5mm 4mm; box-shadow: 0 2mm 5mm rgba(120,40,70,0.06); text-align: center; }}
     .in-note-greet {{ font-family: 'Comfortaa', sans-serif; font-size: 3.8mm; font-weight: 700; color: {BERRY}; margin: 0 0 1.2mm 0; }}
     .in-note-body {{ font-size: 3.25mm; line-height: 1.35; color: #5a2e41; margin: 0 0 1.8mm 0; }}
     .in-note-call {{ font-size: 3.4mm; font-weight: 700; color: {ROSE}; margin: 0; }}
-    .in-party-foot {{ position: absolute; left: 0; right: 0; bottom: 8.5mm; text-align: center; font-family: 'Caveat', cursive; font-size: 5.6mm; color: {BERRY}; }}
+    .in-party-foot {{ position: absolute; left: 0; right: 0; bottom: 6mm; text-align: center; font-family: 'Caveat', cursive; font-size: 5.6mm; color: {BERRY}; }}
 
     /* Inner Right: Love Letter for Dasha */
-    .lt-title {{ position: absolute; left: 10mm; right: 10mm; top: 12mm; font-family: 'Caveat', cursive; font-size: 7.5mm; font-weight: 700; color: {BERRY}; text-align: center; line-height: 1; letter-spacing: 0.1mm; white-space: nowrap; }}
-    .lt-sub {{ position: absolute; left: 10mm; right: 10mm; top: 25mm; font-size: 3.8mm; color: #8e586c; text-align: center; }}
+    .lt-title {{ position: absolute; left: 8mm; right: 8mm; top: 12mm; font-family: 'Caveat', cursive; font-size: 6.8mm; font-weight: 700; color: {BERRY}; text-align: center; line-height: 1.1; letter-spacing: 0.1mm; white-space: nowrap; }}
+    .lt-sub {{ position: absolute; left: 8mm; right: 8mm; top: 24mm; font-size: 3.8mm; color: #8e586c; text-align: center; }}
     .lt-lines {{ position: absolute; left: 10mm; right: 10mm; top: 33mm; bottom: 22mm; display: flex; flex-direction: column; justify-content: space-between; }}
     .lt-row {{ width: 100%; height: 13.5mm; border-bottom: 0.9pt solid #ecc2d4; }}
     .lt-foot {{ position: absolute; left: 10mm; right: 10mm; bottom: 8.5mm; display: flex; align-items: center; justify-content: flex-end; gap: 2mm; font-family: 'Caveat', cursive; font-size: 6.0mm; color: {BERRY}; font-weight: 700; }}
@@ -242,14 +270,14 @@ FRONT_INNER = f"""
 <div class="fc-dgs" data-k="num">{digit_svg(2, 1.5)}{digit_svg(4, 1.5)}</div>
 <svg class="fc-strings" viewBox="0 0 105 148"><path d="M66.25 73 Q58 84 45.8 91.2 M83.75 76 Q66 88 45.8 91.2" fill="none" stroke="#caa260" stroke-width=".45"/></svg>
 <div class="fc-rug"></div>
-<img class="fc-hero" data-k="hero" src="{furl(big('abibyan_up.png'))}" alt="">
+<img class="fc-hero" data-k="hero" src="{os.path.basename(big('abibyan_up.png'))}" alt="">
 <div class="fc-sub" data-k="sub">Это твой личный плюшевый Абибян.<br>Теперь он живёт у тебя!</div>
 </div></div>
 """
 
 BACK_INNER = f"""
 <div class="inw"><div class="in">
-<img class="bc-mkb" data-k="mkb" src="{furl(big('abibyan.png'))}" alt="">
+<img class="bc-mkb" data-k="mkb" src="{os.path.basename(big('abibyan.png'))}" alt="">
 <div class="bc-head">
   <div class="bc-title" data-k="bh">Как оживить Абибяна</div>
   <div class="bc-sub">Твой маленький друг ждёт тебя ✨</div>
@@ -275,8 +303,8 @@ PARTY_INNER = f"""
   <div class="in-party-sub" data-k="pth2">Твой личный плюшевый тамагочи 🎂</div>
 </div>
 <div class="in-stage">
-  <img class="in-cake" data-k="cake" src="{furl(big('big_cake.png'))}" alt="">
-  <img class="in-abibyan" data-k="abibyan_party" src="{furl(big('abibyan_up.png'))}" alt="">
+  <img class="in-cake" data-k="cake" src="{os.path.basename(big('big_cake.png'))}" alt="">
+  <img class="in-abibyan" data-k="abibyan_party" src="{os.path.basename(big('abibyan_up.png'))}" alt="">
 </div>
 <div class="in-card-note">
   <div class="in-note-greet">Привет, Дашуля! ❤️</div>
@@ -294,24 +322,30 @@ PARTY_INNER = f"""
 lines_html = ''.join('<div class="lt-row"></div>' for _ in range(8))
 LETTER_INNER = f"""
 <div class="inw"><div class="in">
-<div class="lt-title" data-k="lt1">Дорогая Дашуля! ❤️</div>
+<div class="lt-title" data-k="lt1">Дорогая Дашуля! {heart_svg(5.2)}</div>
 <div class="lt-sub" data-k="lt2">Самые тёплые слова от всего сердца:</div>
 <div class="lt-lines" data-k="ltlines">{lines_html}</div>
-<div class="lt-foot" data-k="ltfoot"><span>С любовью, твой Loveашик</span> {heart_svg(4.5)}</div>
+<div class="lt-foot" data-k="ltfoot"><span>С любовью, твой Слава</span> {heart_svg(4.5)}</div>
 </div></div>
 """
 
-OUTER_PAGE = f"""
+def make_outer(bleed=False):
+    cm = '' if bleed else crop_marks()
+    return f"""
 <section class="pg outer">
   <div class="tick t-top"></div><div class="tick t-bot"></div>
+  {cm}
   <div class="pn pn-left pn-back">{BACK_INNER}{elegant_frame()}</div>
   <div class="pn pn-right pn-front">{FRONT_INNER}{elegant_frame()}</div>
 </section>
 """
 
-INNER_PAGE = f"""
+def make_inner(bleed=False):
+    cm = '' if bleed else crop_marks()
+    return f"""
 <section class="pg inner">
   <div class="tick t-top"></div><div class="tick t-bot"></div>
+  {cm}
   <div class="pn pn-left pn-party">{PARTY_INNER}{elegant_frame()}</div>
   <div class="pn pn-right pn-letter">{LETTER_INNER}{elegant_frame()}</div>
 </section>
@@ -325,9 +359,14 @@ def build_variant(bleed=False):
     hp = os.path.join(WORK, f'{prefix}.html')
     hs = os.path.join(WORK, f'{prefix}-side.html')
 
-    open(hp, 'w', encoding='utf-8').write(doc(OUTER_PAGE + INNER_PAGE, css))
-    desc = 'без белых полей (Full-Bleed)' if bleed else 'с полями 6.5 мм (паспарту)'
-    open(hs, 'w', encoding='utf-8').write(doc(f'<div class="side"><div class="side-lbl">1. Внешняя сторона {desc}</div>{OUTER_PAGE}<div class="side-lbl">2. Внутренняя сторона {desc}</div>{INNER_PAGE}</div>', css))
+    outer_p = make_outer(bleed=bleed)
+    inner_p = make_inner(bleed=bleed)
+
+    open(hp, 'w', encoding='utf-8').write(doc(outer_p + inner_p, css))
+    if not bleed:
+        open(os.path.join(WORK, 'card.html'), 'w', encoding='utf-8').write(doc(outer_p + inner_p, css))
+    desc = 'без белых полей (Full-Bleed)' if bleed else f'центрированная с полями {MY:.0f}×{MX:.0f} мм (для любых принтеров)'
+    open(hs, 'w', encoding='utf-8').write(doc(f'<div class="side"><div class="side-lbl">1. Внешняя сторона ({desc})</div>{outer_p}<div class="side-lbl">2. Внутренняя сторона ({desc})</div>{inner_p}</div>', css))
 
     pdf = os.path.join(DIST, f'{prefix}.pdf')
     png = os.path.join(DIST, f'{prefix}.png')

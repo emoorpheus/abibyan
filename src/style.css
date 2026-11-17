@@ -307,9 +307,9 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 #ui #gift.out{transition:opacity .5s;opacity:0}
 @keyframes gbob{50%{transform:translateY(-2u)}}
 #ui.gifting #hud,#ui.gifting #bar,#ui.bday #hud,#ui.bday #bar{visibility:hidden}
-#blow{position:absolute;left:8u;right:8u;top:max(4u,calc(var(--ct,0px) - 36u));background:var(--cream);border:1u solid var(--ink);box-shadow:inset 0 -2u 0 var(--cream3);padding:4u 4u 3u;text-align:center;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2u;animation:mpop .2s ease-out}
-#blow .b-t{font-size:9u;font-weight:700;line-height:1.1}
-#blow .b-s{font-size:6.5u;line-height:1.2;opacity:.85}
+#blow{position:absolute;left:8u;right:8u;top:max(4u,calc(var(--ct,0px) - 36u));background:var(--cream);border:1u solid var(--ink);box-shadow:inset 0 -2u 0 var(--cream3);padding:4u 4u 3u;text-align:center;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2u;animation:mpop .2s ease-out;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Comfortaa",sans-serif}
+#blow .b-t{font-size:9u;font-weight:700;line-height:1.1;letter-spacing:0.1px}
+#blow .b-s{font-size:6.5u;line-height:1.2;opacity:.88}
 #blow .bt{display:flex;gap:3u;justify-content:center;flex-wrap:wrap}
 #blow .bt:empty{display:none}
 #blow .btn{min-height:15u}

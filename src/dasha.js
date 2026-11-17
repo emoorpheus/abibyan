@@ -60,7 +60,7 @@ const DASHA = (() => {
   const timers = []; const later = (s, fn) => timers.push({ at: t + s, fn });
   const dbg = { glint: true, plain: false, off: false }; // the tests: no glint / a plain heart on the spot / no heart (to measure how hidden it is)
   let pend = false, lastAct = 0, lastHint = 0, glintAt = -9, hot = 0, cold = 0; const HINT_S = 90; // Round 24: he helps later (was 60 s)
-  const TEST = () => !!window.ABI_TEST;
+  const TEST = () => !!window.ABI_TEST || /(^|[#&])(test|fresh|hearts)\b/.test(location.hash) || /test\.html|fresh\.html/.test(location.pathname);
   const rn = (id) => (DATA.ROOMS.find((r) => r.id === id) || {}).name || ''; // a room's name
   function st() { const s = S(); if (!s.dasha) s.dasha = { gift: '', start: '', party: {}, gifts: {}, found: {}, seen: 0, more: '' }; const D = s.dasha; for (const k of ['party', 'gifts', 'found']) if (!D[k] || typeof D[k] !== 'object') D[k] = {}; return D; }
   const $ui = () => document.getElementById('ui');
@@ -380,8 +380,18 @@ const DASHA = (() => {
   function abort() { micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); AUDIO.duck(false); const w = panel(); if (w) w.remove(); blow = null; finger = null; cake = null; introUntil = t + 3; }
 
   // ---------- (3) «24 секрета» (Round 23: one at a time) ----------
-  function slots() { // the secrets with a text, in order (the test build: samples in all 24 while his texts are not in yet)
-    const c = C(), demo = TEST() && !SEAL && !c.secrets.some((x) => x.text); // Round 26: with real notes the test build is the real hunt
+  function slots() { // the secrets with a text, in order
+    const c = C(), isTest = TEST();
+    if (isTest) {
+      // Test build: unencrypted secrets 23 & 24 only, to quickly test ticket #24
+      const t23 = TXT[23] || 'Двадцать третье сердечко за батареей! 🔥\nТвоя любовь греет меня сильнее любого отопления в самые морозные зимние вечера.';
+      const t24 = TXT[24] || 'Двадцать четвёртое сердечко — последнее перед финалом! 💡\nТы зажигаешь свет и даришь радость всем вокруг. Спасибо за то, что ты есть!';
+      return [
+        { n: 23, spot: 'radiator', text: t23, img: IMG[23] || '', locked: false },
+        { n: 24, spot: 'sconce', text: t24, img: IMG[24] || '', locked: false }
+      ];
+    }
+    const demo = !SEAL && !c.secrets.some((x) => x.text);
     return c.secrets.map((x) => ({ n: x.n, spot: x.spot, text: x.text || TXT[x.n] || (demo ? `Здесь будет записка для ${c.name}а №${x.n} (${rn((c.spots[x.spot] || {}).room)}: ${(c.spots[x.spot] || {}).w || x.spot}). Текст — в docs/24-secrets.md` : ''), img: x.img || IMG[x.n] || '', locked: !dbg.unseal && !x.text && !TXT[x.n] && !opened && !!SEAL && SEAL.n.includes(x.n) })).filter((x) => x.text || x.locked);
   }
   function place(x) { const p = C().spots[x.spot] || { room: 'zal', x: 90, y: 150 }; return Object.assign({}, p, { n: x.n, spot: x.spot, text: x.text, img: x.img, found: !!st().found[x.n] }); }
@@ -441,7 +451,7 @@ const DASHA = (() => {
     return w;
   }
   function card(n) {
-    const x = slots().find((q) => q.n === n); if (!x) return; if (x.locked) { withNotes(() => card(n)); return; } /* Round 26: her question first */ const k = foundN(), N = slots().length, all = k >= N, fin = all && (C().final || TXT.final || '');
+    const x = slots().find((q) => q.n === n); if (!x) return; if (x.locked) { withNotes(() => card(n)); return; } /* Round 26: her question first */ const k = foundN(), N = slots().length, all = k >= N, fin = all && (C().final || TXT.final || (TEST() ? 'Ура! Ты нашла абсолютно все 24 сердечка! 🎉❤️\nДашулик, с днём рождения тебя! Ты самая удивительная, умная, красивая и любимая!' : ''));
     const w = UI.modal(`<div class="hcard"><img class="px hero" src="${art().heart.toDataURL()}" alt=""><h2>Секрет №${n}</h2>${x.img ? `<img class="hpic" src="${x.img}" alt="">` : ''}<p class="htxt">${UI.esc(x.text)}</p>${fin ? `<p class="htxt fin">${UI.esc(fin)}</p>` : ''}<div class="hint">Найдено ${k} из ${N}${all ? ' — все 24 секрета раскрыты!' : ''}</div>${all ? '<button class="btn g pulse" id="btn-ticket">🎫 Получить билет в ресторан!</button>' : '<button class="btn g" data-close>Искать следующее</button>'}</div>`, { dismiss: true });
     if (all) {
       const bt = w.querySelector('#btn-ticket');
@@ -513,6 +523,7 @@ const DASHA = (() => {
     // the day; nothing is marked done, so the real party on 21.11 still comes (#bday=2027: a later year's cake)
     const h = location.hash || '', m = h.match(/bday(?:=(\d{4}))?/);
     if (m) { const y = m[1] ? +m[1] : Math.max(C().year0, new Date().getFullYear()); force = { y, age: C().age0 + (y - C().year0), diff: 0 }; introUntil = 2; }
+    if (TEST() && !st().gift) st().gift = GAME.dayStr(new Date());
   }
   return {
     sealed: () => !opened, // Round 26: the notes are still under the lock (test/r26.js)

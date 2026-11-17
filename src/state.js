@@ -312,7 +312,10 @@ const GAME = (() => {
     stat('fun', 10); addXP(8); addCoins(3, 'want'); care(5, 'want'); emit('wantDone', type); checkAch(); return true;
   }
   // ---- achievements ----
-  function checkAch() { for (const a of DATA.ACH) { if (S.ach[a.id]) continue; if (a.val(S) >= a.goal) { S.ach[a.id] = Date.now(); S.coins += a.coins; S.totalCoins += a.coins; emit('ach', a); } } }
+  function checkAch() {
+    if (typeof DASHA !== 'undefined' && (DASHA.busy && DASHA.busy() || DASHA.bday())) return;
+    for (const a of DATA.ACH) { if (S.ach[a.id]) continue; if (a.val(S) >= a.goal) { S.ach[a.id] = Date.now(); S.coins += a.coins; S.totalCoins += a.coins; emit('ach', a); } }
+  }
   // ---- daily gift ----
   function dailyAvailable() { return S.daily.last !== dayStr(new Date()); }
   function claimDaily() {
