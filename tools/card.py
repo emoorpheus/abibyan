@@ -199,11 +199,13 @@ def make_css(bleed=False):
     .cf i, .cf span {{ position: absolute; display: block; }}
     .cf-star {{ line-height: 1; pointer-events: none; }}
 
-    /* Background Themes */
+    /* Background Themes: OUTSIDE IS 100% PINK, INSIDE IS 100% WARM YELLOW/CREAM */
+    .pg.outer {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
+    .pg.inner {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
     .pn-front {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
-    .pn-back {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 60%, #fff0e2 100%); }}
-    .pn-party {{ background: linear-gradient(175deg, #fff8fb 0%, #ffedf5 50%, #ffe3ef 100%); }}
-    .pn-letter {{ background: linear-gradient(175deg, #fffdf9 0%, #fff9f6 60%, #fff2ee 100%); }}
+    .pn-back {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
+    .pn-party {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
+    .pn-letter {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
 
     .bunt {{ position: absolute; left: 0; top: 0; z-index: 10; }}
 
@@ -290,7 +292,7 @@ BACK_INNER = f"""
   <li><b class="bc-badge">3</b><span>Открой Абибяна с иконки и постучи по коробке!</span></li>
 </ol>
 <div class="bc-micbox" data-k="mic">💡 <b>Свечки задувают по-настоящему:</b> телефон спросит разрешение на микрофон — нажми „Разрешить“, чтобы дуть своим дыханием!</div>
-<div class="bc-sig" data-k="sig">С любовью, твой Loveашик {heart_svg(4.5)}</div>
+<div class="bc-sig" data-k="sig">С любовью, твой Слава {heart_svg(4.5)}</div>
 </div></div>
 """
 
@@ -362,7 +364,11 @@ def build_variant(bleed=False):
     outer_p = make_outer(bleed=bleed)
     inner_p = make_inner(bleed=bleed)
 
+    hp_outer = os.path.join(WORK, f'{prefix}-outer.html')
+    hp_inner = os.path.join(WORK, f'{prefix}-inner.html')
     open(hp, 'w', encoding='utf-8').write(doc(outer_p + inner_p, css))
+    open(hp_outer, 'w', encoding='utf-8').write(doc(outer_p, css))
+    open(hp_inner, 'w', encoding='utf-8').write(doc(inner_p, css))
     if not bleed:
         open(os.path.join(WORK, 'card.html'), 'w', encoding='utf-8').write(doc(outer_p + inner_p, css))
     desc = 'без белых полей (Full-Bleed)' if bleed else f'центрированная с полями {MY:.0f}×{MX:.0f} мм (для любых принтеров)'
@@ -370,21 +376,32 @@ def build_variant(bleed=False):
 
     pdf = os.path.join(DIST, f'{prefix}.pdf')
     png = os.path.join(DIST, f'{prefix}.png')
+    pdf_outer = os.path.join(DIST, f'{prefix}-outer.pdf')
+    pdf_inner = os.path.join(DIST, f'{prefix}-inner.pdf')
+    png_outer = os.path.join(DIST, f'{prefix}-outer.png')
+    png_inner = os.path.join(DIST, f'{prefix}-inner.png')
     base = [CHROME, '--headless', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=5000', '--run-all-compositor-stages-before-draw']
 
-    for f in (pdf, png):
+    for f in (pdf, png, pdf_outer, pdf_inner, png_outer, png_inner):
         if os.path.exists(f): os.remove(f)
 
     print(f'Rendering {pdf} via Chromium...')
     subprocess.run(base + ['--no-pdf-header-footer', '--print-to-pdf=' + pdf, furl(hp)], check=True, capture_output=True)
+    print(f'Rendering {pdf_outer} and {pdf_inner}...')
+    subprocess.run(base + ['--no-pdf-header-footer', '--print-to-pdf=' + pdf_outer, furl(hp_outer)], check=True, capture_output=True)
+    subprocess.run(base + ['--no-pdf-header-footer', '--print-to-pdf=' + pdf_inner, furl(hp_inner)], check=True, capture_output=True)
 
     W = round((297 + 16) * 96 / 25.4)
     H = round((210 * 2 + 50) * 96 / 25.4)
-    print(f'Rendering {png} via Chromium...')
+    W_page = round(297 * 96 / 25.4)
+    H_page = round(210 * 96 / 25.4)
+    print(f'Rendering {png}, {png_outer}, {png_inner} via Chromium...')
     subprocess.run(base + ['--force-device-scale-factor=2', f'--window-size={W},{H}', '--screenshot=' + png, furl(hs)], check=True, capture_output=True)
+    subprocess.run(base + ['--force-device-scale-factor=2', f'--window-size={W_page},{H_page}', '--screenshot=' + png_outer, furl(hp_outer)], check=True, capture_output=True)
+    subprocess.run(base + ['--force-device-scale-factor=2', f'--window-size={W_page},{H_page}', '--screenshot=' + png_inner, furl(hp_inner)], check=True, capture_output=True)
 
-    assert os.path.exists(pdf) and os.path.exists(png), f'chromium made no {prefix}'
-    print(f'{prefix}:', pdf, os.path.getsize(pdf) // 1024, 'KB;', png, os.path.getsize(png) // 1024, 'KB')
+    assert os.path.exists(pdf) and os.path.exists(pdf_outer) and os.path.exists(pdf_inner), f'chromium made no {prefix}'
+    print(f'{prefix}: outer={pdf_outer}, inner={pdf_inner}')
 
 # Build standard version
 build_variant(bleed=False)

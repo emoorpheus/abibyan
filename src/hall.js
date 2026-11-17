@@ -258,7 +258,7 @@ const HALL = (() => {
     ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(RACK[0] + RACK[2], RACK[1] + RACK[3]); ctx.scale(1, 1 - 0.55 * f * f); ctx.rotate(a); ctx.drawImage(spr('rack'), -RACK[2], -RACK[3]); ctx.restore();
   }
 
-  // Round 6 D: the mirror shows him — a smaller, flipped copy behind the glass (the same pose, a little bluish), the glare stays on top;
+  // Round 6 D: the mirror shows him — a smaller, flipped copy behind the glass (the same pose, a little bluish), only the moving glint (me.shine) stays on top;
   // st.me = { e: his sprite composed at ~0.6 size, x, jy, k: 0..1 how much of him the mirror catches, shine: 0..1 a glint sweeping down }
   const GLASS = [MIRROR[0] + 2, MIRROR[1] + 11, MIRROR[2] - 4, MIRROR[3] - 13]; let rc = null;
   function reflect(ctx, P, me) {
@@ -267,12 +267,15 @@ const HALL = (() => {
     if (!rc) rc = document.createElement('canvas'); if (rc.width !== W || rc.height !== Hh) { rc.width = W; rc.height = Hh; }
     const r = rc.getContext('2d'); r.setTransform(1, 0, 0, 1, 0, 0); r.globalCompositeOperation = 'source-over'; r.globalAlpha = 1; r.clearRect(0, 0, W, Hh); r.imageSmoothingEnabled = false;
     r.setTransform(-1, 0, 0, 1, W, 0); r.drawImage(e.cv, 0, 0); r.setTransform(1, 0, 0, 1, 0, 0);
-    r.globalCompositeOperation = 'source-atop'; r.globalAlpha = 0.28; r.fillStyle = '#c9d6dc'; r.fillRect(0, 0, W, Hh); r.globalAlpha = 1; r.globalCompositeOperation = 'source-over';
+    // a soft glass tint (top-down gradient, fading out) instead of a flat grey wash — he stays clean, just a touch cooler
+    { const gr = r.createLinearGradient(0, 0, 0, Hh); gr.addColorStop(0, 'rgba(214,232,240,0.22)'); gr.addColorStop(0.55, 'rgba(214,232,240,0.08)'); gr.addColorStop(1, 'rgba(214,232,240,0)');
+      r.globalCompositeOperation = 'source-atop'; r.fillStyle = gr; r.fillRect(0, 0, W, Hh); r.globalCompositeOperation = 'source-over'; }
     const cx = Math.round(gx + gw / 2 - 1 + Math.min(0, (me.x - 80) * 0.25)), fy = gy + gh - 3 + Math.round((me.jy || 0) * 0.6);
     ctx.save(); ctx.beginPath(); ctx.rect(gx, gy, gw, gh); ctx.clip(); ctx.imageSmoothingEnabled = false;
-    ctx.globalAlpha = 0.92 * me.k; ctx.drawImage(rc, cx - (W - e.ox), fy - e.oy);
-    ctx.globalAlpha = 0.9 * me.k; const mx = MIRROR[0], my = MIRROR[1]; // the glare streaks of the glass, over him
+    const mx = MIRROR[0], my = MIRROR[1]; // the static glare streaks of the glass go UNDER him now, so they no longer cross his face
+    ctx.globalAlpha = 0.9 * me.k;
     for (let k = 0; k < 12; k++) { P.p(mx + 5 + k, my + GL1 + k * 2, '#eef4f6'); P.p(mx + 6 + k, my + GL1 + k * 2, '#eef4f6'); P.p(mx + 11 + k, my + GL2 + k * 2, '#e4eef2'); }
+    ctx.globalAlpha = 0.95 * me.k; ctx.drawImage(rc, cx - (W - e.ox), fy - e.oy);
     if (me.shine > 0 && me.shine < 1) { // a glint runs down the glass as he strikes a pose
       ctx.globalAlpha = 0.55 * Math.sin(Math.PI * me.shine); const y0 = gy + me.shine * (gh + 40) - 30;
       for (let y = 0; y < 22; y++) P.r(gx + Math.round(y * 0.9), Math.round(y0 + y), 3, 1, '#ffffff');

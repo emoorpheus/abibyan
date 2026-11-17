@@ -32,6 +32,7 @@ const fs = require('fs');
 
   // Play a speech line
   const voiceTest = await page.evaluate(async () => {
+    __game.AUDIO.init();
     const res = __game.AUDIO.say('привет я так скучал');
     return {
       ok: !!res,
