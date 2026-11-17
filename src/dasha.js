@@ -381,7 +381,7 @@ const DASHA = (() => {
   // ---------- (3) «24 секрета» (Round 23: one at a time) ----------
   function slots() { // the secrets with a text, in order (the test build: samples in all 24 while his texts are not in yet)
     const c = C(), demo = TEST() && !SEAL && !c.secrets.some((x) => x.text); // Round 26: with real notes the test build is the real hunt
-    return c.secrets.map((x) => ({ n: x.n, spot: x.spot, text: x.text || TXT[x.n] || (demo ? `Здесь будет записка для ${c.name}а №${x.n} (${rn((c.spots[x.spot] || {}).room)}: ${(c.spots[x.spot] || {}).w || x.spot}). Текст — в docs/24-secrets.md` : ''), img: x.img || IMG[x.n] || '', locked: !x.text && !TXT[x.n] && !opened && !!SEAL && SEAL.n.includes(x.n) })).filter((x) => x.text || x.locked);
+    return c.secrets.map((x) => ({ n: x.n, spot: x.spot, text: x.text || TXT[x.n] || (demo ? `Здесь будет записка для ${c.name}а №${x.n} (${rn((c.spots[x.spot] || {}).room)}: ${(c.spots[x.spot] || {}).w || x.spot}). Текст — в docs/24-secrets.md` : ''), img: x.img || IMG[x.n] || '', locked: !dbg.unseal && !x.text && !TXT[x.n] && !opened && !!SEAL && SEAL.n.includes(x.n) })).filter((x) => x.text || x.locked);
   }
   function place(x) { const p = C().spots[x.spot] || { room: 'zal', x: 90, y: 150 }; return Object.assign({}, p, { n: x.n, spot: x.spot, text: x.text, img: x.img, found: !!st().found[x.n] }); }
   const nextSlot = () => { const D = st(); return D.gift ? slots().find((x) => !D.found[x.n]) || null : null; };
@@ -433,9 +433,30 @@ const DASHA = (() => {
     HOME.lookAt(h.x, h.y, 2); HOME.face('happy', 'laugh', 1.2);
     later(0.45, () => { card(h.n); const all = foundN() >= slots().length; HOME.say(pick(all ? LN().dAllHearts : LN().dHeart), 'happy'); });
   }
+  function ticketModal() {
+    AUDIO.play('star');
+    const w = UI.modal(`<div class="hcard ticket-modal"><div class="t-badge">Пригласительный билет № 24 • Серия 21.11.2026</div><h2 class="t-title">Праздничный ужин в ресторане</h2><div class="t-sub">В честь 24-летия Дашули ✨</div><div class="t-meta"><div><span>Кому:</span> <b>Даше ❤️</b></div><div><span>С кем:</span> <b>Слава (Loveашик)</b></div><div><span>Формат:</span> <b>Столик на двоих</b></div><div><span>Дата:</span> <b>Любой день по твоему выбору</b></div></div><p class="t-desc">Все 24 секрета найдены! Этот билет даёт право на праздничный ужин в ресторане: любые блюда и десерты из меню, напитки, уютную атмосферу и вечер только для нас двоих.</p><div class="t-foot">Действителен при личном предъявлении любимому человеку</div><div class="t-stub"><div class="t-stub-code">2111-2002-2026-LOVE</div><div class="t-stub-sig">С любовью, твой Loveашик ♥</div></div><div class="t-actions"><a class="btn g" href="dist/abibyan-ticket.pdf" target="_blank" download="abibyan-ticket.pdf">🖨️ Скачать PDF для печати</a><a class="btn" href="dist/ticket_preview.png" target="_blank" download="ticket_preview.png">🖼️ Открыть картинку билета</a><button class="btn" id="btn-show-slava">💖 Предъявить Славе</button></div><button class="btn" data-close style="margin-top:2u;">Закрыть</button></div>`, { dismiss: true });
+    const btnSlava = w.querySelector('#btn-show-slava');
+    if (btnSlava) {
+      btnSlava.onclick = () => {
+        AUDIO.play('fanfare');
+        btnSlava.textContent = '✅ Предъявлено! Ждём вечера ♥';
+        btnSlava.disabled = true;
+        btnSlava.classList.add('g');
+        HOME.face('happy', 'laugh', 2.5);
+        HOME.say('Ура! Билет активирован! Славе всё передано ♥', 'happy');
+        UI.toast('Билет активирован! Сохрани его на память или распечатай', UI.I('heart'), 'gold');
+      };
+    }
+    return w;
+  }
   function card(n) {
     const x = slots().find((q) => q.n === n); if (!x) return; if (x.locked) { withNotes(() => card(n)); return; } /* Round 26: her question first */ const k = foundN(), N = slots().length, all = k >= N, fin = all && (C().final || TXT.final || '');
-    const w = UI.modal(`<div class="hcard"><img class="px hero" src="${art().heart.toDataURL()}" alt=""><h2>Секрет №${n}</h2>${x.img ? `<img class="hpic" src="${x.img}" alt="">` : ''}<p class="htxt">${UI.esc(x.text)}</p>${fin ? `<p class="htxt fin">${UI.esc(fin)}</p>` : ''}<div class="hint">Найдено ${k} из ${N}${all ? ' — все!' : ''}</div><button class="btn g" data-close>${all ? 'Ура!' : 'Искать следующее'}</button></div>`, { dismiss: true });
+    const w = UI.modal(`<div class="hcard"><img class="px hero" src="${art().heart.toDataURL()}" alt=""><h2>Секрет №${n}</h2>${x.img ? `<img class="hpic" src="${x.img}" alt="">` : ''}<p class="htxt">${UI.esc(x.text)}</p>${fin ? `<p class="htxt fin">${UI.esc(fin)}</p>` : ''}<div class="hint">Найдено ${k} из ${N}${all ? ' — все 24 секрета раскрыты!' : ''}</div>${all ? '<button class="btn g pulse" id="btn-ticket">🎫 Получить билет в ресторан!</button>' : '<button class="btn g" data-close>Искать следующее</button>'}</div>`, { dismiss: true });
+    if (all) {
+      const bt = w.querySelector('#btn-ticket');
+      if (bt) bt.onclick = () => { UI.closeModal(); ticketModal(); };
+    }
     return w;
   }
   function albumHtml() {
@@ -443,9 +464,13 @@ const DASHA = (() => {
     const hi = art().heart.toDataURL();
     const cells = all.map((x) => { const f = !!D.found[x.n], o = !f && nx && nx.n === x.n, p = C().spots[x.spot] || {};
       return `<div class="hs notch ${f ? 'on' : o ? 'cur' : 'lock'}" data-n="${x.n}"><span class="hn">№${x.n}</span>${f ? `<img class="px" src="${hi}" alt=""><b>${x.locked ? 'Под замком' : UI.esc(x.text.slice(0, 22)) + (x.text.length > 22 ? '…' : '')}</b>` : o ? `<i class="hq">?</i><b>${RN[p.room] || ''}</b>` : `<i class="hq">${UI.im(UI.I('lock'))}</i><b>Потом</b>`}</div>`; });
-    return `<div class="hint gm-n">Найдено ${k} из ${all.length}</div><div class="hs-grid">${cells.join('')}</div><div class="hint">Абибян прячет сердечки по одному: найдёшь одно — он спрячет следующее, в другой комнате. Ищи и трогай!</div>`;
+    const isAll = k >= all.length;
+    const banner = isAll ? `<div class="hs-ticket-banner notch" id="album-ticket-btn" style="background:linear-gradient(135deg,#fff0f5,#ffe4ee);border:1u solid #e8a8c0;padding:3u;margin-bottom:3u;border-radius:3u;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2u;font-weight:700;color:#8c264a;">🎫 <span>Все 24 секрета открыты! Нажми, чтобы открыть билет в ресторан</span></div>` : '';
+    return `${banner}<div class="hint gm-n">Найдено ${k} из ${all.length}</div><div class="hs-grid">${cells.join('')}</div><div class="hint">Абибян прячет сердечки по одному: найдёшь одно — он спрячет следующее, в другой комнате. Ищи и трогай!</div>`;
   }
   function albumBind(body) {
+    const tb = body.querySelector('#album-ticket-btn');
+    if (tb) tb.onclick = () => { AUDIO.play('click'); ticketModal(); };
     body.querySelectorAll('.hs').forEach((c) => c.onclick = () => { const n = +c.dataset.n; if (c.classList.contains('on')) { AUDIO.play('click'); card(n); return; }
       AUDIO.play('nope'); const x = slots().find((q) => q.n === n), p = x && C().spots[x.spot], nx = nextSlot();
       UI.toast(c.classList.contains('lock') ? (nx ? `Сначала найди сердечко №${nx.n}` : 'Это сердечко Абибян спрячет позже') : `Это сердечко где-то тут: ${rn(p && p.room)}`, UI.I('heart')); });

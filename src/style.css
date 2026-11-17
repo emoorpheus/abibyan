@@ -350,3 +350,19 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .fill #bar{bottom:max(3u,env(safe-area-inset-bottom,0px))}
 .fill.tall #hud .name{text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433}
 .fill.tall #ghint{color:#fff4e2;text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433}
+
+/* Restaurant ticket modal */
+.ticket-modal{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,sans-serif;background:linear-gradient(145deg,#fffdfa 0%,#fff5f8 100%);border:1u solid #e8b0c4;border-radius:4u;padding:4u 3u;box-shadow:inset 0 -2u 0 #f5d4e0,0 4u 16u rgba(74,32,52,.12);width:100%}
+.ticket-modal .t-badge{font-size:4.8u;font-weight:700;color:#8c264a;background:#fae4ee;padding:1u 3u;border-radius:3u;letter-spacing:.3px;text-transform:uppercase;margin-bottom:2u;display:inline-block}
+.ticket-modal .t-title{font-size:8.5u;font-weight:700;color:#5c1833;margin:0 0 1u;line-height:1.2}
+.ticket-modal .t-sub{font-size:6.5u;color:#d14975;margin:0 0 3u}
+.ticket-modal .t-meta{display:grid;grid-template-columns:1fr 1fr;gap:2u;background:#fff;border:1u solid #f3d7e3;border-radius:3u;padding:2.5u;margin-bottom:3u;text-align:left}
+.ticket-modal .t-meta span{color:#a86880;font-size:4.8u;display:block;text-transform:uppercase}
+.ticket-modal .t-meta b{color:#4a1f30;font-size:6.2u}
+.ticket-modal .t-desc{font-size:6.2u;line-height:1.4;color:#592e40;margin:0 0 3u;text-align:left;background:rgba(255,255,255,.7);padding:2.5u;border-radius:2.5u;border:1u solid #f9e2ec}
+.ticket-modal .t-foot{font-size:5.8u;font-style:italic;color:#8c264a;margin-bottom:3u}
+.ticket-modal .t-stub{border-top:1u dashed #ecc4d4;padding-top:2u;margin-bottom:3u;display:flex;flex-direction:column;gap:1u;align-items:center;font-size:5.2u;color:#8a576b}
+.ticket-modal .t-stub-sig{font-weight:700;color:#5c1833;font-size:5.8u}
+.ticket-modal .t-actions{display:flex;flex-direction:column;gap:2u;width:100%}
+.ticket-modal .t-actions .btn{width:100%;font-size:6.5u;min-height:13u;display:flex;align-items:center;justify-content:center;text-decoration:none;font-family:inherit}
+
