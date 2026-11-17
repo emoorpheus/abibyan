@@ -17,6 +17,7 @@ const DASHA = (() => {
   // spaces and punctuation don't matter) → PBKDF2-SHA256 → the AES-GCM key opens it right in the phone (no server, no internet);
   // the key stays in her save (D.key): she answers once, at the first heart. Public: only the question, the hint and which numbers.
   const SEAL = /*DASHA_SEAL*/null;
+  const TICKET_IMG = /*TICKET_IMG*/null;
   let TXT = {}, IMG = {}; // the opened seal: texts {n: text, final: text} (docs/24-secrets.md) and pictures {n: data URL} (assets/secrets)
   let opened = !SEAL, auto = null; // auto: her saved key being tried (started in boot)
   const b64 = (s) => Uint8Array.from(atob(s), (ch) => ch.charCodeAt(0));
@@ -435,19 +436,8 @@ const DASHA = (() => {
   }
   function ticketModal() {
     AUDIO.play('star');
-    const w = UI.modal(`<div class="hcard ticket-modal"><div class="t-badge">Пригласительный билет № 24 • Серия 21.11.2026</div><h2 class="t-title">Праздничный ужин в ресторане</h2><div class="t-sub">В честь 24-летия Дашули ✨</div><div class="t-meta"><div><span>Кому:</span> <b>Даше ❤️</b></div><div><span>С кем:</span> <b>Слава (Loveашик)</b></div><div><span>Формат:</span> <b>Столик на двоих</b></div><div><span>Дата:</span> <b>Любой день по твоему выбору</b></div></div><p class="t-desc">Все 24 секрета найдены! Этот билет даёт право на праздничный ужин в ресторане: любые блюда и десерты из меню, напитки, уютную атмосферу и вечер только для нас двоих.</p><div class="t-foot">Действителен при личном предъявлении любимому человеку</div><div class="t-stub"><div class="t-stub-code">2111-2002-2026-LOVE</div><div class="t-stub-sig">С любовью, твой Loveашик ♥</div></div><div class="t-actions"><a class="btn g" href="dist/abibyan-ticket.pdf" target="_blank" download="abibyan-ticket.pdf">🖨️ Скачать PDF для печати</a><a class="btn" href="dist/ticket_preview.png" target="_blank" download="ticket_preview.png">🖼️ Открыть картинку билета</a><button class="btn" id="btn-show-slava">💖 Предъявить Славе</button></div><button class="btn" data-close style="margin-top:2u;">Закрыть</button></div>`, { dismiss: true });
-    const btnSlava = w.querySelector('#btn-show-slava');
-    if (btnSlava) {
-      btnSlava.onclick = () => {
-        AUDIO.play('fanfare');
-        btnSlava.textContent = '✅ Предъявлено! Ждём вечера ♥';
-        btnSlava.disabled = true;
-        btnSlava.classList.add('g');
-        HOME.face('happy', 'laugh', 2.5);
-        HOME.say('Ура! Билет активирован! Славе всё передано ♥', 'happy');
-        UI.toast('Билет активирован! Сохрани его на память или распечатай', UI.I('heart'), 'gold');
-      };
-    }
+    const src = TICKET_IMG || 'dist/ticket_clean.png';
+    const w = UI.modal(`<div class="hcard ticket-view-modal"><h2 class="t-head">Билет в ресторан</h2><div class="t-sub">Все 24 секрета открыты! ✨</div><a href="dist/ticket_preview.png" target="_blank" class="ticket-preview-box"><img class="ticket-card-img" src="${src}" alt="Билет в ресторан"></a><p class="t-print-call">Распечатай этот билет на принтере и вручи Славе ♥</p><div class="t-actions"><a class="btn g notch" href="dist/abibyan-ticket.pdf" target="_blank" download="abibyan-ticket.pdf">🖨️ Распечатать билет (PDF)</a><a class="btn notch" href="dist/ticket_preview.png" target="_blank" download="abibyan-ticket.png">🖼️ Открыть картинку билета</a></div><button class="btn" data-close style="margin-top:2u;">Закрыть</button></div>`, { dismiss: true });
     return w;
   }
   function card(n) {

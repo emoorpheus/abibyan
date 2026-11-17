@@ -1,5 +1,5 @@
 import re, base64, pathlib, json, hashlib
-root = pathlib.Path(__file__).resolve().parent; src = root / 'src'  # Round 26: the folder build.py is in (a copy of the repo builds into its own dist/)
+root = pathlib.Path(__file__).resolve().parent; src = root / 'src'; dist = root / 'dist'  # Round 26: the folder build.py is in (a copy of the repo builds into its own dist/)
 order = ['pixel', 'monkey', 'items', 'rooms', 'zal', 'hall', 'kitchen', 'bath', 'balcony', 'data', 'voicebank', 'audio', 'state', 'ui', 'friends_art', 'friends', 'gags', 'album', 'tour', 'ducks', 'seasons', 'dasha', 'home', 'games', 'tut', 'routine', 'fill', 'main']
 # Round 25 (restored 2026-11-08 from the live build 43ac3ef): fill.js + <canvas id="ext"> — FILL, the room's surroundings over the rest of the phone's screen
 js = '\n'.join((src / f'{n}.js').read_text() for n in order)
@@ -20,6 +20,12 @@ if _txt or _img:
     if not _ph: sys.exit('build.py: есть записки, но нет фразы — впиши «вопрос: …» и «ответ: …» в %s (файл вне репозитория, chmod 600)' % secret_box.phrase_path())
     _seal = dict(secret_box.seal({'t': _txt, 'i': _img}, _ph), n=sorted(k for k in _txt if k != 'final'), fin='final' in _txt)
 assert js.count('/*DASHA_SEAL*/null') == 1; js = js.replace('/*DASHA_SEAL*/null', json.dumps(_seal, ensure_ascii=False).replace('</', '<\\/'), 1)
+_ticket_file = dist / 'ticket_clean.png'
+if not _ticket_file.exists():
+    _ticket_file = dist / 'ticket_preview.png'
+if _ticket_file.exists() and '/*TICKET_IMG*/null' in js:
+    _t_b64 = 'data:image/png;base64,' + base64.b64encode(_ticket_file.read_bytes()).decode('ascii')
+    js = js.replace('/*TICKET_IMG*/null', json.dumps(_t_b64), 1)
 print('secrets: %d texts%s, %d pictures%s' % (len([k for k in _txt if k != 'final']), ' + the final note' if 'final' in _txt else '', len(_img), ' — locked with her phrase (question: «%s»)' % _seal['q'] if _seal else ''))
 # Round 19: the voice bank (src/speech.js + src/voice_rec.js) as plain text after the first frame — group 1: lines, reactions, his
 # recordings; group 2: words, syllables. '@section' then 'key\tbase64\tnumber…' (a reaction: one line per variant). Blocks ≤ 256 KB.
@@ -104,15 +110,15 @@ def testify(h, coins=100000, top=True, key='martyn_tamagotchi_test_v1', reset_to
     h = h.replace('<div id="view">', test_btn + '<div id="view">', 1)
     kill_cache = """(function() {
       window.ABI_REV = 'v35_' + Date.now();
-      if ('serviceWorker' in navigator) {
+      if (location.protocol.indexOf('http') === 0 && 'serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
           for (var i = 0; i < regs.length; i++) regs[i].unregister();
-        });
+        }).catch(function() {});
       }
-      if ('caches' in window) {
+      if (location.protocol.indexOf('http') === 0 && 'caches' in window) {
         caches.keys().then(function(ks) {
           for (var i = 0; i < ks.length; i++) caches.delete(ks[i]);
-        });
+        }).catch(function() {});
       }
     })();"""
     h = h.replace('<script>\n', f'<script>window.ABI_TEST = {cfg_json};\n' + SHIFT + '\n' + kill_cache + '</script>\n<script>\n', 1)

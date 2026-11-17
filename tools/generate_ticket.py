@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Generate a high-resolution printable restaurant ticket preview for Dasha."""
+"""Generate a high-resolution printable restaurant ticket preview & PDF for Dasha."""
 import os, sys, subprocess, base64, shutil
+from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, 'dist')
@@ -37,26 +38,82 @@ def make_barcode():
         x += b * 1.6
     return f'<svg viewBox="0 0 {x} 32" width="130" height="28" style="display:block;margin:0 auto;">{"".join(rects)}</svg>'
 
-html_content = f"""<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<style>
+def ticket_core_html(bg_notch="#2a1824"):
+    return f"""
+<div class="ticket">
+  <!-- Main Part -->
+  <div class="main">
+    <div class="notch-top" style="background:{bg_notch};"></div>
+    <div class="notch-bot" style="background:{bg_notch};"></div>
+    <div class="inner-frame"></div>
+
+    <div>
+      <div class="badge-row">
+        <span class="badge">Пригласительный билет</span>
+        <span class="ticket-num">№ 24 • СЕРИЯ 21.11.2026</span>
+      </div>
+      <div class="title">Праздничный ужин в ресторане</div>
+      <div class="subtitle">В честь 24-летия Дашули ✨</div>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">Кому</span>
+        <span class="meta-val">Даше ❤️</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">С кем</span>
+        <span class="meta-val">Слава</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Формат</span>
+        <span class="meta-val">Столик на двоих</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Дата</span>
+        <span class="meta-val">Любой день по твоему выбору</span>
+      </div>
+    </div>
+
+    <div class="desc">
+      Все 24 секрета найдены! Этот билет даёт право на праздничный ужин в ресторане: любые блюда и десерты из меню, напитки, уютную атмосферу и вечер только для нас двоих.
+    </div>
+
+    <div class="footer-note">
+      <span>Действителен при личном предъявлении любимому человеку</span>
+    </div>
+  </div>
+
+  <!-- Stub (Отрывной корешок) -->
+  <div class="stub">
+    <div class="stub-frame"></div>
+    <div class="stub-title">Контрольный талон</div>
+
+    <div class="monkey-box">
+      <img src="{abibyan_img}" alt="Абибян">
+    </div>
+
+    <div class="status-pill">ДЕЙСТВИТЕЛЕН</div>
+
+    <div>
+      {make_barcode()}
+      <div class="stub-code">2111-2002-2026-LOVE</div>
+    </div>
+
+    <div class="stub-sig">
+      С любовью, твой Loveашик ♥
+    </div>
+  </div>
+</div>
+"""
+
+COMMON_STYLE = f"""
 @font-face {{ font-family: 'Comfortaa'; src: url('{comfortaa}') format('woff2'); font-weight: 700; }}
 @font-face {{ font-family: 'Caveat'; src: url('{caveat}') format('woff2'); font-weight: 700; }}
 @font-face {{ font-family: 'Nunito'; src: url('{nunito400}') format('woff2'); font-weight: 400; }}
 @font-face {{ font-family: 'Nunito'; src: url('{nunito700}') format('woff2'); font-weight: 700; }}
 
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-body {{
-  background: #2a1824;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  font-family: 'Nunito', sans-serif;
-  padding: 40px;
-}}
 
 /* Ticket Container */
 .ticket {{
@@ -66,7 +123,7 @@ body {{
   background: #fffdfa;
   border-radius: 18px;
   display: flex;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(236, 196, 212, 0.4);
   overflow: hidden;
 }}
 
@@ -87,7 +144,6 @@ body {{
   position: absolute;
   width: 32px;
   height: 32px;
-  background: #2a1824;
   border-radius: 50%;
   right: -17px;
   z-index: 10;
@@ -259,87 +315,106 @@ body {{
   font-size: 18px;
   color: #5c1833;
 }}
+"""
+
+# 1. Preview HTML (dark presentation background)
+preview_html = f"""<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+{COMMON_STYLE}
+body {{
+  background: #2a1824;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Nunito', sans-serif;
+  padding: 40px;
+}}
 </style>
 </head>
 <body>
-
-<div class="ticket">
-  <!-- Main Part -->
-  <div class="main">
-    <div class="notch-top"></div>
-    <div class="notch-bot"></div>
-    <div class="inner-frame"></div>
-
-    <div>
-      <div class="badge-row">
-        <span class="badge">Пригласительный билет</span>
-        <span class="ticket-num">№ 24 • СЕРИЯ 21.11.2026</span>
-      </div>
-      <div class="title">Праздничный ужин в ресторане</div>
-      <div class="subtitle">В честь 24-летия Дашули ✨</div>
-    </div>
-
-    <div class="meta-grid">
-      <div class="meta-item">
-        <span class="meta-label">Кому</span>
-        <span class="meta-val">Даше ❤️</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">С кем</span>
-        <span class="meta-val">Слава (Loveашик)</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Формат</span>
-        <span class="meta-val">Столик на двоих</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Дата</span>
-        <span class="meta-val">Любой день по твоему выбору</span>
-      </div>
-    </div>
-
-    <div class="desc">
-      Все 24 секрета найдены! Этот билет даёт право на праздничный ужин в ресторане: любые блюда и десерты из меню, напитки, уютную атмосферу и вечер только для нас двоих.
-    </div>
-
-    <div class="footer-note">
-      <span>Действителен при личном предъявлении любимому человеку</span>
-    </div>
-  </div>
-
-  <!-- Stub (Отрывной корешок) -->
-  <div class="stub">
-    <div class="stub-frame"></div>
-    <div class="stub-title">Контрольный талон</div>
-
-    <div class="monkey-box">
-      <img src="{abibyan_img}" alt="Абибян">
-    </div>
-
-    <div class="status-pill">ПРЕДЪЯВИТЬ СЛАВЕ</div>
-
-    <div>
-      {make_barcode()}
-      <div class="stub-code">2111-2002-2026-LOVE</div>
-    </div>
-
-    <div class="stub-sig">
-      С любовью, твой Loveашик ♥
-    </div>
-  </div>
-</div>
-
+{ticket_core_html("#2a1824")}
 </body>
 </html>
 """
 
-html_path = os.path.join(DIST, 'ticket_mockup.html')
+# 2. Printable A4 PDF HTML
+print_html = f"""<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+{COMMON_STYLE}
+@page {{
+  size: 297mm 210mm;
+  margin: 0;
+}}
+body {{
+  background: #ffffff;
+  width: 297mm;
+  height: 210mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Nunito', sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}}
+.print-wrap {{
+  position: relative;
+  padding: 16px;
+  border: 1.5pt dashed #deb2c5;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}}
+.cut-tag {{
+  position: absolute;
+  top: -12px;
+  left: 36px;
+  background: #ffffff;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #8c264a;
+  font-weight: 700;
+}}
+.print-note {{
+  margin-top: 18px;
+  font-family: 'Caveat', cursive;
+  font-size: 21px;
+  color: #8c264a;
+  text-align: center;
+}}
+</style>
+</head>
+<body>
+<div class="print-wrap">
+  <div class="cut-tag">✂ Вырезать по пунктирной линии</div>
+  {ticket_core_html("#ffffff")}
+</div>
+<div class="print-note">Распечатай этот билет на принтере, аккуратно вырежи и вручи Славе ♥</div>
+</body>
+</html>
+"""
+
+preview_path = os.path.join(DIST, 'ticket_mockup.html')
+print_path = os.path.join(DIST, 'ticket_print.html')
+
+with open(preview_path, 'w', encoding='utf-8') as f:
+    f.write(preview_html)
+
+with open(print_path, 'w', encoding='utf-8') as f:
+    f.write(print_html)
+
 png_path = os.path.join(DIST, 'ticket_preview.png')
+pdf_path = os.path.join(DIST, 'abibyan-ticket.pdf')
 
-with open(html_path, 'w', encoding='utf-8') as f:
-    f.write(html_content)
-
-print('Rendering ticket mockup via Chrome...')
+print('Rendering ticket_preview.png...')
 try:
     subprocess.run([
         CHROME,
@@ -348,16 +423,31 @@ try:
         '--no-sandbox',
         '--window-size=1080,560',
         '--screenshot=' + png_path,
-        html_path
+        preview_path
     ], check=True)
 except subprocess.CalledProcessError:
     if not os.path.exists(png_path) or os.path.getsize(png_path) == 0:
         raise
 
-# Copy to brain artifact directory as well
+print('Rendering abibyan-ticket.pdf...')
+try:
+    subprocess.run([
+        CHROME,
+        '--headless=new',
+        '--disable-gpu',
+        '--no-sandbox',
+        '--print-to-pdf=' + pdf_path,
+        print_path
+    ], check=True)
+except subprocess.CalledProcessError:
+    if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
+        raise
+
+# Copy to brain artifact directory
 brain_dir = '/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4'
 if os.path.exists(brain_dir):
     shutil.copyfile(png_path, os.path.join(brain_dir, 'ticket_preview.png'))
+    shutil.copyfile(pdf_path, os.path.join(brain_dir, 'abibyan-ticket.pdf'))
     print('Copied to brain artifact dir.')
 
-print('Done: dist/ticket_preview.png generated successfully.')
+print('Done: PDF and PNG successfully generated.')

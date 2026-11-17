@@ -69,47 +69,33 @@ const SHOT = path.join(ROOT, 'dist', 'game_ticket_modal.png');
   const ticketInfo = await page.evaluate(() => {
     const m = document.querySelector('#modal');
     if (!m) return null;
-    const title = m.querySelector('.t-title');
-    const desc = m.querySelector('.t-desc');
-    const meta = m.querySelector('.t-meta');
-    const btnSlava = m.querySelector('#btn-show-slava');
+    const img = m.querySelector('.ticket-card-img');
     const btnPdf = m.querySelector('a[href*="pdf"]');
+    const btnImg = m.querySelector('a[href*="png"]');
+    const btnSlava = m.querySelector('#btn-show-slava');
     return {
-      title: title ? title.textContent : null,
-      desc: desc ? desc.textContent : null,
-      meta: meta ? meta.textContent : null,
-      hasBtnSlava: !!btnSlava,
-      hasBtnPdf: !!btnPdf
+      hasImg: !!img,
+      imgSrc: img ? img.src.slice(0, 40) : null,
+      hasBtnPdf: !!btnPdf,
+      hasBtnImg: !!btnImg,
+      hasBtnSlava: !!btnSlava
     };
   });
 
   console.log('Step 2 (Ticket modal opened):', ticketInfo);
-  if (!ticketInfo || !ticketInfo.title.includes('Праздничный ужин')) {
-    throw new Error('Ticket modal title mismatch');
+  if (!ticketInfo || !ticketInfo.hasImg) {
+    throw new Error('Ticket card image missing in modal');
   }
-  if (!ticketInfo.meta.includes('Любой день по твоему выбору')) {
-    throw new Error('Date "Любой день по твоему выбору" missing');
+  if (!ticketInfo.hasBtnPdf) {
+    throw new Error('Print PDF button missing');
   }
-  if (ticketInfo.desc.includes('Все заботы')) {
-    throw new Error('Found forbidden phrase "Все заботы" in desc');
+  if (ticketInfo.hasBtnSlava) {
+    throw new Error('Button "Предъявить Славе" must be removed per user instruction');
   }
 
   // Screenshot the ticket in game modal
   await page.screenshot({ path: SHOT });
   console.log('Screenshot saved to', SHOT);
-
-  // Test click "Предъявить Славе"
-  await page.click('#btn-show-slava');
-  await page.waitForTimeout(300);
-
-  const slavaState = await page.evaluate(() => {
-    const b = document.querySelector('#btn-show-slava');
-    return b ? b.textContent : null;
-  });
-  console.log('Step 3 (Presented to Slava):', slavaState);
-  if (!slavaState.includes('Предъявлено')) {
-    throw new Error('Button state did not change after presentation');
-  }
 
   // Test Album banner
   await page.evaluate(() => {
