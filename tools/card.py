@@ -199,12 +199,14 @@ def make_css(bleed=False):
     .cf i, .cf span {{ position: absolute; display: block; }}
     .cf-star {{ line-height: 1; pointer-events: none; }}
 
-    /* Background Themes: OUTSIDE IS 100% PINK, INSIDE IS 100% WARM YELLOW/CREAM */
+    /* Outer Spread: 100% Pink (Party Cake on Left, Front Cover on Right) */
     .pg.outer {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
-    .pg.inner {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
+    .pn-party {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
     .pn-front {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
-    .pn-back {{ background: linear-gradient(175deg, #fff7fa 0%, #ffedf3 50%, #ffe0ec 100%); }}
-    .pn-party {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
+
+    /* Inner Spread: 100% Warm Yellow/Cream (QR Code on Left, Letter on Right) */
+    .pg.inner {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
+    .pn-back {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
     .pn-letter {{ background: linear-gradient(175deg, #fffdf8 0%, #fff8ee 50%, #fff0e2 100%); }}
 
     .bunt {{ position: absolute; left: 0; top: 0; z-index: 10; }}
@@ -337,7 +339,7 @@ def make_outer(bleed=False):
 <section class="pg outer">
   <div class="tick t-top"></div><div class="tick t-bot"></div>
   {cm}
-  <div class="pn pn-left pn-back">{BACK_INNER}{elegant_frame()}</div>
+  <div class="pn pn-left pn-party">{PARTY_INNER}{elegant_frame()}</div>
   <div class="pn pn-right pn-front">{FRONT_INNER}{elegant_frame()}</div>
 </section>
 """
@@ -348,7 +350,7 @@ def make_inner(bleed=False):
 <section class="pg inner">
   <div class="tick t-top"></div><div class="tick t-bot"></div>
   {cm}
-  <div class="pn pn-left pn-party">{PARTY_INNER}{elegant_frame()}</div>
+  <div class="pn pn-left pn-back">{BACK_INNER}{elegant_frame()}</div>
   <div class="pn pn-right pn-letter">{LETTER_INNER}{elegant_frame()}</div>
 </section>
 """
