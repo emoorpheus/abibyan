@@ -56,6 +56,18 @@ const GAGS = (() => {
   // ================= windows =================
   const WIN = { zal: { want: 0, cold: 0, gustT: 0, sndT: 0, pigT: 0, plane: false, said: false }, balcony: { want: 0, cold: 0, gustT: 0, sndT: 0, pigT: 0, plane: false, said: false } };
   let pig = null; // the pigeon on the zal sill: { st: 'in' | 'sit' | 'off', t, x, y, cooT }
+  function winSeason() {
+    const sc = typeof SEASONS !== 'undefined' ? SEASONS.cur() : null;
+    if (sc === 'newyear') return 'winter';
+    if (sc === 'spring') return 'spring';
+    if (sc === 'summer') return 'summer';
+    if (sc === 'halloween') return 'autumn';
+    const m = new Date().getMonth();
+    if (m === 11 || m === 0 || m === 1 || m === 10) return 'winter';
+    if (m >= 2 && m <= 4) return 'spring';
+    if (m >= 5 && m <= 7) return 'summer';
+    return 'autumn';
+  }
   function winTap(r) {
     const w = WIN[r]; w.want = w.want ? 0 : 1; sfx('window');
     if (w.want) { Object.assign(w, { cold: 0, gustT: 1.4, sndT: 0.5, pigT: rnd(6, 12), plane: false, said: false }); later(0.55, () => { if (here(r) && !HOME.busy()) line('g_air', 'happy'); }); }
@@ -63,8 +75,17 @@ const GAGS = (() => {
   }
   function gust(r) {
     V.gust = 1; sfx('wind'); const ph = ROOMS.phase(); if (ph === 'night') return;
-    const box = r === 'zal' ? [102, 84, 12, 36] : [66, 40, 50, 80], C = ['#6cbf4a', '#e8b030', '#d8702a', '#9ad06a'];
-    for (let i = 0; i < 3; i++) fxs('leaf', box[0] + rnd(0, box[2]), box[1] + rnd(0, box[3]), { vx: rnd(-34, 16), vy: rnd(-6, 12), g: 16, wob: 5, life: rnd(3, 4.2), c: pick(C), floor: rnd(238, 292) });
+    const box = r === 'zal' ? [102, 84, 12, 36] : [66, 40, 50, 80];
+    const ssn = winSeason();
+    if (ssn === 'winter') {
+      for (let i = 0; i < 6; i++) fxs('leaf', box[0] + rnd(0, box[2]), box[1] + rnd(0, box[3]), { vx: rnd(-36, 12), vy: rnd(4, 18), g: 24, wob: 4, life: rnd(2.5, 4), c: i % 2 ? '#ffffff' : '#e8f4fc', floor: rnd(238, 292) });
+    } else if (ssn === 'spring') {
+      const C = ['#ffb0c8', '#ffa2c0', '#ffffff', '#ffd0e0'];
+      for (let i = 0; i < 4; i++) fxs('leaf', box[0] + rnd(0, box[2]), box[1] + rnd(0, box[3]), { vx: rnd(-30, 16), vy: rnd(-4, 14), g: 14, wob: 6, life: rnd(3, 4.5), c: pick(C), floor: rnd(238, 292) });
+    } else {
+      const C = ssn === 'autumn' ? ['#e8702a', '#e8b030', '#c8401a', '#9ad06a'] : ['#6cbf4a', '#8ad05a', '#a0df70'];
+      for (let i = 0; i < 3; i++) fxs('leaf', box[0] + rnd(0, box[2]), box[1] + rnd(0, box[3]), { vx: rnd(-34, 16), vy: rnd(-6, 12), g: 16, wob: 5, life: rnd(3, 4.2), c: pick(C), floor: rnd(238, 292) });
+    }
   }
   function pigeonIn() { pig = { st: 'in', t: 0, x: 112, y: 96, cooT: 1.2 }; sfx('flap'); later(0.8, () => { if (here('zal')) line('g_pigeon'); }); }
   function pigeonOff() { if (!pig) return; pig.st = 'off'; pig.t = 0; sfx('flap'); for (let i = 0; i < 3; i++) fxs('crumb', pig.x + rnd(-3, 3), pig.y - 4, { c: '#c8ccd4', vx: rnd(-20, 20), vy: rnd(-30, -5), g: 60, life: 1.1, wob: 6 }); }
@@ -78,9 +99,56 @@ const GAGS = (() => {
         if (r === 'zal' && !pig) { w.pigT -= dt; if (w.pigT <= 0 || force.pigeon) { force.pigeon = false; pigeonIn(); } }
         if (r === 'balcony' && !w.plane && w.cold > 6) { w.plane = true; planeIn(); }
       }
-      if (w.cold >= 40 && !w.said) { // he gets cold: «Брр! Дует!» and shuts it
+      const ssn = winSeason();
+      const coldMax = ssn === 'winter' ? 2.5 : ssn === 'autumn' ? 14 : 40;
+      if (w.cold >= coldMax && !w.said) {
         w.said = true;
-        if (here(r) && !zzz()) { line('g_cold'); HOME.face('closed', 'wavy', 1.4); HOME.act('shrug'); later(1.6, () => { if (w.want) winTap(r); }); } else { w.want = 0; if (r === 'zal' && pig) pig = null; }
+        if (here(r) && !zzz()) {
+          HOME.face('closed', 'wavy', 2.0);
+          HOME.act('shrug');
+          try {
+            const ht = HOME.headTop ? HOME.headTop() : 200;
+            fxs('puff', HOME.mk.x, ht + 22, { vx: rnd(-4, 4), vy: -12, r0: 1.5, r1: 6, c: '#e8f4fc', life: 1.0 });
+          } catch (e) {}
+
+          let friendInRoom = null;
+          try {
+            if (typeof FRIENDS !== 'undefined' && FRIENDS._F) {
+              const friends = FRIENDS._F;
+              for (const fid in friends) {
+                if (friends[fid].room === r && friends[fid].mode !== 'leave') {
+                  friendInRoom = friends[fid];
+                  break;
+                }
+              }
+            }
+          } catch (e) {}
+
+          const friendCloses = friendInRoom && Math.random() < 0.65;
+          if (friendCloses) {
+            friendInRoom.pose = 'talk';
+            friendInRoom.poseUntil = t + 2.0;
+            const frLines = {
+              monty: ['Брр! Холодно, закрою!', 'Ой, сквозняк! Закрываю.'],
+              pusya: ['Мяу, дует же! Закрою.', 'Брр! Холодно, лапки мёрзнут!'],
+              zhuk: ['Ж-ж-холодно! Закрою окно!', 'Брр! Мороз! Закрываю.'],
+              mosq: ['З-з-закрою окно! Холодно!', 'Брр, крылышки мерзнут!']
+            };
+            const fLine = pick(frLines[friendInRoom.id] || ['Брр! Закрою окно!']);
+            UI.fbubble(fLine, friendInRoom.x, friendInRoom.headY || (friendInRoom.y - 30), 2.2);
+            sfx(friendInRoom.id === 'monty' ? 'monty' : friendInRoom.id === 'pusya' ? 'cat' : 'pop');
+            later(1.8, () => {
+              if (w.want) winTap(r);
+              UI.fhideBubble();
+            });
+          } else {
+            line('g_cold');
+            later(1.6, () => { if (w.want) winTap(r); });
+          }
+        } else {
+          w.want = 0;
+          if (r === 'zal' && pig) pig = null;
+        }
       }
     }
     V.gust = Math.max(0, V.gust - dt * 0.6);

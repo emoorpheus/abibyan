@@ -70,6 +70,7 @@ const FART = (() => {
       if (p === 'knead') { if (f) L[1] = [16.5, 34]; else R[1] = [25.5, 34]; }
       if (p === 'wash') R[1] = [24, 22.5];
       if (p === 'catch') { L[1] = [12, 18]; R[1] = [30, 18]; }
+      if (p === 'eat') { L[1] = [17, 25]; R[1] = [25, 25]; }
       a.tube([[L[0][0], L[0][1], 2.7], [L[1][0], L[1][1] - 1, 2.6]], K.ARM, fur); a.ell(L[1][0], L[1][1], 3.3, 2.5, K.HAND, fur);
       a.tube([[R[0][0], R[0][1], 2.7], [R[1][0], R[1][1] - 1, 2.6]], K.ARM, fur); a.ell(R[1][0], R[1][1], 3.3, 2.5, K.HAND, fur);
       // round folded ears, fluffy head
@@ -77,15 +78,15 @@ const FART = (() => {
       a.ell(21, 14.5 + b, 13.2 + 1.2 * fz, 10.6 + 0.3 * fz, K.HEAD, fur, { sp: { n: 24, a: 0.85, seed: 5 } });
     }, (d) => {
       const y = 14.5 + b, FM = bit(K.HEAD);
-      const eyes = o.eyes || (p === 'happy' || p === 'knead' ? 'happy' : p === 'wash' ? 'closed' : p === 'dizzy' ? 'dizzy' : 'open');
+      const eyes = o.eyes || (p === 'happy' || p === 'knead' || p === 'eat' ? 'happy' : p === 'wash' ? 'closed' : p === 'dizzy' ? 'dizzy' : 'open');
       catEye(d, 14.6, y + 0.2, 4.9, -1, { eyes, look: o.look }); catEye(d, 27.4, y + 0.2, 4.9, 1, { eyes, look: o.look });
       // pink nose + tiny mouth
       const ny = Math.round(y + 4.5); d.pxk(20, ny, '#f095a8', FM); d.pxk(21, ny, '#f7b3c0', FM); d.pxk(22, ny, '#f095a8', FM); d.pxk(21, ny + 1, '#c96b80', FM);
-      const m = o.mouth || (p === 'talk' && f ? 'open' : p === 'happy' || p === 'knead' ? 'smile' : '');
+      const m = o.mouth || (p === 'talk' && f ? 'open' : p === 'happy' || p === 'knead' || p === 'eat' ? 'smile' : '');
       if (m === 'open') { d.pxk(20, ny + 2, '#4a1a26', FM); d.pxk(21, ny + 2, '#4a1a26', FM); d.pxk(22, ny + 2, '#4a1a26', FM); d.pxk(21, ny + 3, '#c96b80', FM); }
       else if (m === 'smile') { d.pxk(19, ny + 2, '#050407', FM); d.pxk(20, ny + 3, '#050407', FM); d.pxk(22, ny + 3, '#050407', FM); d.pxk(23, ny + 2, '#050407', FM); d.pxk(21, ny + 2, '#050407', FM); }
       else { d.pxk(20, ny + 2, '#050407', FM); d.pxk(22, ny + 2, '#050407', FM); }
-      if (o.blush || p === 'happy' || p === 'knead') { for (const bx of [10, 30]) { d.pxk(bx, Math.round(y + 4), '#7a3a4e', FM); d.pxk(bx + 1, Math.round(y + 4), '#8c4458', FM); } }
+      if (o.blush || p === 'happy' || p === 'knead' || p === 'eat') { for (const bx of [10, 30]) { d.pxk(bx, Math.round(y + 4), '#7a3a4e', FM); d.pxk(bx + 1, Math.round(y + 4), '#8c4458', FM); } }
       if (p === 'wash') { d.pxk(22, 24, '#d0687e', 1 << K.HAND); d.pxk(23, 24, '#e07f92', 1 << K.HAND); } // tongue on the paw
     }, { head: [21, 3], mouth: [21, 20] }, fz ? 4 : 0, o.big ? 1 : 0.85); // Round 8: a bit smaller (×0.85) — the card keeps the full-size portrait
   }
@@ -100,10 +101,15 @@ const FART = (() => {
       a.ell(16 - fx2, 37.2, 5.2, 1.6, K.FOOT, so, { edge: 0 }); a.ell(34 + fx2, 37.2, 5.2, 1.6, K.FOOT, so, { edge: 0 });
       a.ell(25, 21 + b + 0.8 * fz, 16 + 6 * fz, 15.3 + 1.2 * fz, K.BODY, or);
       a.ell(25, 26.6 + b + 0.6 * fz, 13.6 + 4.5 * fz, 9.6 + 1.6 * fz, K.BELLY, wh, { flat: 0.82 }); // Round 8: a big round tummy
-      // stubby arms with black claw tips; 'up' poses for the bongo duel
+      // stubby arms with black claw tips; 'up' poses for the bongo duel; 'eat' holds cake
       const arm = o.arm || (p === 'talk' && f ? 'wave' : ''), aL = arm === 'L' || arm === 'both' ? -6 : 0, aR = arm === 'R' || arm === 'both' || arm === 'wave' ? -6 : 0;
-      a.ell(8 - ax, 23 + aL + b, 4.4, 3.5, K.ARM, or); a.ell(4.4 - ax, 23.6 + aL + b, 2.1, 2, K.HAND, bk);
-      a.ell(42 + ax, 23 + aR + b, 4.4, 3.5, K.ARM, or); a.ell(45.6 + ax, 23.6 + aR + b, 2.1, 2, K.HAND, bk);
+      if (p === 'eat') {
+        a.ell(17, 23 + b, 4.4, 3.5, K.ARM, or); a.ell(20, 21.6 + b, 2.4, 2.1, K.HAND, bk);
+        a.ell(33, 23 + b, 4.4, 3.5, K.ARM, or); a.ell(30, 21.6 + b, 2.4, 2.1, K.HAND, bk);
+      } else {
+        a.ell(8 - ax, 23 + aL + b, 4.4, 3.5, K.ARM, or); a.ell(4.4 - ax, 23.6 + aL + b, 2.1, 2, K.HAND, bk);
+        a.ell(42 + ax, 23 + aR + b, 4.4, 3.5, K.ARM, or); a.ell(45.6 + ax, 23.6 + aR + b, 2.1, 2, K.HAND, bk);
+      }
       a.ellU([[18.6, 18 + b, 7.6, 4.7], [31.4, 18 + b, 7.6, 4.7]], K.FACE, wh);
       a.ell(25, 13.2 + b, 4.6, 3.8, K.NOSE, bk);
     }, (d) => {
@@ -122,7 +128,7 @@ const FART = (() => {
       const w = p === 'talk' ? (f ? 1 : -1) : 0, W = '#141216';
       line(d, 11, 17 + y, 2, 15 + y + w, W); line(d, 11, 19 + y, 1, 20 + y, W); line(d, 12, 21 + y, 3, 26 + y - w, W);
       line(d, 38, 17 + y, 47, 15 + y + w, W); line(d, 38, 19 + y, 48, 20 + y, W); line(d, 37, 21 + y, 46, 26 + y - w, W);
-      if (o.blush || p === 'happy') { d.pxk(12, Math.round(15 + y), '#f0a0a0', FM); d.pxk(13, Math.round(15 + y), '#f0a0a0', FM); d.pxk(36, Math.round(15 + y), '#f0a0a0', FM); d.pxk(37, Math.round(15 + y), '#f0a0a0', FM); }
+      if (o.blush || p === 'happy' || p === 'eat') { d.pxk(12, Math.round(15 + y), '#f0a0a0', FM); d.pxk(13, Math.round(15 + y), '#f0a0a0', FM); d.pxk(36, Math.round(15 + y), '#f0a0a0', FM); d.pxk(37, Math.round(15 + y), '#f0a0a0', FM); }
       // foot claws: three dark dots on each toe line
       const cs = Math.round(fx2), FT = bit(K.FOOT); for (const fx of [11, 14, 17]) d.pxk(fx - cs, 37, '#3a2210', FT); for (const fx of [33, 36, 39]) d.pxk(fx + cs, 37, '#3a2210', FT); // only on the toes, never on the tummy
     }, { head: [25, 5], mouth: [25, 20] }, fz ? 4 : 0, 1.2); // Round 8: Монти ×1.2
@@ -217,18 +223,25 @@ const FART = (() => {
     const lx = o.look ? Math.sign(o.look[0]) : 0, ly = o.look && o.look[1] < 0 ? -1 : 0;
     for (const e0 of [2, 8]) {
       for (let y = 2; y <= 4; y++) for (let x = e0; x < e0 + 3; x++) at(x, y, 'w');
-      if (p === 'happy') { at(e0 + 1, 2, 'k'); at(e0, 3, 'k'); at(e0 + 2, 3, 'k'); }
+      if (p === 'happy' || p === 'eat') { at(e0 + 1, 2, 'k'); at(e0, 3, 'k'); at(e0 + 2, 3, 'k'); }
       else if (o.eyes === 'closed') { for (let x = e0; x < e0 + 3; x++) at(x, 3, 'k'); }
       else at(e0 + 1 + lx, 3 + ly, 'k');
     }
-    // mouth: stitched; open while talking; a smile when happy
+    // mouth: stitched; open while talking; a smile when happy/eating
     if (p === 'talk' && f) { for (let x = 5; x <= 7; x++) at(x, 7, 'M'); at(6, 8, 'M'); }
-    else if (p === 'happy') { at(4, 6, 'm'); at(8, 6, 'm'); at(4, 7, 'F'); at(8, 7, 'F'); for (let x = 5; x <= 7; x++) at(x, 7, 'm'); }
-    // arms: out (idle) / up (happy, brushing in turns, fluttering)
+    else if (p === 'happy' || p === 'eat') { at(4, 6, 'm'); at(8, 6, 'm'); at(4, 7, 'F'); at(8, 7, 'F'); for (let x = 5; x <= 7; x++) at(x, 7, 'm'); }
+    // arms: out (idle) / up (happy, brushing in turns, fluttering) / holding cake (eat)
     const armUp = (sd) => p === 'happy' || (p === 'brush' && (sd < 0) === !f) || (p === 'fly' && f);
-    for (const sd of [-1, 1]) if (armUp(sd)) {
-      const X = (x) => (sd < 0 ? x : MX(x)); at(X(0), 9, '.'); at(X(0), 10, '.');
-      for (const [x, y] of [[1, 9], [0, 8], [0, 7], [0, 6], [0, 5]]) at(X(x), y, 'k');
+    if (p === 'eat') {
+      for (const sd of [-1, 1]) {
+        const X = (x) => (sd < 0 ? x : MX(x)); at(X(0), 9, '.'); at(X(0), 10, '.');
+        for (const [x, y] of [[2, 10], [3, 10], [4, 9]]) at(X(x), y, 'k');
+      }
+    } else {
+      for (const sd of [-1, 1]) if (armUp(sd)) {
+        const X = (x) => (sd < 0 ? x : MX(x)); at(X(0), 9, '.'); at(X(0), 10, '.');
+        for (const [x, y] of [[1, 9], [0, 8], [0, 7], [0, 6], [0, 5]]) at(X(x), y, 'k');
+      }
     }
     // wings flutter: raised a little on the odd frame
     if (p === 'fly' && f) for (const sd of [-1, 1]) { const X = (x) => (sd < 0 ? x : MX(x)); for (const [x, y] of [[1, 11], [2, 12], [3, 12], [2, 13]]) at(X(x), y, '.'); for (const [x, y] of [[0, 8], [1, 8], [0, 7]]) at(X(x), y, 'B'); }

@@ -413,7 +413,7 @@ const DASHA = (() => {
     return null;
   }
   function findHeart(h) {
-    const D = st(); if (D.found[h.n]) return; D.found[h.n] = Date.now(); GAME.save(true); pend = true; hot = 0; cold = 0;
+    const D = st(); if (D.found[h.n]) return; D.found[h.n] = Date.now(); GAME.save(true); GAME.checkAch(); pend = true; hot = 0; cold = 0;
     AUDIO.play('twinkle'); later(0.1, () => AUDIO.play('star'));
     HOME.fx.spawn('ring', h.x, h.y, { r0: 3, r1: 16, life: 0.45, c: '#ff8ab0' });
     for (let k = 0; k < 10; k++) HOME.fx.spawn('heart', h.x + rnd(-6, 6), h.y + rnd(-4, 4), { vy: -rnd(18, 36), vx: rnd(-22, 22), life: 1.1, wob: 4, fadeIn: k * 0.03 });

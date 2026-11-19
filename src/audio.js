@@ -337,7 +337,7 @@ const AUDIO = (() => {
     }
   }
   // Pure neural monkey voice (Silero TTS -> WORLD -> EQ matched to assets/voice_src)
-  const TTS_UP = 1.0, WHINE = 'э-э-э-э-э';
+  const TTS_UP = 1.12, WHINE = 'э-э-э-э-э';
   const normT = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\- ]+/g, ' ').replace(/(^|\s)-+|-+(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
   function b2u(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
   // decoded clip (LRU cache): {buf, off = first audible sample (skips the mp3 decoder delay), env = 25 ms loudness 0..1}
@@ -376,7 +376,7 @@ const AUDIO = (() => {
       if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, tEnd);
     } catch (e) { try { src.playbackRate.value = rate; } catch (e2) {} }
     const g = ac.createGain(), v = 0.82 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
-    const attackEnd = tStart + Math.min(0.008, wall * 0.25), fadeStart = Math.max(attackEnd, tEnd - fa);
+    const attackEnd = tStart + Math.min(0.015, wall * 0.25), fadeStart = Math.max(attackEnd, tEnd - fa);
     try {
       g.gain.setValueAtTime(0.0001, tStart);
       g.gain.linearRampToValueAtTime(v, attackEnd);
@@ -384,9 +384,11 @@ const AUDIO = (() => {
       g.gain.linearRampToValueAtTime(0.0001, tEnd);
     } catch (e) { try { g.gain.value = v; } catch (e2) {} }
     let node = src; const via = (type, f, q, gain) => { try { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; } catch (e) {} };
-    via('highpass', 180, 0.7);
-    via('peaking', 5200, 1.8, -7.5);
+    via('highpass', 260, 0.707);
+    via('highpass', 240, 0.707);
+    via('peaking', 380, 1.4, -4.5);
     via('peaking', 3300, 1.2, -4.0);
+    via('peaking', 5200, 1.8, -7.5);
     via('lowpass', o.lp || 6400, 0.7);
     const targetBus = voxG || sfxG || master;
     node.connect(g);

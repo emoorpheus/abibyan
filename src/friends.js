@@ -31,6 +31,16 @@ const FRIENDS = (() => {
   // ---------- movement ----------
   function moveTo(f, x, y, sp, arc, then) { const d = Math.hypot(x - f.x, y - f.y); f.path = { x0: f.x, y0: f.y, x1: x, y1: y, t: 0, dur: Math.max(0.15, d / sp), arc: arc || 0, then }; }
   const crossKitchen = (x0, y0, x1, y1) => Math.min(x0, x1) < 178 && Math.max(x0, x1) > 106 && (y0 < 266 || y1 < 266);
+  const crossMonkey = (x0, y0, x1, y1) => {
+    if (typeof HOME === 'undefined' || !HOME.mk) return false;
+    const mx = HOME.mk.x, my = HOME.mk.y;
+    const minX = Math.min(x0, x1), maxX = Math.max(x0, x1);
+    if (minX <= mx + 28 && maxX >= mx - 28) {
+      const minY = Math.min(y0, y1), maxY = Math.max(y0, y1);
+      return minY < my + 38 && maxY > my - 45;
+    }
+    return false;
+  };
   function walkTo(f, x, y, sp, arc, then) {
     if (f.room === 'kitchen' && !FLY[f.id] && crossKitchen(f.x, f.y, x, y)) {
       const sp_ = sp || 55;
@@ -38,6 +48,26 @@ const FRIENDS = (() => {
         moveTo(f, f.x, 272, sp_, 0, () => moveTo(f, x, 272, sp_, 0, () => moveTo(f, x, y, sp_, arc || 0, then)));
       } else {
         moveTo(f, x, 272, sp_, 0, () => moveTo(f, x, y, sp_, arc || 0, then));
+      }
+      return;
+    }
+    if (!FLY[f.id] && f.room === HOME.room && crossMonkey(f.x, f.y, x, y)) {
+      const sp_ = sp || 55;
+      const mx = HOME.mk.x, my = HOME.mk.y;
+      const detY = Math.min(296, Math.max(290, my + 38));
+      const dir = Math.sign(x - f.x) || 1;
+      const x1A = dir > 0 ? mx - 36 : mx + 36;
+      const x1B = dir > 0 ? mx + 36 : mx - 36;
+      if ((dir > 0 && f.x < x1A) || (dir < 0 && f.x > x1A)) {
+        moveTo(f, x1A, detY, sp_, 0, () =>
+          moveTo(f, x1B, detY, sp_, 0, () =>
+            moveTo(f, x, y, sp_, arc || 0, then)
+          )
+        );
+      } else {
+        moveTo(f, x1B, detY, sp_, 0, () =>
+          moveTo(f, x, y, sp_, arc || 0, then)
+        );
       }
       return;
     }
@@ -393,7 +423,7 @@ const FRIENDS = (() => {
       phase('dance'),
       () => {
         party.lt = 1; party.danceEnd = t + 3.8; party.beat = -1; party.t0 = t;
-        AUDIO.play('disco'); AUDIO.duck(true); HOME.act('dance');
+        AUDIO.play('disco'); AUDIO.duck(true); HOME.act('dance', { noMoment: true });
         for (let k = 0; k < 10; k++) {
           HOME.fx.spawn('spark', rnd(20, 160), rnd(160, 260), { vy: -rnd(20, 45), life: 1.2 });
           HOME.fx.spawn('star', rnd(25, 155), rnd(170, 240), { vy: -rnd(15, 30), life: 1.5 });
@@ -480,7 +510,7 @@ const FRIENDS = (() => {
     return 0.9;
   }
   const PACT = {
-    disco: () => { const [a, b] = shuffle(IDS); return [() => { party.lt = 1; party.discoEnd = t + 8.2; party.beat = -1; party.t0 = t; AUDIO.play('disco'); AUDIO.duck(true); HOME.act('dance'); return 0.3; },
+    disco: () => { const [a, b] = shuffle(IDS); return [() => { party.lt = 1; party.discoEnd = t + 8.2; party.beat = -1; party.t0 = t; AUDIO.play('disco'); AUDIO.duck(true); HOME.act('dance', { noMoment: true }); return 0.3; },
       ['w', 2], fl(a, PT.disco[a]), ['w', 0.5], fl(b, PT.disco[b]), () => Math.max(0.1, party.discoEnd - t), () => { party.lt = 0; AUDIO.duck(false); AUDIO.play('cheer'); return 0.9; }]; },
     cake: () => { const order = shuffle(IDS); return [() => { party.cake = { x: 90, y: 306, lit: 1 }; AUDIO.play('pop'); for (let k = 0; k < 10; k++) HOME.fx.spawn('spark', 90 + rnd(-18, 18), 296 + rnd(-14, 6), { vy: -20, life: 0.7 }); return 0.9; },
       ['a', pick(DATA.LINES.pWish), 'happy'], () => { party.cake.lit = 0; AUDIO.play('blow'); for (let k = 0; k < 6; k++) HOME.fx.spawn('cloth', 82 + (k % 3) * 8, 280, { c: '#d8d8e0', vy: -14, vx: rnd(-4, 4), life: 1, sz: 2 }); later(0.5, () => AUDIO.play('cheer')); return 1.2; },
@@ -502,7 +532,7 @@ const FRIENDS = (() => {
     const b = Math.floor((t - p.t0) / 0.5);
     if (b !== p.beat) { p.beat = b; let k = 0; for (const f of here()) { if (!FLY[f.id] && (b + k++) % 2 === 0) hop(f, 75); f.look = [b % 2 ? 1 : -1, 0]; f.lookUntil = t + 0.5; f.pose = 'happy'; f.poseUntil = t + 0.45; }
       HOME.fx.spawn('note', rnd(20, 160), rnd(150, 230), { vy: -16, life: 1.2, wob: 4, c: b % 3 }); }
-    if (!HOME.mk.act && !S().sleeping) HOME.act('dance');
+    if (!HOME.mk.act && !S().sleeping) HOME.act('dance', { noMoment: true });
   }
   // disco: the room dims, a mirror ball comes down, colour spots sweep the walls; the party cake (with candles until blown out)
   const SPOTC = ['#ff4fa0', '#4fd0ff', '#ffe04f', '#8aff6a'];
@@ -633,7 +663,9 @@ const FRIENDS = (() => {
     else { const ks = Math.max(0.5, 1 + f.jy / 60); P.shadow(f.x, f.y + 1, e.w * 0.36 * ks, 3 * ks, 0.2); }
     const x0 = Math.round(f.x - e.ox), y0 = Math.round(y - e.oy); c.drawImage(e.cv, x0, y0); drawn.push({ kind: 'friend', id: f.id, e, x0, y0 }); f.headY = y0 + e.head[1];
     if (f.plate) {
-      const px = Math.round(f.x), py = Math.round(y - 4);
+      const plOff = { monty: 20, pusya: 16, zhuk: 10, mosq: 14 };
+      const dy = plOff[f.id] || 16;
+      const px = Math.round(f.x), py = Math.round(y - dy);
       P.ell(px, py + 1, 7, 2.5, '#3b2433'); P.ell(px, py, 6, 2, '#ffffff');
       const ckImg = ART.food('cake'); if (ckImg) c.drawImage(ckImg, px - 6, py - 10, 12, 10);
     }
@@ -654,14 +686,17 @@ const FRIENDS = (() => {
   function kit() { return kitC || (kitC = MONKEY.sprite(20, 18, (a) => { a.rbox(1, 1, 19, 17, 2, MONKEY.K.IT, a.mat('kitW', '#f4f4f0')); a.box(1, 1, 19, 4, MONKEY.K.IT, a.mat('kitT', '#e8453c')); }, (d) => { for (let y = 7; y <= 14; y++) { d.px(9, y, '#e8453c'); d.px(10, y, '#e8453c'); } for (let x = 6; x <= 13; x++) { d.px(x, 10, '#e8453c'); d.px(x, 11, '#e8453c'); } d.px(16, 10, '#b8b8b0'); d.px(16, 11, '#b8b8b0'); })); }
   function render(c, P, layer) {
     const room = HOME.room, asleep = S().sleeping && room === 'zal';
+    const mky = (typeof HOME !== 'undefined' && HOME.mk) ? HOME.mk.y : 252;
     if (layer === 'back') {
       drawn = [];
       const kp = room === 'bath' && (ROOMS.spots('bath') || {}).kit; if (kp) ROOMS.wallAt(c, kit(), kp[0], kp[1], 2);
       if (room === 'zal') { if (asleep) drawPillow(c, P, PIL.pepper, true); else { drawPillow(c, P, PIL.carrot, false); drawPillow(c, P, PIL.pepper, false); } }
-      const list = IDS.map((id) => F[id]).filter((f) => f.room === room && !f.onFur).sort((a, b) => a.y - b.y);
+      const list = IDS.map((id) => F[id]).filter((f) => f.room === room && !f.onFur && f.y <= mky).sort((a, b) => a.y - b.y);
       const zk = F.zhuk, hk = HOOK.zhuk; if (zk && hk && room === hk.room && !hanging(zk)) { const sw = Math.round(Math.sin(t * 2.2) * 1.2); chainTo(P, hk.x, hk.y, hk.x + sw, hk.y + 7); } // Round 12 #2: unhooked — a short loose bit of chain swings on the hook
       for (const f of list) { drawFriend(c, P, f); drawMood(P, f); }
-    } else if (layer === 'fur') { for (const id of IDS) if (F[id].onFur && F[id].room === room) drawFriend(c, P, F[id]); /* Жучок scurrying over the fur: in front of Абибян */
+    } else if (layer === 'fur') {
+      const front = IDS.map((id) => F[id]).filter((f) => f.room === room && (f.onFur || f.y > mky)).sort((a, b) => a.y - b.y);
+      for (const f of front) { drawFriend(c, P, f); drawMood(P, f); }
     } else if (layer === 'hug' && asleep) { drawPillow(c, P, PIL.carrot, true); hugPaws(P); }
     else if (layer === 'top') drawParty(c, P);
   }
