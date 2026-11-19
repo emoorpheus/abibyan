@@ -446,8 +446,10 @@ const DASHA = (() => {
   }
   function ticketModal() {
     AUDIO.play('star');
-    const src = TICKET_IMG || 'dist/ticket_clean.png';
-    const w = UI.modal(`<div class="hcard ticket-view-modal"><h2 class="t-head">Билет в ресторан</h2><div class="t-sub">Все 24 секрета открыты! ✨</div><a href="dist/ticket_preview.png" target="_blank" class="ticket-preview-box"><img class="ticket-card-img" src="${src}" alt="Билет в ресторан"></a><p class="t-print-call">Распечатай этот билет на принтере и вручи Славе ♥</p><div class="t-actions"><a class="btn g notch" href="dist/abibyan-ticket.pdf" target="_blank" download="abibyan-ticket.pdf">🖨️ Распечатать билет (PDF)</a><a class="btn notch" href="dist/ticket_preview.png" target="_blank" download="abibyan-ticket.png">🖼️ Открыть картинку билета</a></div><button class="btn" data-close style="margin-top:2u;">Закрыть</button></div>`, { dismiss: true });
+    const src = TICKET_IMG || 'ticket_clean.png';
+    const pdfUrl = 'abibyan-ticket.pdf';
+    const previewUrl = 'ticket_preview.png';
+    const w = UI.modal(`<div class="hcard ticket-view-modal"><h2 class="t-head">Билет в ресторан</h2><div class="t-sub">Все 24 секрета открыты! ✨</div><a href="${previewUrl}" target="_blank" class="ticket-preview-box"><img class="ticket-card-img" src="${src}" alt="Билет в ресторан"></a><p class="t-print-call">Распечатай этот билет на принтере и вручи Славе ♥</p><div class="t-actions"><a class="btn g notch" href="${pdfUrl}" target="_blank" download="abibyan-ticket.pdf">🖨️ Распечатать билет (PDF)</a><a class="btn notch" href="${previewUrl}" target="_blank" download="abibyan-ticket.png">🖼️ Открыть картинку билета</a></div><button class="btn" data-close style="margin-top:2u;">Закрыть</button></div>`, { dismiss: true });
     return w;
   }
   function card(n) {

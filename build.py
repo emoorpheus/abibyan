@@ -139,6 +139,10 @@ site = root / 'dist' / 'site'; shutil.rmtree(site, ignore_errors=True); site.mkd
 (site / 'voice1.txt').write_text('\n'.join(V1)); (site / 'voice2.txt').write_text('\n'.join(V2))
 icons = ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']
 for n in icons: shutil.copy(root / 'assets' / 'icons' / n, site / n)
+for tf in ['abibyan-ticket.pdf', 'ticket_preview.png', 'ticket_clean.png']:
+    if (root / tf).exists(): shutil.copy(root / tf, site / tf)
+for cf in dist.glob('abibyan-card*'):
+    if not cf.is_dir(): shutil.copy(cf, site / cf.name)
 manifest = {
   'name': 'Мой Абибян', 'short_name': 'Абибян', 'description': 'Плюшевый тамагочи: корми, мой, играй и наряжай обезьянку.',
   'lang': 'ru', 'start_url': './', 'scope': './', 'display': 'standalone', 'orientation': 'portrait',
