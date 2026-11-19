@@ -1,8 +1,41 @@
 import re, base64, pathlib, json, hashlib
 root = pathlib.Path(__file__).resolve().parent; src = root / 'src'; dist = root / 'dist'  # Round 26: the folder build.py is in (a copy of the repo builds into its own dist/)
+def voice_bank():
+    sp = (src / 'speech.js').read_text(); rec = (src / 'voice_rec.js').read_text()
+    S = json.loads(sp[sp.index('const SPEECH = ') + 15:].strip().rstrip(';')); S['rec'] = json.loads(rec[rec.index('SPEECH.rec = ') + 13:].strip().rstrip(';'))
+    return S
+
+BANK = voice_bank()
+PRIORITY_KEYS = [
+    'с днем рождения дашулик', 'сегодня твой праздник я позвал друзей',
+    'кто там', 'открой меня', 'сегодня же праздник',
+    'пойдем в зал там сюрприз', 'все пришли поздравить дашулика',
+    'загадай желание и задуй свечки', 'подуй сильнее', 'еще чуть-чуть',
+    'желание обязательно сбудется', 'тортики я положил в холодильник',
+    'праздничное фото все в кадр',
+    'а еще я спрятал сердечко с секретом найдешь',
+    'сердечко', 'нашла', 'ты нашла все сердечки',
+    'я спрятал следующее сердечко ищи',
+    'а следующее сердечко я спрятал в другом месте ищи',
+    'горячо сердечко в этой комнате', 'холодно-холодно сердечко не здесь',
+    'вот это праздник', 'это лучший праздник', 'дашулик',
+    'привет', 'я абибян', 'теперь я живу у тебя', 'меня зовут абибян',
+    'ура я абибян',
+    'привет я так скучал', 'о ты вернулся', 'ура гости',
+    'привет абибян', 'привет как дела',
+    'буп', 'мой нос', 'пип', 'голова кружится', 'не мешай я сплю', 'хррр что'
+]
+prio_lines = {k: BANK['lines'][k] for k in PRIORITY_KEYS if k in BANK['lines']}
+prio_fx = BANK.get('fx', {})
+
 order = ['pixel', 'monkey', 'items', 'rooms', 'zal', 'hall', 'kitchen', 'bath', 'balcony', 'data', 'voicebank', 'audio', 'state', 'ui', 'friends_art', 'friends', 'gags', 'album', 'tour', 'ducks', 'seasons', 'dasha', 'home', 'games', 'tut', 'routine', 'fill', 'main']
 # Round 25 (restored 2026-11-08 from the live build 43ac3ef): fill.js + <canvas id="ext"> — FILL, the room's surroundings over the rest of the phone's screen
 js = '\n'.join((src / f'{n}.js').read_text() for n in order)
+assert '/*PRIO_LINES*/{}' in js
+assert '/*PRIO_FX*/{}' in js
+js = js.replace('/*PRIO_LINES*/{}', json.dumps(prio_lines, ensure_ascii=False), 1)
+js = js.replace('/*PRIO_FX*/{}', json.dumps(prio_fx, ensure_ascii=False), 1)
+print('priority voice: %d lines, %d fx embedded (zero-latency)' % (len(prio_lines), len(prio_fx)))
 # Round 22: pictures for «24 секрета» — assets/secrets/<n>.jpg|png|webp go into the game as data: URLs (keep each under ~200 KB)
 _sec = root / 'assets' / 'secrets'; _img = {}
 if _sec.is_dir():
@@ -29,10 +62,6 @@ if _ticket_file.exists() and '/*TICKET_IMG*/null' in js:
 print('secrets: %d texts%s, %d pictures%s' % (len([k for k in _txt if k != 'final']), ' + the final note' if 'final' in _txt else '', len(_img), ' — locked with her phrase (question: «%s»)' % _seal['q'] if _seal else ''))
 # Round 19: the voice bank (src/speech.js + src/voice_rec.js) as plain text after the first frame — group 1: lines, reactions, his
 # recordings; group 2: words, syllables. '@section' then 'key\tbase64\tnumber…' (a reaction: one line per variant). Blocks ≤ 256 KB.
-def voice_bank():
-    sp = (src / 'speech.js').read_text(); rec = (src / 'voice_rec.js').read_text()
-    S = json.loads(sp[sp.index('const SPEECH = ') + 15:].strip().rstrip(';')); S['rec'] = json.loads(rec[rec.index('SPEECH.rec = ') + 13:].strip().rstrip(';'))
-    return S
 def voice_chunks(S, secs, cap=262144):
     out = []; cur = []; n = 0
     for sec in secs:
@@ -45,7 +74,7 @@ def voice_chunks(S, secs, cap=262144):
                 cur.append(ln); n += len(ln) + 1
     if len(cur) > 1: out.append('\n'.join(cur))
     return out
-BANK = voice_bank(); V1 = voice_chunks(BANK, ['lines', 'fx', 'rec']); V2 = voice_chunks(BANK, ['words', 'syl'])
+V1 = voice_chunks(BANK, ['lines', 'fx', 'rec']); V2 = voice_chunks(BANK, ['words', 'syl'])
 vblocks = ''.join('<script type="text/plain" class="vb" data-g="1">%s</script>' % c for c in V1) + '<script>AUDIO.voiceInline(1)</script>\n' + \
           ''.join('<script type="text/plain" class="vb" data-g="2">%s</script>' % c for c in V2) + '<script>AUDIO.voiceInline(2)</script>\n'
 assert '</script' not in ''.join(V1 + V2)

@@ -313,17 +313,29 @@ const AUDIO = (() => {
       const f = ln.split('\t'), e = [f[1]]; for (let i = 2; i < f.length; i++) e.push(+f[i]); if (fx) (sec[f[0]] || (sec[f[0]] = [])).push(e); else sec[f[0]] = e;
     }
   }
-  // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 10 s; its bubble is shown already)
-  function voiceDone(g) { SPEECH.ready |= g; if (!(g & 1)) return; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 10000) say(p.text, p.o); }
+  let v1Done = false;
+  // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 25 s; its bubble is shown already)
+  function voiceDone(g) { SPEECH.ready |= g; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 25000) say(p.text, p.o); }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
   function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
-    const rev = (typeof window !== 'undefined' && window.ABI_REV) || ('v35_' + Date.now());
+    const rev = (typeof window !== 'undefined' && window.ABI_REV) || ('v36_' + Date.now());
     const get = (f) => fetch(f + '?v=' + rev).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
-    const step = (SPEECH.ready & 1) ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); voiceDone(1); });
+    const step = v1Done ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); v1Done = true; voiceDone(1); });
     step.then(() => { if (!(SPEECH.ready & 2)) return get('voice2.txt').then((t) => { voiceText(t); voiceDone(2); }); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 1500 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
   }
   if (typeof window !== 'undefined' && window.ABI_VOICE === 'files' && SP.ok) voiceFetch();
-  function warm() { if (!ac || SP.warm) return; const k = Object.keys(SPEECH.lines)[0]; if (!k) return; SP.warm = 1; clip('L' + k, SPEECH.lines[k][0]).catch(() => { }); }
+  function warm() {
+    if (!ac || SP.warm) return;
+    SP.warm = 1;
+    const prio = [
+      'с днем рождения дашулик', 'кто там', 'открой меня',
+      'сегодня твой праздник я позвал друзей', 'привет я так скучал',
+      'привет', 'дашулик', 'я абибян', 'теперь я живу у тебя'
+    ];
+    for (const k of prio) {
+      if (SPEECH.lines && SPEECH.lines[k]) clip('L' + k, SPEECH.lines[k][0]).catch(() => { });
+    }
+  }
   // Pure neural monkey voice (Silero TTS -> WORLD -> EQ matched to assets/voice_src)
   const TTS_UP = 1.0, WHINE = 'э-э-э-э-э';
   const normT = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\- ]+/g, ' ').replace(/(^|\s)-+|-+(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
@@ -443,7 +455,6 @@ const AUDIO = (() => {
   function say(text, o = {}) {
     if (!ac || !st.sfx) return null;
     if (!SP.ok) { const d = voice(text, SP.rate * (o.rate || 1)); return d ? { dur: d } : null; }
-    if (!(SPEECH.ready & 1)) { if (SP.failed) { const d = voice(text, SP.rate * (o.rate || 1)); return d ? { dur: d } : null; } SP.pend = { text, o, t: performance.now() }; return null; } // Round 19: the voice is still on its way
     hush();
     const mood = o.mood || '';
     const base = SP.rate * (o.rate || 1) * (mood === 'sad' ? 0.95 : mood === 'happy' ? 1.03 : mood === 'tired' ? 0.91 : 1), lp = mood === 'tired' ? 3200 : mood === 'sad' ? 5500 : 0;
@@ -455,6 +466,10 @@ const AUDIO = (() => {
       const wall = len / (r * (1 + glide) / 2); items.push({ s, t0: t, wall, len, r, glide }); t += wall - (s.cut ? 0.006 : 0);
     });
     if (!items.length) {
+      if (!v1Done && !SP.failed) {
+        SP.pend = { text, o, t: performance.now() };
+        return null;
+      }
       const d = voice(text, base);
       return d ? { dur: d } : null;
     }
