@@ -50,7 +50,7 @@ const APP = (() => {
       if (homeIn()) { if (capId === e.pointerId || e.pointerType !== 'mouse') HOME.move(p.x, p.y, e); else if (ok(e) && inside(p)) HOME.hover(p.x, p.y); else HOME.hover(-99, -99); }
       else if (scene === 'game') { const q = clampP(p); MINI.move(q.x, q.y); }
     });
-    const end = (e) => { if (capId !== e.pointerId) return; capId = null; const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
+    const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
     window.addEventListener('keydown', (e) => {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return; AUDIO.init();
@@ -58,8 +58,12 @@ const APP = (() => {
       else if (scene === 'home') { if (e.code === 'Escape') { if (UI.hasModal()) UI.closeModal(); else if (UI.sheetOpen) UI.closeSheet(); return; } if (!UI.hasModal() && !UI.sheetOpen) HOME.key(e.code); }
     });
     window.addEventListener('keyup', (e) => { if (scene === 'game') MINI.key(e.code, false); });
-    // Round 20 (ios-safari-quirks): a finger's pointerdown is not a gesture on a phone — the sound wakes on pointerup / touchend / click
-    for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click']) document.addEventListener(ev, () => AUDIO.init(), { capture: true, passive: true });
+    // Round 20 (ios-safari-quirks): unlock AudioContext and AudioSession on every user gesture
+    const unlockGest = () => AUDIO.init();
+    for (const ev of ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'click']) {
+      document.addEventListener(ev, unlockGest, { capture: true, passive: true });
+      window.addEventListener(ev, unlockGest, { capture: true, passive: true });
+    }
     const poke = () => { lastIn = performance.now(); };
     for (const ev of ['pointermove', 'wheel', 'touchstart', 'keydown']) document.addEventListener(ev, poke, { capture: true, passive: true });
     document.addEventListener('pointerdown', () => { poke(); downAt = lastIn; }, { capture: true, passive: true });
@@ -67,8 +71,9 @@ const APP = (() => {
     document.addEventListener('contextmenu', (e) => { if (!(e.target && e.target.closest && e.target.closest('input,textarea'))) e.preventDefault(); });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { GAME.save(true); if (scene === 'game') MINI.pause(); HOME.pause(); DASHA.pause(); }
-      else { const dt = GAME.catchUp(); if (AUDIO.ctx) AUDIO.init(); if (dt > 600 && scene === 'home') setTimeout(() => greet(), 400); UI.refresh(); }
+      else { const dt = GAME.catchUp(); AUDIO.init(); if (dt > 600 && scene === 'home') setTimeout(() => greet(), 400); UI.refresh(); }
     });
+    window.addEventListener('focus', () => AUDIO.init(), { passive: true });
     window.addEventListener('pagehide', () => GAME.save(true));
   }
   function unlockedAt(L) {
