@@ -267,42 +267,19 @@ const DASHA = (() => {
   let blow = null, mic = null, finger = null, micErr = '';
   const panel = () => document.getElementById('blow');
   function blowStart() {
-    if (!cake) return; blow = { mode: 'ask', lvl: 0, acc: 0, run: 0, floor: 0.005, heard: 0, quietT: 0, hint: '', weakT: 0, saidH: 0, saidA: 0, lastOut: t, done: 0 }; micErr = '';
+    if (!cake) return; blow = { mode: 'finger', lvl: 0, acc: 0, run: 0, floor: 0.005, heard: 0, quietT: 0, hint: '', weakT: 0, saidH: 0, saidA: 0, lastOut: t, done: 0 }; micErr = '';
     let w = panel(); if (w) w.remove(); w = document.createElement('div'); w.id = 'blow'; w.className = 'notch2'; $ui().appendChild(w); render();
   }
   function setMode(m, why) { if (!blow) return; blow.mode = m; if (why !== undefined) micErr = why; render(); }
   function render() {
     const w = panel(); if (!w || !blow) return; const m = blow.mode, n = lit(), N = cake ? cake.n : 0;
-    const T = { ask: ['Загадай желание и задуй свечки!', 'Подуй на телефон — как на настоящий торт'], wait: ['Разреши микрофон', 'Телефон спросит — нажми «Разрешить»'],
-      mic: ['Дуй на свечки!', 'Сильно и долго: «фу-у-у» прямо в микрофон'], finger: ['Потуши свечки пальцем', 'Проведи пальцем по огонькам'], done: ['Ура-а-а!', 'Все свечки задуты!'] }[m];
-    let sub = T[1]; if (m === 'finger' && micErr) sub = (micErr === 'denied' ? 'Микрофон не разрешён' : 'Микрофон недоступен') + ' — ничего страшного! Потуши свечки пальцем: проведи по огонькам';
-    if (m === 'mic' && blow.hint) sub = blow.hint;
-    const showMic = m === 'ask' || (m === 'finger' && !micErr), showFin = m === 'ask' || m === 'mic' || m === 'wait';
-    w.innerHTML = `<div class="b-t">${T[0]}</div><div class="b-s">${UI.esc(sub)}</div>${m === 'mic' ? '<div class="lv"><i></i></div>' : ''}<div class="bt">${showMic ? `<button class="btn g notch" id="blow-mic">${UI.im(UI.I('mic'))}<span>Подуть</span></button>` : ''}${showFin ? `<button class="btn w notch" id="blow-finger"><span>Пальцем</span></button>` : ''}</div><div class="b-n">${m === 'done' ? '' : `Горит ${n} из ${N}`}</div>`;
-    const bm = w.querySelector('#blow-mic'), bf = w.querySelector('#blow-finger');
-    if (bm) bm.onclick = () => { AUDIO.init(); AUDIO.play('click'); micStart(); };
-    if (bf) bf.onclick = () => { AUDIO.init(); AUDIO.play('click'); micRelease(); AUDIO.quiet(false); setMode('finger', ''); };
+    const T = { finger: ['Потуши свечки пальцем', 'Проведи пальцем по огонькам'], done: ['Ура-а-а!', 'Все свечки задуты!'] }[m] || ['Потуши свечки пальцем', 'Проведи пальцем по огонькам'];
+    w.innerHTML = `<div class="b-t">${T[0]}</div><div class="b-s">${UI.esc(T[1])}</div><div class="b-n">${m === 'done' ? '' : `Горит ${n} из ${N}`}</div>`;
   }
   function count() { const e = panel() && panel().querySelector('.b-n'); if (e && cake && blow && blow.mode !== 'done') e.textContent = `Горит ${lit()} из ${cake.n}`; }
-  function micStart() {
-    if (!blow || blow.mode === 'mic' || blow.mode === 'wait') return;
-    const md = navigator.mediaDevices; AUDIO.init(); const ac = AUDIO.ctx;
-    if (!ac || !md || !md.getUserMedia) { setMode('finger', 'none'); return; }
-    setMode('wait'); AUDIO.quiet(true); // the music and the song stop: our own sound must not blow into the mic
-    try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch (e) { }
-    let p; try { p = md.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { p = Promise.reject(e); }
-    p.then((stream) => {
-      if (!blow || blow.mode !== 'wait') { stream.getTracks().forEach((q) => q.stop()); audioSessionBack(); return; }
-      const src = ac.createMediaStreamSource(stream), an = ac.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0; const g = ac.createGain(); g.gain.value = 0;
-      src.connect(an); an.connect(g); g.connect(ac.destination); if (ac.state !== 'running') ac.resume().catch(() => { });
-      mic = { stream, src, an, g, buf: new Float32Array(an.fftSize), sr: ac.sampleRate, t0: t };
-      blow.floor = 0.005; blow.run = 0; blow.heard = 0; blow.quietT = 0; setMode('mic');
-    }).catch((e) => { micRelease(); AUDIO.quiet(false); if (blow && blow.mode !== 'done') setMode('finger', e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'denied' : 'none'); });
-  }
-  function audioSessionBack() { try { if (navigator.audioSession) navigator.audioSession.type = 'auto'; } catch (e) { } }
-  function micRelease() {
-    if (mic) { try { mic.src.disconnect(); mic.an.disconnect(); mic.g.disconnect(); } catch (e) { } try { mic.stream.getTracks().forEach((q) => q.stop()); } catch (e) { } mic = null; audioSessionBack(); }
-  }
+  function micStart() {}
+  function audioSessionBack() {}
+  function micRelease() {}
   // periodicity of a frame: the best normalized autocorrelation of the first difference (decimated to ~12 kHz) over pitch lags
   // 60–500 Hz. A voice / a hum / music / a whistle is high (> 0.5), a blow (turbulence) is low (validated in Python: tools/blow_wavs.py)
   let DY = null;

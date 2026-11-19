@@ -218,7 +218,7 @@ const DATA = (() => {
     { id: 'water', t: 'Полей банановое дерево', k: 'watered', n: 1, coins: 10, ic: ['i', 'can'] },
     { id: 'wants', t: 'Исполни 2 желания', k: 'wants', n: 2, coins: 20, ic: ['i', 'star'] },
     { id: 'photo', t: 'Сделай фото на память', k: 'photos', n: 1, coins: 10, ic: ['i', 'camera'] },
-    { id: 'mic', t: 'Поговори в «Повторюшку»', k: 'mic', n: 1, coins: 10, ic: ['i', 'mic'] },
+    { id: 'cloth', t: 'Примерь наряд в гардеробе', k: 'cloth', n: 1, coins: 10, ic: ['i', 'shirt'] },
   ];
   const TASK = {}; for (const t of TASKS) TASK[t.id] = t;
   // what opens up at growth stage i (foods, clothes, games with age === i)

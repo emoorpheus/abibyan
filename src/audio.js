@@ -7,9 +7,23 @@ const AUDIO = (() => {
   let unlockedN = 0;
   function silent() { try { const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start(0); unlockedN++; } catch (e) { } }
   function init() {
-    if (ac) { if (ac.state !== 'running' && ac.state !== 'closed') { try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { } silent(); } return true; } // iOS: 'interrupted' after calls/background
+    if (ac) {
+      if (ac.state !== 'running' && ac.state !== 'closed') {
+        try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { }
+        silent();
+      }
+      if (sfxG) sfxG.gain.setValueAtTime(st.sfx ? 0.55 : 0, ac.currentTime);
+      if (voxG) voxG.gain.setValueAtTime(st.sfx ? 0.65 : 0, ac.currentTime);
+      if (musG) {
+        const mv = (st.music && !quietF && !duckF) ? 0.16 : 0;
+        musG.gain.cancelScheduledValues(ac.currentTime);
+        musG.gain.setValueAtTime(mv, ac.currentTime);
+      }
+      if (st.music && !music.running()) music.start();
+      return true;
+    } // iOS: 'interrupted' after calls/background
     try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return false; }
-    try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { } // iOS: a fresh context starts 'suspended' — resume inside the first gesture, not only at the mic scene
+    try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { } // iOS: a fresh context starts 'suspended'
     silent();
     master = ac.createGain(); master.gain.value = 0.8; master.connect(ac.destination);
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(master);
@@ -18,7 +32,7 @@ const AUDIO = (() => {
     musG = ac.createGain(); musG.gain.value = st.music ? 0.16 : 0; musG.connect(comp);
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     if (st.music) music.start();
-    if (SP.ok) setTimeout(warm, 50); // warm up the decoder (again when the voice arrives — Round 19)
+    if (SP.ok) setTimeout(warm, 50);
     return true;
   }
   const now = () => ac.currentTime;
@@ -225,6 +239,8 @@ const AUDIO = (() => {
       setTimeout(() => {
         if (typeof DASHA !== 'undefined' && DASHA.cakeLit && DASHA.cakeLit() > 0 && !quietF) {
           play('hbd');
+        } else {
+          duck(false);
         }
       }, (tot + 1.2) * 1000);
       for (const [n, b] of M) { const f = 440 * Math.pow(2, (n + 12 - 69) / 12); tone(f, Math.max(0.3, b * B * 1.3), { type: 'triangle', vol: 0.09, delay: d, bus: g }); tone(f * 2, 0.18, { type: 'sine', vol: 0.03, delay: d, bus: g }); d += b * B; }
@@ -458,6 +474,8 @@ const AUDIO = (() => {
       k: (t) => boom(t, 150, 45, 0.16, 0.7), t: (t, i) => boom(t, i % 4 < 2 ? 220 : 165, i % 4 < 2 ? 120 : 90, 0.14, 0.4), S: (t) => { nz(t, 0.12, 0.14, 'bandpass', 1800, 0.8); boom(t, 240, 160, 0.06, 0.25); },
       b: (t) => nz(t, 0.16, 0.06, 'bandpass', 3000, 0.7), r: (t, i) => { note(i % 2 ? 4200 : 3900, t, 0.12, 'sine', 0.025); nz(t, 0.08, 0.025, 'highpass', 9000); }, n: (t) => nz(t, 0.07, 0.13, 'bandpass', 2400, 0.5) };
     function sched() {
+      if (!ac || ac.state !== 'running') return;
+      if (next < ac.currentTime - 0.25) next = ac.currentTime + 0.05;
       while (next < ac.currentTime + 0.25) {
         const T = TRACKS[cur], SP = 60 / T.bpm / 2, B = T.bar || 8, s8 = step % B, bi = Math.floor(step / B), ch = T.prog[bi % T.prog.length], nx = T.prog[(bi + 1) % T.prog.length], r = ch[0];
         const tt = next + (T.swing && step % 2 ? SP * T.swing : 0);
@@ -487,45 +505,24 @@ const AUDIO = (() => {
         next += SP; step++;
       }
     }
-    function track(id) { if (!TRACKS[id]) id = 'home'; if (id === cur) return; cur = id; step = 0; if (ac && timer) { next = Math.max(next, ac.currentTime + 0.06); musG.gain.cancelScheduledValues(ac.currentTime); musG.gain.setValueAtTime(0.0001, ac.currentTime); musG.gain.setTargetAtTime(st.music && !quietF && !duckF ? 0.16 : 0, ac.currentTime + 0.05, 0.08); } }
-    return { start() { if (!ac || timer) return; next = ac.currentTime + 0.1; timer = setInterval(sched, 60); }, stop() { clearInterval(timer); timer = null; }, track, get id() { return cur; }, log };
+    function track(id) { if (!TRACKS[id]) id = 'home'; if (id === cur) return; cur = id; step = 0; if (ac) { next = ac.currentTime + 0.05; if (musG) { musG.gain.cancelScheduledValues(ac.currentTime); musG.gain.setValueAtTime(st.music && !quietF && !duckF ? 0.16 : 0, ac.currentTime); } } }
+    return { start() { if (!ac) return; if (timer) clearInterval(timer); next = ac.currentTime + 0.05; timer = setInterval(sched, 50); }, stop() { if (timer) clearInterval(timer); timer = null; }, running: () => !!timer, track, get id() { return cur; }, log };
   })();
   function track(id) { if (!ac && st.music) init(); music.track(id); } // a mini-game starts from a tap, so it's fine to wake the audio up here
-  function set(k, v) { st[k] = v; if (!ac) return; if (k === 'sfx') { sfxG.gain.value = v ? 0.55 : 0; if (voxG) voxG.gain.value = v ? 0.65 : 0; } if (k === 'music') { musG.gain.value = (v && !quietF && !duckF) ? 0.16 : 0; v ? music.start() : music.stop(); } }
+  function set(k, v) { st[k] = !!v; if (!ac) return; if (k === 'sfx') { sfxG.gain.cancelScheduledValues(ac.currentTime); sfxG.gain.setValueAtTime(v ? 0.55 : 0, ac.currentTime); if (voxG) { voxG.gain.cancelScheduledValues(ac.currentTime); voxG.gain.setValueAtTime(v ? 0.65 : 0, ac.currentTime); } } if (k === 'music') { musG.gain.cancelScheduledValues(ac.currentTime); musG.gain.setValueAtTime((v && !quietF && !duckF) ? 0.16 : 0, ac.currentTime); v ? music.start() : music.stop(); } }
   let duckF = false, quietF = false;
-  function duck(on) { duckF = !!on; if (ac && musG) musG.gain.setTargetAtTime(quietF || duckF ? 0 : (st.music ? 0.16 : 0), ac.currentTime, 0.05); }
-  // Round 22: silence the music (and her birthday song) while the microphone listens for a blow — it must not hear the game
-  function quiet(on) { quietF = !!on; if (on) stop('hbd'); if (ac && musG) musG.gain.setTargetAtTime(quietF || duckF ? 0 : (st.music ? 0.16 : 0), ac.currentTime, 0.05); }
+  function duck(on) { duckF = !!on; if (ac && musG) { const v = (st.music && !quietF && !duckF) ? 0.16 : 0; musG.gain.cancelScheduledValues(ac.currentTime); musG.gain.setValueAtTime(musG.gain.value, ac.currentTime); musG.gain.linearRampToValueAtTime(v, ac.currentTime + 0.08); } }
+  function quiet(on) { quietF = !!on; if (on) stop('hbd'); if (ac && musG) { const v = (st.music && !quietF && !duckF) ? 0.16 : 0; musG.gain.cancelScheduledValues(ac.currentTime); musG.gain.setValueAtTime(musG.gain.value, ac.currentTime); musG.gain.linearRampToValueAtTime(v, ac.currentTime + 0.08); } }
 
-  // ---------- microphone repeat (Talking-Tom style) ----------
-  const mic = (() => {
-    let stream = null, src = null, proc = null, listening = false, rec = false, chunks = [], silence = 0, voiced = 0, cb = null, lvl = 0;
-    async function start(onEvent) {
-      if (!init()) throw new Error('noaudio');
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('nomic');
-      if (!stream) stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      cb = onEvent; src = ac.createMediaStreamSource(stream); proc = ac.createScriptProcessor(2048, 1, 1);
-      const mute = ac.createGain(); mute.gain.value = 0; src.connect(proc); proc.connect(mute); mute.connect(ac.destination);
-      listening = true; rec = false; chunks = []; silence = 0; voiced = 0;
-      proc.onaudioprocess = (e) => {
-        if (!listening) return; const d = e.inputBuffer.getChannelData(0); let s = 0; for (let i = 0; i < d.length; i++) s += d[i] * d[i]; const rms = Math.sqrt(s / d.length); lvl = rms;
-        const dt = d.length / ac.sampleRate;
-        if (!rec) { if (rms > 0.025) { voiced += dt; if (voiced > 0.06) { rec = true; chunks = [new Float32Array(d)]; silence = 0; cb && cb('rec'); } } else voiced = 0; }
-        else { chunks.push(new Float32Array(d)); if (rms < 0.015) silence += dt; else silence = 0; const len = chunks.length * d.length / ac.sampleRate; if (silence > 0.7 || len > 6) { rec = false; voiced = 0; const buf = join(chunks); chunks = []; cb && cb('done', buf); } }
-      };
-    }
-    function join(ch) { const n = ch.reduce((a, c) => a + c.length, 0); const b = ac.createBuffer(1, n, ac.sampleRate); const d = b.getChannelData(0); let o = 0; for (const c of ch) { d.set(c, o); o += c.length; } return b; }
-    function pause(p) { listening = !p; }
-    function stop() { listening = false; rec = false; try { proc && proc.disconnect(); src && src.disconnect(); } catch (e) { } proc = null; src = null; }
-    function release() { stop(); if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; } }
-    // play buffer pitched up, returns {dur, env(t)->0..1}
-    function playback(buf, rate = 1.6) {
-      const s = ac.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate; const g = ac.createGain(); g.gain.value = 1.4; s.connect(g); g.connect(sfxG); s.start();
-      const d = buf.getChannelData(0), win = Math.floor(ac.sampleRate * 0.04), env = []; let mx = 0.0001;
-      for (let i = 0; i < d.length; i += win) { let q = 0; for (let j = i; j < Math.min(d.length, i + win); j++) q += d[j] * d[j]; const v = Math.sqrt(q / win); env.push(v); mx = Math.max(mx, v); }
-      const dur = buf.duration / rate; return { dur, env: (t) => { const k = Math.floor(t * rate / 0.04); return k >= 0 && k < env.length ? Math.min(1, env[k] / mx * 1.3) : 0; } };
-    }
-    return { start, stop, pause, release, playback, level: () => lvl, get active() { return !!proc; } };
-  })();
+  // ---------- microphone repeat disabled per user request ----------
+  const mic = {
+    start: async () => {},
+    stop: () => {},
+    pause: () => {},
+    release: () => {},
+    playback: () => null,
+    level: () => 0,
+    get active() { return false; }
+  };
   return { get unlockedN() { return unlockedN; }, voiceInline, voiceState: () => ({ ready: SPEECH.ready, pend: SP.pend ? 1 : 0, played: SP.played }), TRACKS, track, get trackId() { return music.id; }, _musLog: music.log, init, play, has: (n) => !!SFX[n], stop, liveOn: (n) => !!live[n], voice, chat, say, setRate, hush, set, duck, quiet, quietOn: () => quietF, mic, st, get ctx() { return ac; }, get voiceReady() { return SP.ok; }, get _out() { return master; }, _sp: SP, _plan: (t) => SP.ok ? plan(t) : [], _norm: normT };
 })();

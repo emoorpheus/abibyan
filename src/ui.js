@@ -111,7 +111,7 @@ const UI = (() => {
     const nav = (d) => `<button class="nav notch" id="nav-${d}" aria-label="${d === 'L' ? 'Влево' : 'Вправо'}">${im(ARR[d])}</button>`;
     let mid = '';
     const ab = (id, icon, lab, extra = '') => `<button class="abtn notch" id="a-${id}" aria-label="${lab}">${im(icon)}<span class="lab">${lab}</span>${extra}</button>`;
-    if (room === 'zal') mid = ab('light', s.light ? I('bulb') : I('moon'), 'Свет') + ab('mic', I('mic'), 'Повторюшка') + ab('photo', I('camera'), 'Фото');
+    if (room === 'zal') mid = ab('light', s.light ? I('bulb') : I('moon'), 'Свет') + ab('photo', I('camera'), 'Фото');
     else if (room === 'kitchen') mid = ab('fshop', I('shop'), 'Магазин еды') + `<div class="carousel"><button class="arr notch" id="c-l" aria-label="Предыдущая еда">${im(ARR.l)}</button><div class="slot notch" id="c-slot">${im(F('banana'))}</div><button class="arr notch" id="c-r" aria-label="Следующая еда">${im(ARR.r)}</button></div>`;
     else if (room === 'bath') mid = ab('soap', I('soap'), 'Мыло') + ab('shower', I('shower'), 'Душ');
     else if (room === 'hall') mid = ab('wardrobe', I('shirt'), 'Гардероб');

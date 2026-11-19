@@ -1153,32 +1153,13 @@ const HOME = (() => {
     if (s.st.energy >= 99.5) wakeUp(true);
   }
 
-  // ---------- living room: mic & photo ----------
-  async function micToggle() {
-    if (mic.on) { micStop(); return; }
-    if (S().sleeping) return;
-    try {
-      mic.on = true; mic.rec = false; mic.pb = null; mic.quiet = 0; mk.act = null; UI.updateBar();
-      await AUDIO.mic.start(onMic); AUDIO.duck(true); UI.bubble('Скажи что-нибудь — я повторю!', mk.x, headTop() - 12 - camY, 2600); bubbleOn = true;
-    } catch (e) { mic.on = false; UI.updateBar(); micFallback(); }
-  }
-  function onMic(ev, buf) {
-    if (!mic.on) return;
-    if (ev === 'rec') mic.rec = true;
-    else if (ev === 'done') { mic.rec = false; AUDIO.mic.pause(true); try { mic.pb = AUDIO.mic.playback(buf, 1.55); mic.pbT = 0; } catch (e) { mic.pb = null; AUDIO.mic.pause(false); } const s = S(); s.stats.mic++; GAME.stat('fun', 3); GAME.care(1, 'mic'); GAME.checkAch(); }
-  }
-  function micTick(dt) {
-    if (mic.pb) { mic.pbT += dt; if (mic.pbT > mic.pb.dur + 0.2) { mic.pb = null; AUDIO.mic.pause(false); if (Math.random() < 0.4) { face('happy', 'laugh', 0.7); AUDIO.play('giggle'); } } }
-    if (!mic.rec && !mic.pb) { mic.quiet += dt; if (mic.quiet > 40) { micStop(); UI.toast('Повторюшка выключена', UI.I('mic')); } } else mic.quiet = 0;
-  }
-  function micStop() { try { AUDIO.mic.release(); } catch (e) { } mic.on = false; mic.rec = false; mic.pb = null; AUDIO.duck(false); UI.updateBar(); }
-  function micFallback() {
-    const s = S(); const w = UI.modal(`<h2>Повторюшка</h2><p>Микрофон недоступен. Напиши фразу — ${UI.esc(s.name)} повторит её своим голосом!</p><input type="text" id="mf" maxlength="60" placeholder="Привет, ${UI.esc(s.name)}!" autocomplete="off"><div class="bt"><button class="btn g" id="mf-ok">Сказать</button><button class="btn w" data-close>Закрыть</button></div>`, { dismiss: true });
-    const inp = w.querySelector('#mf'); setTimeout(() => { try { inp.focus(); } catch (e) { } }, 60);
-    const ok = () => { const v = inp.value.trim(); if (!v) return; UI.closeModal(w); repeatText(v); };
-    w.querySelector('#mf-ok').onclick = ok; inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') ok(); });
-  }
-  function repeatText(text) { const s = S(); const r = AUDIO.say(text); const dur = r ? Math.max(0.5, r.dur) : Math.min(6, 0.5 + text.length * 0.07); mk.talk = { t: 0, dur, env: r && r.env }; GAME.care(1, 'mic'); UI.bubble(text, mk.x, headTop() - 12 - camY, dur * 1000 + 1200); bubbleOn = true; s.stats.mic++; GAME.stat('fun', 3); GAME.checkAch(); }
+  // ---------- living room: mic disabled per user request ----------
+  async function micToggle() {}
+  function onMic() {}
+  function micTick() {}
+  function micStop() { mic.on = false; mic.rec = false; mic.pb = null; }
+  function micFallback() {}
+  function repeatText() {}
   // Round 14b (user: «в фотоальбоме текст налазит друг на друга», «кнопка Сохранить ничего не делает»): the caption and the date get a line
   // each (shrunk to fit), drawn only once the game font is loaded (no monospace fallback); «Сохранить» → the share sheet with the PNG
   // (on a phone: «Сохранить изображение»), else a download; the photo itself can be long-pressed on iOS.
