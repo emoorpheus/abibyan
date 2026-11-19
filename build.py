@@ -84,7 +84,10 @@ if (/^https?:$/.test(location.protocol)) {{
   else fetch('manifest.webmanifest', {{ method: 'HEAD', cache: 'no-store' }}).then(function (r) {{ if (r.ok) pwa(); }}).catch(function () {{}});
 }}
 </script></body></html>'''
-html_site = html.replace('<script>\n', "<script>window.ABI_VOICE = 'files';</script>\n<script>\n", 1) # the website: voice1/voice2.txt
+ver = hashlib.sha1((html + vblocks).encode()).hexdigest()[:10]
+preloads = f'<link rel="preload" href="voice1.txt?v=v36_{ver}" as="fetch" crossorigin>\n<link rel="preload" href="voice2.txt?v=v36_{ver}" as="fetch" crossorigin>\n'
+html_site = html.replace('</head>', preloads + '</head>', 1)
+html_site = html_site.replace('<script>\n', f"<script>window.ABI_VOICE = 'files'; window.ABI_REV = 'v36_{ver}';</script>\n<script>\n", 1) # the website: voice1/voice2.txt
 assert "ABI_VOICE = 'files'" in html_site
 html = html.replace('</script></body></html>', '</script>\n' + vblocks + '</body></html>', 1); assert 'class="vb"' in html
 (root / 'dist').mkdir(exist_ok=True)  # Round 26: a fresh clone (or a copy of the repo) has no dist/ yet
@@ -106,10 +109,16 @@ def testify(h, coins=100000, top=True, key='martyn_tamagotchi_test_v1', reset_to
     if key and key != 'martyn_tamagotchi_test_v1': cfg['key'] = key
     cfg_json = json.dumps(cfg)
     h = h.replace('<title>Мой Абибян — плюшевый тамагочи</title>', f'<title>{title}</title>', 1)
-    test_btn = '<button id="btn-test-voice" onclick="if(window.__game&&window.__game.AUDIO){window.__game.AUDIO.init();window.__game.AUDIO.say(\'С днём рождения, Дашулик!\');}" style="position:fixed;top:6px;right:6px;z-index:99999;background:#ffd04a;color:#1a1016;border:2px solid #1a1016;border-radius:6px;padding:5px 9px;font-size:11px;font-family:sans-serif;font-weight:bold;cursor:pointer;box-shadow:0 2px 0 #1a1016;">🔊 Тест голоса</button>'
-    h = h.replace('<div id="view">', test_btn + '<div id="view">', 1)
+    test_btn = (
+        '<button id="btn-test-voice" '
+        'onclick="(function(){var A=window.AUDIO||(window.__game&&window.__game.AUDIO);if(A){A.init();var r=A.say(\'С днём рождения, Дашулик!\');if(!r)r=A.say(\'Привет! Я так скучал!\');if(!r)alert(\'Голос ещё загружается или ошибка\');}})()" '
+        'style="position:fixed;top:8px;right:8px;z-index:999999;background:#ffd04a;color:#1a1016;border:2px solid #1a1016;border-radius:6px;padding:6px 12px;font-size:12px;font-family:sans-serif;font-weight:bold;cursor:pointer;box-shadow:0 2px 0 #1a1016;">'
+        '🔊 Тест голоса'
+        '</button>'
+    )
+    h = h.replace('<div id="ui"></div>', '<div id="ui"></div>' + test_btn, 1)
     kill_cache = """(function() {
-      window.ABI_REV = 'v35_' + Date.now();
+      window.ABI_REV = 'v36_' + Date.now();
       if (location.protocol.indexOf('http') === 0 && 'serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
           for (var i = 0; i < regs.length; i++) regs[i].unregister();
@@ -151,17 +160,22 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v35-clean-neural-%s';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './voice1.txt', './voice2.txt', %s];
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
+sw = '''const CACHE = 'abibyan-v36-clean-neural-%s';
+const CORE = ['./', './index.html', './manifest.webmanifest', %s];
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const r = e.request; if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
   if (r.url.includes('voice1.txt') || r.url.includes('voice2.txt')) {
-    e.respondWith(fetch(r, { cache: 'no-store' }).then((res) => {
-      if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
-      return res;
-    }).catch(() => caches.match(r, { ignoreSearch: true })));
+    e.respondWith(
+      caches.match(r, { ignoreSearch: true }).then((cached) => {
+        if (cached) return cached;
+        return fetch(r.url).then((res) => {
+          if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
+          return res;
+        });
+      }).catch(() => fetch(r.url))
+    );
     return;
   }
   e.respondWith(fetch(r).then((res) => {

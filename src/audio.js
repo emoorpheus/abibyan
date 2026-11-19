@@ -306,18 +306,21 @@ const AUDIO = (() => {
   // Round 19: the bank arrives after the first frame (src/voicebank.js, build.py) — parse its text into SPEECH (substrings, no copies)
   function voiceText(txt) {
     let sec = null, fx = false;
-    for (const ln of txt.split('\n')) { if (!ln) continue;
+    for (let ln of txt.split('\n')) {
+      ln = ln.trim();
+      if (!ln) continue;
       if (ln.charCodeAt(0) === 64) { const n = ln.slice(1); sec = SPEECH[n] || (SPEECH[n] = {}); fx = n === 'fx'; continue; }
-      const f = ln.split('\t'), e = [f[1]]; for (let i = 2; i < f.length; i++) e.push(+f[i]); if (fx) (sec[f[0]] || (sec[f[0]] = [])).push(e); else sec[f[0]] = e; }
+      const f = ln.split('\t'), e = [f[1]]; for (let i = 2; i < f.length; i++) e.push(+f[i]); if (fx) (sec[f[0]] || (sec[f[0]] = [])).push(e); else sec[f[0]] = e;
+    }
   }
-  // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 1.5 s; its bubble is shown already)
-  function voiceDone(g) { SPEECH.ready |= g; if (!(g & 1)) return; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 1500) say(p.text, p.o); }
+  // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 10 s; its bubble is shown already)
+  function voiceDone(g) { SPEECH.ready |= g; if (!(g & 1)) return; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 10000) say(p.text, p.o); }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
   function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
     const rev = (typeof window !== 'undefined' && window.ABI_REV) || ('v35_' + Date.now());
-    const get = (f) => fetch(f + '?v=' + rev, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
+    const get = (f) => fetch(f + '?v=' + rev).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
     const step = (SPEECH.ready & 1) ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); voiceDone(1); });
-    step.then(() => get('voice2.txt')).then((t) => { voiceText(t); voiceDone(2); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 3000 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
+    step.then(() => { if (!(SPEECH.ready & 2)) return get('voice2.txt').then((t) => { voiceText(t); voiceDone(2); }); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 1500 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
   }
   if (typeof window !== 'undefined' && window.ABI_VOICE === 'files' && SP.ok) voiceFetch();
   function warm() { if (!ac || SP.warm) return; const k = Object.keys(SPEECH.lines)[0]; if (!k) return; SP.warm = 1; clip('L' + k, SPEECH.lines[k][0]).catch(() => { }); }
@@ -332,7 +335,12 @@ const AUDIO = (() => {
     p = new Promise((res, rej) => {
       let done = false; const ok = (buf) => { if (done) return; done = true; try { res(prep(buf)); } catch (e) { rej(e); } };
       const bad = (e) => { if (done) return; done = true; SP.cache.delete(id); rej(e); };
-      try { const pr = ac.decodeAudioData(b2u(b64).buffer, ok, bad); if (pr && pr.then) pr.then(ok, bad); } catch (e) { bad(e); }
+      try {
+        if (!ac) { rej(new Error('no ac')); return; }
+        if (ac.state !== 'running' && ac.state !== 'closed') { try { ac.resume().catch(() => {}); } catch (e) {} }
+        const pr = ac.decodeAudioData(b2u(b64).buffer, ok, bad);
+        if (pr && pr.then) pr.then(ok, bad);
+      } catch (e) { bad(e); }
     });
     SP.cache.set(id, p); if (SP.cache.size > 70) SP.cache.delete(SP.cache.keys().next().value);
     return p;
@@ -343,20 +351,39 @@ const AUDIO = (() => {
     const W = Math.round(sr * 0.025), n = Math.max(1, Math.ceil((d.length - i0) / W)), env = new Float32Array(n); let em = 1e-4;
     for (let j = 0; j < n; j++) { let q = 0; const a = i0 + j * W, b = Math.min(d.length, a + W); for (let x = a; x < b; x++) q += d[x] * d[x]; env[j] = Math.sqrt(q / Math.max(1, b - a)); if (env[j] > em) em = env[j]; }
     for (let j = 0; j < n; j++) env[j] = Math.min(1, env[j] / em * 1.3);
-    return { buf, off: Math.max(0, i0 / sr - 0.003), env };
+    const safeOff = Math.max(0, Math.min(Math.max(0, buf.duration - 0.02), i0 / sr - 0.003));
+    return { buf, off: safeOff, env };
   }
   // play a decoded clip at a pitch/speed rate (optional glide to rate*glide); returns wall-clock seconds
   function vsrc(c, when, rate, o = {}) {
     const len = Math.max(0.02, Math.min(c.buf.duration - c.off, o.len || 99)), gl = o.glide || 1, wall = len / (rate * (1 + gl) / 2);
-    const src = ac.createBufferSource(); src.buffer = c.buf; src.playbackRate.setValueAtTime(rate, when); if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, when + wall);
+    const src = ac.createBufferSource(); src.buffer = c.buf;
+    const tStart = Math.max(ac.currentTime, when), tEnd = tStart + wall;
+    try {
+      src.playbackRate.setValueAtTime(rate, tStart);
+      if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, tEnd);
+    } catch (e) { try { src.playbackRate.value = rate; } catch (e2) {} }
     const g = ac.createGain(), v = 0.82 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
-    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(v, when + 0.008); g.gain.setValueAtTime(v, when + wall - fa); g.gain.linearRampToValueAtTime(0, when + wall);
-    let node = src; const via = (type, f, q, gain) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; };
+    const attackEnd = tStart + Math.min(0.008, wall * 0.25), fadeStart = Math.max(attackEnd, tEnd - fa);
+    try {
+      g.gain.setValueAtTime(0.0001, tStart);
+      g.gain.linearRampToValueAtTime(v, attackEnd);
+      g.gain.setValueAtTime(v, fadeStart);
+      g.gain.linearRampToValueAtTime(0.0001, tEnd);
+    } catch (e) { try { g.gain.value = v; } catch (e2) {} }
+    let node = src; const via = (type, f, q, gain) => { try { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; } catch (e) {} };
     via('highpass', 180, 0.7);
     via('peaking', 5200, 1.8, -7.5);
     via('peaking', 3300, 1.2, -4.0);
     via('lowpass', o.lp || 6400, 0.7);
-    node.connect(g); g.connect(voxG || sfxG); src.start(when, c.off); src.stop(when + wall + 0.03);
+    const targetBus = voxG || sfxG || master;
+    node.connect(g);
+    if (targetBus) g.connect(targetBus);
+    const off = Math.max(0, Math.min(Math.max(0, c.buf.duration - 0.02), c.off || 0));
+    try {
+      src.start(tStart, off);
+      src.stop(tEnd + 0.03);
+    } catch (e) { try { src.start(0); } catch (e2) {} }
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
     return wall;
   }
@@ -423,16 +450,32 @@ const AUDIO = (() => {
     const segs = plan(text), items = []; let t = 0;
     segs.forEach((s, i) => {
       if (s.gap) { t += s.gap / base; return; }
-      const len = Math.max(0.02, Math.min(s.e[1], s.len || s.e[1])), r = base * (s.r || 1) * TTS_UP, glide = s.end === '?' ? 1.12 : s.end === '!' ? 1.03 : s.end === '.' ? 0.95 : 1;
+      if (!s.e || !s.e[0]) return;
+      const len = Math.max(0.02, Math.min(s.e[1] || 0.5, s.len || s.e[1] || 0.5)), r = base * (s.r || 1) * TTS_UP, glide = s.end === '?' ? 1.12 : s.end === '!' ? 1.03 : s.end === '.' ? 0.95 : 1;
       const wall = len / (r * (1 + glide) / 2); items.push({ s, t0: t, wall, len, r, glide }); t += wall - (s.cut ? 0.006 : 0);
     });
-    if (!items.length) return null;
+    if (!items.length) {
+      const d = voice(text, base);
+      return d ? { dur: d } : null;
+    }
     const tok = ++SP.tok, t0 = now(), res = { dur: t + 0.08, lag: 0.06, env: null };
     res.env = (x) => { x -= res.lag; for (const it of items) if (x >= it.t0 && x < it.t0 + it.wall) { if (!it.c) return 0.3; const k = Math.floor((x - it.t0) / it.wall * it.len / 0.025); return it.c.env[Math.min(it.c.env.length - 1, k)] || 0; } return 0; };
     Promise.all(items.map((it) => clip(it.s.id, it.s.e[0]).then((c) => { it.c = c; }, () => { }))).then(() => {
-      if (tok !== SP.tok) return; const s0 = Math.max(t0 + 0.06, now() + 0.015); res.lag = s0 - t0;
-      for (const it of items) if (it.c) { vsrc(it.c, s0 + it.t0, it.r, { len: it.len, glide: it.glide, lp, cut: it.s.cut }); SP.played++; }
+      if (tok !== SP.tok) return;
+      const s0 = Math.max(t0 + 0.06, now() + 0.015);
+      res.lag = s0 - t0;
+      let playedAny = false;
+      for (const it of items) if (it.c) {
+        vsrc(it.c, s0 + it.t0, it.r, { len: it.len, glide: it.glide, lp, cut: it.s.cut });
+        SP.played++;
+        playedAny = true;
+      }
+      if (!playedAny) {
+        voice(text, base);
+      }
       SP.busy = s0 + t;
+    }).catch(() => {
+      voice(text, base);
     });
     SP.busy = t0 + t + 0.1; return res;
   }
