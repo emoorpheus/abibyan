@@ -302,7 +302,7 @@ const DASHA = (() => {
     for (const q of cake.C) if (q.lit) q.lean += ((on ? 1.2 + 1.4 * k : B.lvl * 1.2) * Math.sin(q.ph + t * 3) * 0.3 + (on ? 1.6 + k : 0) - q.lean) * Math.min(1, dt * 10);
     if (on && B.run >= 0.12) { B.acc += dt * (5 + 25 * k); if (k < 0.12) B.weakT += dt; while (B.acc >= 1 && lit()) { B.acc -= 1; outOne(); } }
     const lv = panel() && panel().querySelector('.lv i'); if (lv) lv.style.width = Math.round(B.lvl * 100) + '%';
-    if (t - m.t0 > 8 && t - B.heard > 8 && B.hint !== 'deaf') { B.hint = 'deaf'; blow.hint = 'Не слышу… Подуй прямо в микрофон (он внизу телефона) — или потуши пальцем'; render(); }
+    if (t - m.t0 > 8 && t - B.heard > 8 && B.hint !== 'deaf') { B.hint = 'deaf'; blow.hint = 'Потуши свечки пальцем — нажимай на огонёк!'; render(); }
     if (!B.saidH && B.weakT > 1.2 && lit() > 4) { B.saidH = 1; HOME.say(pick(LN().dHarder), 'happy'); }
   }
   function outOne() { const L = cake.C.filter((q) => q.lit); if (L.length) out(L[Math.floor(Math.random() * L.length)]); }

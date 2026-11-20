@@ -433,7 +433,7 @@ const FRIENDS = (() => {
       fl(ord[0], 'Праздничный танец!', 'happy'),
       () => Math.max(0.1, (party ? party.danceEnd : 0) - t),
       () => {
-        if (party) party.lt = 0; AUDIO.duck(false); AUDIO.play('cheer');
+        if (party) party.lt = 0; AUDIO.stop('disco'); AUDIO.duck(false); AUDIO.play('cheer');
         for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 1.5; hop(f, 90); }
         HOME.face('happy', 'laugh', 1.5); HOME.hop(90);
         return 1.0;

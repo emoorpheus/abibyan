@@ -208,6 +208,7 @@ const BALCONY = (() => {
     // Round 11 #3: the drawer block (and its «stash» drawer) is gone
     // bananas on the palm (scaled to treeStage and treeMax)
     const ts = st.treeSlots;
+    const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
     const curSlots = treeSlotsPos(stg);
     const maxN = typeof GAME !== 'undefined' && GAME.treeMax ? GAME.treeMax() : 5;
     for (let k = 0; k < maxN; k++) { if (!ts || !ts[k]) continue; const [x, y] = curSlots[k], sw = Math.sin(t * 2 + k) * 0.6; R.sprAt(ctx, fur('banana1', R.FUR.banana1), x - 11 + sw, y + 8); }

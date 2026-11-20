@@ -104,8 +104,17 @@ const AUDIO = (() => {
   const R = (a, b) => a + Math.random() * (b - a);
   // long appliance sounds (kettle, microwave) go through their own gain so a tap can stop them early
   const live = {};
+  let hbdTimer = null;
   function liveBus(name, dur) { stop(name); const t = now(), g = ac.createGain(); g.gain.setValueAtTime(1, t); g.connect(sfxG); live[name] = g; setTimeout(() => { if (live[name] === g) delete live[name]; }, dur * 1000 + 200); return g; }
-  function stop(name) { const g = live[name]; if (!g || !ac) return; delete live[name]; try { const t = now(); g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08); } catch (e) { } }
+  function stop(name) {
+    if (name === 'hbd' && hbdTimer) { clearTimeout(hbdTimer); hbdTimer = null; }
+    const g = live[name]; if (!g || !ac) return; delete live[name];
+    try {
+      const t = now(); g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+      setTimeout(() => { try { g.disconnect(); } catch (e) { } }, 100);
+    } catch (e) { }
+  }
   const SFX = {
     click: () => tone(1046, 0.05, { vol: 0.12 }),
     tab: () => { tone(784, 0.04, { vol: 0.1 }); tone(1046, 0.05, { vol: 0.1, delay: 0.03 }); },
@@ -285,8 +294,10 @@ const AUDIO = (() => {
     // a short pure sine blip (no noise: with the mic open our own sound must never look like a blow)
     hbd: () => { const B = 0.34, M = [[67, .75], [67, .25], [69, 1], [67, 1], [72, 1], [71, 2], [67, .75], [67, .25], [69, 1], [67, 1], [74, 1], [72, 2], [67, .75], [67, .25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 2], [77, .75], [77, .25], [76, 1], [72, 1], [74, 1], [72, 2.5]];
       const tot = M.reduce((a, m) => a + m[1], 0) * B, g = liveBus('hbd', tot + 1); let d = 0.05;
+      if (hbdTimer) { clearTimeout(hbdTimer); hbdTimer = null; }
       duck(true);
-      setTimeout(() => {
+      hbdTimer = setTimeout(() => {
+        hbdTimer = null;
         if (typeof DASHA !== 'undefined' && DASHA.cakeLit && DASHA.cakeLit() > 0 && !quietF) {
           play('hbd');
         } else {
@@ -621,7 +632,7 @@ const AUDIO = (() => {
   function track(id) { if (!ac && st.music) init(); music.track(id); } // a mini-game starts from a tap, so it's fine to wake the audio up here
   function set(k, v) { st[k] = !!v; if (!ac) return; if (k === 'sfx') { try { sfxG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { } sfxG.gain.value = v ? 0.55 : 0; if (voxG) { try { voxG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { } voxG.gain.value = v ? 0.65 : 0; } } if (k === 'music') { try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { } musG.gain.value = (v && !quietF && !duckF) ? 0.16 : 0; v ? music.start() : music.stop(); } }
   let duckF = false, quietF = false;
-  function duck(on) { duckF = !!on; if (ac && musG) { const v = (st.music && !quietF && !duckF) ? 0.16 : 0; try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { } try { musG.gain.setValueAtTime(musG.gain.value, ac.currentTime); musG.gain.linearRampToValueAtTime(v, ac.currentTime + 0.08); } catch (e) { musG.gain.value = v; } } }
+  function duck(on) { duckF = !!on; if (ac && musG) { const v = (st.music && !quietF && !duckF) ? 0.16 : 0; try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { } try { musG.gain.setValueAtTime(musG.gain.value, ac.currentTime); musG.gain.linearRampToValueAtTime(v, ac.currentTime + (on ? 0.08 : 0.3)); } catch (e) { musG.gain.value = v; } } }
   function quiet(on) { quietF = !!on; if (on) stop('hbd'); if (ac && musG) { const v = (st.music && !quietF && !duckF) ? 0.16 : 0; try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { } try { musG.gain.setValueAtTime(musG.gain.value, ac.currentTime); musG.gain.linearRampToValueAtTime(v, ac.currentTime + 0.08); } catch (e) { musG.gain.value = v; } } }
 
   // ---------- microphone repeat disabled per user request ----------
