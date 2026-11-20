@@ -165,7 +165,17 @@ const HOME = (() => {
   function goTo(r, instant) { if (r === room || !IDS.includes(r)) return; if (instant) setRoom(r, true); else { const d = (IDS.indexOf(r) > IDS.indexOf(room)) ? 1 : -1; snapX.clearRect(0, 0, RW, RH); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; setRoom(r); } }
 
   // ---------- compose params ----------
-  function clothes() { const w = Object.assign({}, S().wear); if (tryCloth && DATA.CLOTHES[tryCloth]) w[DATA.CLOTHES[tryCloth].slot] = tryCloth; if (S().sleeping) w.hat = 'nightcap'; return w; }
+  function clothes() {
+    const w = Object.assign({}, S().wear);
+    if (tryCloth && DATA.CLOTHES[tryCloth]) w[DATA.CLOTHES[tryCloth].slot] = tryCloth;
+    const isParty = typeof FRIENDS !== 'undefined' && FRIENDS.partyOn && FRIENDS.partyOn();
+    const isBdayGreeting = typeof DASHA !== 'undefined' && DASHA.isGreeting && DASHA.isGreeting();
+    if (isParty || isBdayGreeting) {
+      w.hat = 'bday_hat';
+    }
+    if (S().sleeping) w.hat = 'nightcap';
+    return w;
+  }
   function params() {
     const s = S(), st = s.st; const f = Math.round(GAME.fat() * 50) / 50;
     const ag = GAME.ageDef(); const p = { s: ag.s, age: ag.age, f, cloth: clothes(), pose: 'idle', legs: 'stand', eyes: { mode: 'open' }, mouth: 'smile', open: 0 };
@@ -1303,6 +1313,6 @@ const HOME = (() => {
     sneak, get sneaking() { return sneaking; },     get camY() { return camY; }, get tvOn() { return tvOn && GAME.hasUp('tv'); }, get trip() { return trip ? Object.assign({ kind: trip.kind, ph: trip.ph }, trip.climb ? { climb: true } : {}, trip.kind === 'mirror' ? { pose: trip.pose || null } : {}, trip.kind === 'guitar' ? { gp: trip.gp || null } : {}) : null; },
     phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; },
     _mirror: (id) => { if (trip && trip.kind === 'mirror' && trip.ph === 'do') { trip.t = 0; mirrorPose(trip, id); } },
-    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; },
+    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes,
   };
 })();

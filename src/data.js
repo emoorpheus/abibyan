@@ -43,6 +43,7 @@ const DATA = (() => {
     viking: { slot: 'hat', name: 'Шлем викинга', price: 950, lvl: 6, age: 'teen' },
     crown: { slot: 'hat', name: 'Корона', price: 1500, lvl: 10, age: 'adult' },
     halo: { slot: 'hat', name: 'Святой нимб', price: 2200, lvl: 9, age: 'adult' },
+    bday_hat: { slot: 'hat', name: 'Вязаный колпачок', price: 3000, lvl: 1 },
 
     // glasses (Очки)
     round: { slot: 'glasses', name: 'Круглые очки', price: 60, lvl: 2 },

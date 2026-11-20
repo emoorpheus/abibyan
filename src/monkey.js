@@ -18,7 +18,7 @@ const MONKEY = (() => {
   cmat('purple', '#7c5ab8'); cmat('orange', '#ee8a2e'); cmat('grey', '#8a8f98'); cmat('sky', '#5cb6e8');
   // Round 17: the stage gifts
   cmat('babyblue', '#a6cdf2'); cmat('khaki', '#d9c78e'); cmat('leather', '#4b3129'); cmat('blue', '#3e6fd2'); cmat('felt', '#6b5847'); cmat('cape', '#c8283a'); cmat('capeIn', '#7e1a2c'); cmat('silver', '#c8ccd4');
-  cmat('neon', '#00f0ff'); cmat('royal', '#521888'); cmat('iron', '#707886');
+  cmat('neon', '#00f0ff'); cmat('royal', '#521888'); cmat('iron', '#707886'); cmat('mint', '#7ed4cf');
 
   const LX = -0.446, LY = -0.595, LZ = 0.669, AMB = 0.1, DIF = 0.92;
   let W = 0, H = 0, S = 1, OX = 0, OY = 0, zc = 0, AGEH = 1;
@@ -616,6 +616,16 @@ const MONKEY = (() => {
       polyPart([[0, top - 16], [-hw * 0.52, top + 6], [hw * 0.52, top + 6]], K.HAT, M.pink);
       ell(0, top - 17, 2.2, 2.2, K.HAT, M.yellow);
     }
+    else if (hat === 'bday_hat') {
+      polyPart([[0, top - 18], [-hw * 0.52, top + 5.5], [hw * 0.52, top + 5.5]], K.HAT, M.yellow);
+      ell(0, top + 6.8, hw * 0.72, 3.4, K.HAT, M.white, { vb: 0.05 });
+      ell(0, top - 19.5, 3.0, 3.0, K.HAT, M.mint, { sp: { n: 8, a: 0.6, seed: 15 } });
+      if (!back) {
+        tube([[-hw * 0.48, top + 6.5, 0.8], [-hw * 0.35, hc[1] + hr[1] + 1.2, 0.7]], K.HAT, M.yellow);
+        tube([[hw * 0.48, top + 6.5, 0.8], [hw * 0.35, hc[1] + hr[1] + 1.2, 0.7]], K.HAT, M.yellow);
+        ell(0, hc[1] + hr[1] + 1.5, 1.4, 1.1, K.HAT, M.yellow);
+      }
+    }
   }
   function polyPart(pts, kind, mat) {
     const z = newZ(kind, 1); const P = pts.map(([a, b]) => [OX + a * S, OY + b * S]);
@@ -661,6 +671,35 @@ const MONKEY = (() => {
       [[-2, -8], [2, -4], [-1, 0], [3, 2]].forEach(([a, b]) => {
         dpx(toPX(a), toPY(top + b), hx('#ffffff'), HB);
       });
+    }
+    if (hat === 'bday_hat' && !back) {
+      const yRuff = toPY(top + 7.4);
+      for (let x = toPX(-hw * 0.7); x <= toPX(hw * 0.7); x += 2) {
+        dpx(x, yRuff + (Math.abs(x) % 2 ? 1 : 0), hx('#ffffff'), HB);
+        dpx(x, yRuff + 1, hx('#e8e4dc'), HB);
+      }
+      [
+        [-hw * 0.35, top + 4.0, '#fcaec4'],
+        [-hw * 0.12, top + 4.8, '#ffea57'],
+        [hw * 0.12, top + 4.8, '#8edbd5'],
+        [hw * 0.35, top + 4.0, '#fcaec4']
+      ].forEach(([mx, my, col]) => {
+        const px = toPX(mx), py = toPY(my);
+        dpx(px, py, hx(col), HB);
+        dpx(px + 1, py, hx(col), HB);
+        dpx(px, py - 1, hx('#ffffff'), HB);
+      });
+      for (let my = top - 15; my <= top + 2; my += 3) {
+        const y = toPY(my);
+        const span = ((my - (top - 18)) / 23.5) * hw * 0.48;
+        for (let mx = -span; mx <= span; mx += 2) {
+          dpx(toPX(mx), y, hx('#fff9a6'), HB);
+        }
+      }
+      const ppx = toPX(0), ppy = toPY(top - 19.5);
+      dpx(ppx - 1, ppy - 1, hx('#bcf3ef'), HB);
+      dpx(ppx, ppy - 1, hx('#ffffff'), HB);
+      dpx(ppx + 1, ppy + 1, hx('#58aba5'), HB);
     }
   }
   function drawGlasses(g, eyY, hr, bob) {

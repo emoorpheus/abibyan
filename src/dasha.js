@@ -56,7 +56,7 @@ const DASHA = (() => {
     btn.onclick = go; inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
   }
   const INK = '#3b2433';
-  let t = 0, introUntil = 2.5, force = null, goingZal = false, partyWas = false, decorK = { at: -9, v: false };
+  let t = 0, introUntil = 2.5, force = null, goingZal = false, partyWas = false, decorK = { at: -9, v: false }, bdayGreeting = false;
   const timers = []; const later = (s, fn) => timers.push({ at: t + s, fn });
   const dbg = { glint: true, plain: false, off: false }; // the tests: no glint / a plain heart on the spot / no heart (to measure how hidden it is)
   let pend = false, lastAct = 0, lastHint = 0, glintAt = -9, hot = 0, cold = 0; const HINT_S = 90; // Round 24: he helps later (was 60 s)
@@ -113,6 +113,10 @@ const DASHA = (() => {
     HOME.celebrate(); HOME.hop(280); HOME.flashOn(0.35);
     UI.refresh(); APP.afterIntro({ gift: true });
     const b = force || bday(); introUntil = t + (b ? 5 : 3);
+    if (b) {
+      bdayGreeting = true;
+      later(5.0, () => { bdayGreeting = false; });
+    }
     HOME.say(pick(b ? LN().dBday : LN().dHello), 'happy');
     if (b) later(2.8, () => { if (!partyOn()) HOME.say(pick(LN().dBday2), 'happy'); });
     later(0.6, () => { gift = null; });
@@ -355,7 +359,7 @@ const DASHA = (() => {
     const ms = S().moments || (S().moments = {}); ms['dasha:' + b.y] = 1; GAME.save(true);
   }
   function secretsHint() { const D = st(); D.seen = 1; GAME.save(true); lastHint = t; const d = HOME.say(pick(LN().dSecrets), 'happy') || 3; return d + 0.6; }
-  function abort() { micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); AUDIO.duck(false); const w = panel(); if (w) w.remove(); blow = null; finger = null; cake = null; introUntil = t + 3; }
+  function abort() { micRelease(); AUDIO.quiet(false); AUDIO.stop('hbd'); AUDIO.duck(false); const w = panel(); if (w) w.remove(); blow = null; finger = null; cake = null; introUntil = t + 3; bdayGreeting = false; }
 
   // ---------- (3) «24 секрета» (Round 23: one at a time) ----------
   function slots() { // the secrets with a text, in order
@@ -509,6 +513,7 @@ const DASHA = (() => {
     sealed: () => !opened, // Round 26: the notes are still under the lock (test/r26.js)
     boot, update, check, draw, down, move, up, pause, giftStart, giftOn, hideMk: () => giftOn(), giftBox: () => Object.assign({}, BOX), giftTaps: () => (gift ? gift.taps : 0),
     busy, due, decor, bday, cakeIn, cakeOut, cakeLit: lit, blowStart, gifts, photo, secretsHint, abort, heartsOn, secrets, current, hit, foundN, card, albumHtml, albumBind,
+    isGreeting: () => bdayGreeting,
     dbg, heartSize: () => { const A = art().mini; return { w: A.width, h: A.height }; },
     blowInfo: () => blow && cake ? { mode: blow.mode, n: cake.n, lit: lit(), lvl: Math.round(blow.lvl * 100) / 100, err: micErr || null } : null,
     candles: () => (cake ? cake.C.map((q) => ({ x: q.x, y: q.y, lit: !!q.lit })) : []), micOn: () => !!mic, _period: period,
