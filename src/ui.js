@@ -210,14 +210,15 @@ const UI = (() => {
       if (t === 'clothes') { closeSheet(); openWardrobe(); return; }
       if (t === 'tech') {
         const P = DATA.PHONE, can = s.coins >= P.price, tp = typeof TUT !== 'undefined' && TUT.step === 'phone' && !s.phone;
-        body.innerHTML = `<div class="grid"><div class="card notch ${s.phone ? 'wearing' : ''} ${tp ? 'tut-hi' : ''}" data-phone="1">${im(I('phone'), 'px ic')}<div class="nm">${P.name}</div><div class="stp">${P.desc}</div>${s.phone ? '<button class="btn sm w" data-buy="1">Есть</button>' : priceBtn(P.price, can)}</div>${upCard('pc')}${upCard('tv')}${Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].tech).map(techCard).join('')}</div>
+        const techDecor = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].tech).sort((a, b) => (DATA.DECOR[a].price || 0) - (DATA.DECOR[b].price || 0));
+        body.innerHTML = `<div class="grid"><div class="card notch ${s.phone ? 'wearing' : ''} ${tp ? 'tut-hi' : ''}" data-phone="1">${im(I('phone'), 'px ic')}<div class="nm">${P.name}</div><div class="stp">${P.desc}</div>${s.phone ? '<button class="btn sm w" data-buy="1">Есть</button>' : priceBtn(P.price, can)}</div>${upCard('pc')}${upCard('tv')}${techDecor.map(techCard).join('')}</div>
           <div class="hint">Телефон: «Банановый ливень» и «Бонго». Компьютер на балконе: «Лианы» и «Шарик» — старый, «Качалка» — ноутбук, «Банановая башня» — мощный.</div>`;
         body.querySelector('[data-phone]').onclick = (e) => { if (!e.target.closest('[data-buy]') || s.phone) { click(); return; }
           if (GAME.buyPhone()) { AUDIO.play('buy'); toast('Куплено: ' + P.name, I('phone'), 'gold'); HOME.celebrate(); HOME.say(pick(DATA.LINES.phone), 'happy'); rerender(); refresh(); } else AUDIO.play('nope'); };
         bindUps(body); bindTech(body); return;
       }
       if (t === 'food' || t === 'special') {
-        const ids = DATA.FOOD_ORDER.filter((f) => !!DATA.FOODS[f].special === (t === 'special') && !DATA.FOODS[f].cook);
+        const ids = DATA.FOOD_ORDER.filter((f) => !!DATA.FOODS[f].special === (t === 'special') && !DATA.FOODS[f].cook).sort((a, b) => (DATA.FOODS[a].price || 0) - (DATA.FOODS[b].price || 0));
         body.innerHTML = `<div class="grid">${ids.map((id) => { const f = DATA.FOODS[id], al = !GAME.ageOK(f), lock = s.lvl < f.lvl || al; return `<div class="card notch" data-id="${id}">${im(F(id), 'px ic')}<div class="nm">${f.name}</div>${s.inv[id] ? `<span class="cnt">${s.inv[id]}</span>` : ''}${priceBtn(f.price, s.coins >= f.price && !lock)}${lockTag(f, al)}</div>`; }).join('')}</div><div class="hint">Нажми на карточку — узнаешь, что даёт еда</div>`;
         body.querySelectorAll('.card').forEach((c) => { const id = c.dataset.id, f = DATA.FOODS[id];
           c.onclick = (e) => { if (!GAME.ageOK(f)) { AUDIO.play('nope'); ageToast(f, f.name); return; } if (e.target.closest('[data-buy]')) { if (GAME.buyFood(id)) { AUDIO.play('buy'); float(90, 150, '+1 ' + f.name); rerender(); refresh(); } else AUDIO.play('nope'); return; }
@@ -225,7 +226,7 @@ const UI = (() => {
       } else if (t === 'home') {
         const subs = DATA.ROOMS.map((r) => [r.id, r.name]);
         if (!subs.some(([id]) => id === sheetSub)) sheetSub = HOME.room;
-        const ids = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].room === sheetSub && !DATA.DECOR[id].tech); // TV gear lives in «Техника»
+        const ids = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].room === sheetSub && !DATA.DECOR[id].tech).sort((a, b) => (DATA.DECOR[a].price || 0) - (DATA.DECOR[b].price || 0)); // TV gear lives in «Техника»
         // step-by-step upgrades of this room (TV, computer): current step n/N + the next one with its price
         const ups = Object.keys(DATA.UPGRADES).filter((k) => DATA.UPGRADES[k].room === sheetSub).map(upCard).join('');
         body.innerHTML = `<div class="tabs subs">${subs.map(([id, n]) => `<button class="tab notch ${id === sheetSub ? 'on' : ''}" data-s="${id}">${n}</button>`).join('')}</div>
@@ -243,7 +244,7 @@ const UI = (() => {
   function openWardrobe(slot) {
     const tabs = Object.entries(DATA.SLOTS).map(([id, n]) => ({ id, name: n }));
     openSheet('wardrobe', 'Гардероб', tabs, slot || 'hat', (t) => {
-      const body = $('#sh-body'), s = S(); const ids = Object.keys(DATA.CLOTHES).filter((id) => DATA.CLOTHES[id].slot === t);
+      const body = $('#sh-body'), s = S(); const ids = Object.keys(DATA.CLOTHES).filter((id) => DATA.CLOTHES[id].slot === t).sort((a, b) => (DATA.CLOTHES[a].price || 0) - (DATA.CLOTHES[b].price || 0));
       body.innerHTML = `<div class="grid">${ids.map((id) => { const C = DATA.CLOTHES[id], own = s.ownedC[id], on = s.wear[C.slot] === id, al = !own && !GAME.ageOK(C), lock = !own && (s.lvl < C.lvl || al); return `<div class="card notch ${on ? 'wearing' : ''} ${HOME.tryId() === id ? 'sel' : ''}" data-id="${id}">${im(clothThumb(id), 'px ic')}<div class="nm">${C.name}</div>${own ? `<button class="btn sm ${on ? 'w' : 'g'}" data-buy="1">${on ? 'Снять' : 'Надеть'}</button>` : priceBtn(C.price, s.coins >= C.price && !lock)}${own ? '' : lockTag(C, al)}${!own && al && C.gift !== undefined ? '<div class="gtag">Подарок на празднике</div>' : ''}</div>`; }).join('')}</div><div class="hint">Нажми на вещь, чтобы примерить. Новые вещи друзья дарят на празднике роста.</div>`;
       body.querySelectorAll('.card').forEach((c) => { const id = c.dataset.id, C = DATA.CLOTHES[id];
         c.onclick = (e) => { const b = e.target.closest('[data-buy]');

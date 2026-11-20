@@ -23,93 +23,116 @@ const DATA = (() => {
     potion: { name: 'Зелье радости', price: 20, food: 0, kg: 0, fun: 40, lvl: 5, special: 1, desc: '+40 веселья.' },
     fertilizer: { name: 'Удобрение', price: 18, lvl: 2, special: 1, nonfood: 1, desc: 'Дерево сразу даст 3 банана. Используй во дворе.' },
   };
-  const FOOD_ORDER = ['milk', 'puree', 'banana', 'apple', 'salad', 'porridge', 'pancake', 'watermelon', 'coffee', 'icecream', 'kvass', 'doshirak', 'pelmeni', 'shawarma', 'burger', 'cake', 'energy', 'tea', 'potion', 'fertilizer'];
+  const FOOD_ORDER = ['milk', 'banana', 'apple', 'puree', 'porridge', 'doshirak', 'salad', 'coffee', 'kvass', 'icecream', 'watermelon', 'pelmeni', 'shawarma', 'burger', 'cake', 'pancake', 'energy', 'fertilizer', 'potion', 'tea'];
   const SLOTS = { hat: 'Шапки', glasses: 'Очки', top: 'Верх', bottom: 'Низ', neck: 'Шея', feet: 'Обувь' };
   const CLOTHES = {
-    cap: { slot: 'hat', name: 'Кепка', price: 40, lvl: 1 }, headband: { slot: 'hat', name: 'Повязка', price: 35, lvl: 1 },
+    // hat (Шапки)
+    headband: { slot: 'hat', name: 'Повязка', price: 35, lvl: 1 },
+    cap: { slot: 'hat', name: 'Кепка', price: 40, lvl: 1 },
+    bonnet: { slot: 'hat', name: 'Чепчик', price: 50, lvl: 1, age: 'baby', gift: 'baby' },
+    panama: { slot: 'hat', name: 'Панамка', price: 60, lvl: 1, age: 'kid', gift: 'kid' },
+    ushanka: { slot: 'hat', name: 'Ушанка', price: 120, lvl: 3 },
+    propeller: { slot: 'hat', name: 'Кепка с пропеллером', price: 140, lvl: 4 },
     party_hat: { slot: 'hat', name: 'Праздничный колпак', price: 150, lvl: 1 },
+    headphones: { slot: 'hat', name: 'Наушники', price: 150, lvl: 1, age: 'teen', gift: 'teen' },
     beret: { slot: 'hat', name: 'Берет художника', price: 220, lvl: 2 },
-    ushanka: { slot: 'hat', name: 'Ушанка', price: 120, lvl: 3 }, propeller: { slot: 'hat', name: 'Кепка с пропеллером', price: 140, lvl: 4 },
+    fedora: { slot: 'hat', name: 'Шляпа-федора', price: 260, lvl: 1, age: 'adult', gift: 'adult' },
+    cowboy: { slot: 'hat', name: 'Ковбойская шляпа', price: 280, lvl: 5, age: 'teen' },
+    tophat: { slot: 'hat', name: 'Цилиндр', price: 400, lvl: 7, age: 'adult' },
     sombrero: { slot: 'hat', name: 'Сомбреро', price: 420, lvl: 3 },
-    cowboy: { slot: 'hat', name: 'Ковбойская шляпа', price: 280, lvl: 5, age: 'teen' }, tophat: { slot: 'hat', name: 'Цилиндр', price: 400, lvl: 7, age: 'adult' },
     viking: { slot: 'hat', name: 'Шлем викинга', price: 950, lvl: 6, age: 'teen' },
     crown: { slot: 'hat', name: 'Корона', price: 1500, lvl: 10, age: 'adult' },
     halo: { slot: 'hat', name: 'Святой нимб', price: 2200, lvl: 9, age: 'adult' },
 
-    round: { slot: 'glasses', name: 'Круглые очки', price: 60, lvl: 2 }, sun: { slot: 'glasses', name: 'Тёмные очки', price: 90, lvl: 3, age: 'teen' },
+    // glasses (Очки)
+    round: { slot: 'glasses', name: 'Круглые очки', price: 60, lvl: 2 },
+    sun: { slot: 'glasses', name: 'Тёмные очки', price: 90, lvl: 3, age: 'teen' },
     aviator: { slot: 'glasses', name: 'Очки авиатора', price: 280, lvl: 3, age: 'teen' },
     pixel: { slot: 'glasses', name: 'Пиксельные очки', price: 320, lvl: 6 },
     monocle: { slot: 'glasses', name: 'Золотой монокль', price: 500, lvl: 4, age: 'adult' },
     cyber_visor: { slot: 'glasses', name: 'Кибер-визор', price: 750, lvl: 5, age: 'teen' },
 
-    tank: { slot: 'top', name: 'Майка-алкоголичка', price: 30, lvl: 1, age: 'adult' }, tshirt: { slot: 'top', name: 'Футболка «Банан»', price: 50, lvl: 1 },
-    sailor: { slot: 'top', name: 'Тельняшка', price: 90, lvl: 2 }, hawaii: { slot: 'top', name: 'Гавайская рубашка', price: 110, lvl: 4 },
+    // top (Верх)
+    tank: { slot: 'top', name: 'Майка-алкоголичка', price: 30, lvl: 1, age: 'adult' },
+    tshirt: { slot: 'top', name: 'Футболка «Банан»', price: 50, lvl: 1 },
+    sailor: { slot: 'top', name: 'Тельняшка', price: 90, lvl: 2 },
+    hawaii: { slot: 'top', name: 'Гавайская рубашка', price: 110, lvl: 4 },
     hoodie: { slot: 'top', name: 'Худи', price: 130, lvl: 3 },
+    leather: { slot: 'top', name: 'Кожанка', price: 450, lvl: 1, age: 'young', gift: 'young' },
     foncor_hoodie: { slot: 'top', name: 'Худи Фонкор', price: 650, lvl: 4 },
     kimono: { slot: 'top', name: 'Кимоно самурая', price: 800, lvl: 5, age: 'teen' },
     tux: { slot: 'top', name: 'Смокинг', price: 850, lvl: 8, age: 'adult' },
     cyber_jacket: { slot: 'top', name: 'Кибер-куртка', price: 1200, lvl: 7, age: 'teen' },
     royal_robe: { slot: 'top', name: 'Мантия монарха', price: 2500, lvl: 10, age: 'adult' },
 
-    shorts: { slot: 'bottom', name: 'Джинсовые шорты', price: 45, lvl: 1 }, sweats: { slot: 'bottom', name: 'Треники с лампасами', price: 70, lvl: 2 },
+    // bottom (Низ)
+    shorts: { slot: 'bottom', name: 'Джинсовые шорты', price: 45, lvl: 1 },
+    sweats: { slot: 'bottom', name: 'Треники с лампасами', price: 70, lvl: 2 },
     cargo: { slot: 'bottom', name: 'Штаны карго', price: 260, lvl: 2 },
     royal_pants: { slot: 'bottom', name: 'Бархатные брюки', price: 800, lvl: 7, age: 'adult' },
 
-    scarf: { slot: 'neck', name: 'Шарф', price: 40, lvl: 1 }, bowtie: { slot: 'neck', name: 'Бабочка', price: 60, lvl: 3 },
+    // neck (Шея)
+    scarf: { slot: 'neck', name: 'Шарф', price: 40, lvl: 1 },
+    bib: { slot: 'neck', name: 'Слюнявчик', price: 40, lvl: 1, age: 'toddler', gift: 'toddler' },
+    bowtie: { slot: 'neck', name: 'Бабочка', price: 60, lvl: 3 },
+    tie: { slot: 'neck', name: 'Галстук', price: 70, lvl: 1, age: 'school', gift: 'school' },
     medal: { slot: 'neck', name: 'Золотая медаль', price: 550, lvl: 4 },
     chain: { slot: 'neck', name: 'Золотая цепь', price: 600, lvl: 6, age: 'adult' },
     diamond_chain: { slot: 'neck', name: 'Бриллиантовая цепь', price: 1700, lvl: 8, age: 'adult' },
+    cape: { slot: 'neck', name: 'Плащ Легенды', price: 1800, lvl: 1, age: 'legend', gift: 'legend' },
 
-    slippers: { slot: 'feet', name: 'Тапки', price: 35, lvl: 1 }, sneakers: { slot: 'feet', name: 'Кроссовки', price: 120, lvl: 4 },
+    // feet (Обувь)
+    slippers: { slot: 'feet', name: 'Тапки', price: 35, lvl: 1 },
+    sneakers: { slot: 'feet', name: 'Кроссовки', price: 120, lvl: 4 },
+    keds: { slot: 'feet', name: 'Кеды', price: 140, lvl: 1, age: 'grown', gift: 'grown' },
     cyber_boots: { slot: 'feet', name: 'Неоновые кроссы', price: 750, lvl: 5, age: 'teen' },
     golden_boots: { slot: 'feet', name: 'Золотые ботинки', price: 1400, lvl: 8, age: 'adult' },
-
-    // Round 17: one new thing per growth stage — the friends' gift at the growth party (gift: stage), later also for sale
-    bonnet: { slot: 'hat', name: 'Чепчик', price: 50, lvl: 1, age: 'baby', gift: 'baby' }, bib: { slot: 'neck', name: 'Слюнявчик', price: 40, lvl: 1, age: 'toddler', gift: 'toddler' },
-    panama: { slot: 'hat', name: 'Панамка', price: 60, lvl: 1, age: 'kid', gift: 'kid' }, tie: { slot: 'neck', name: 'Галстук', price: 70, lvl: 1, age: 'school', gift: 'school' },
-    headphones: { slot: 'hat', name: 'Наушники', price: 150, lvl: 1, age: 'teen', gift: 'teen' }, leather: { slot: 'top', name: 'Кожанка', price: 450, lvl: 1, age: 'young', gift: 'young' },
-    keds: { slot: 'feet', name: 'Кеды', price: 140, lvl: 1, age: 'grown', gift: 'grown' }, fedora: { slot: 'hat', name: 'Шляпа-федора', price: 260, lvl: 1, age: 'adult', gift: 'adult' },
-    cape: { slot: 'neck', name: 'Плащ Легенды', price: 1800, lvl: 1, age: 'legend', gift: 'legend' },
   };
   // decor: kind 'wall' | 'floor' | 'item'; for items: key in home.items and value
   const DECOR = {
-    // the flat's own furniture is not for sale (walls, floors, sofas are real); these are extra things that move in
-    lamp: { kind: 'item', room: 'kitchen', key: 'lamp', v: 1, name: 'Торшер', desc: 'Тёплый свет на кухне', price: 90, lvl: 2 },
-    disco: { kind: 'item', room: 'kitchen', key: 'disco', v: 1, name: 'Диско-шар', desc: 'Цветные зайчики по стенам', price: 250, lvl: 5 },
-    magnets: { kind: 'item', room: 'kitchen', key: 'magnets', v: 1, name: 'Магнитики', desc: 'На дверцу холодильника', price: 40, lvl: 1 },
+    // kitchen:
     cactus: { kind: 'item', room: 'kitchen', key: 'cactus', v: 1, name: 'Кактус', desc: 'Колючий! Лучше не трогать', price: 35, lvl: 1 },
+    candles: { kind: 'item', room: 'kitchen', key: 'candles', v: 1, name: 'Свечи на стол', desc: 'Зажги, а потом задуй и загадай желание', price: 35, lvl: 1 },
+    magnets: { kind: 'item', room: 'kitchen', key: 'magnets', v: 1, name: 'Магнитики', desc: 'На дверцу холодильника', price: 40, lvl: 1 },
+    kettle: { kind: 'item', room: 'kitchen', key: 'kettle', v: 1, name: 'Чайник Polaris', desc: 'Стеклянный, с подсветкой. Тапни — закипит', price: 40, lvl: 1 },
     clock: { kind: 'item', room: 'kitchen', key: 'clock', v: 1, name: 'Часы (идут!)', desc: 'Настоящее время и кукушка', price: 70, lvl: 2 },
-    garland: { kind: 'item', room: 'zal', key: 'garland', v: 1, name: 'Гирлянда', desc: 'Тапни — сменит огоньки', price: 120, lvl: 3 },
-    nightlight: { kind: 'item', room: 'zal', key: 'nightlight', v: 1, name: 'Ночник-звёздочка', desc: 'Звёзды на потолке ночью', price: 60, lvl: 1 },
+    lamp: { kind: 'item', room: 'kitchen', key: 'lamp', v: 1, name: 'Торшер', desc: 'Тёплый свет на кухне', price: 90, lvl: 2 },
+    micro: { kind: 'item', room: 'kitchen', key: 'micro', v: 1, name: 'Микроволновка', desc: 'Гудит, крутит тарелку и звенит «дзынь!»', price: 90, lvl: 2 },
+    disco: { kind: 'item', room: 'kitchen', key: 'disco', v: 1, name: 'Диско-шар', desc: 'Цветные зайчики по стенам', price: 250, lvl: 5 },
+
+    // zal:
     poster: { kind: 'item', room: 'zal', key: 'poster', v: 1, name: 'Постер', desc: 'У него отклеивается уголок', price: 50, lvl: 1 },
+    nightlight: { kind: 'item', room: 'zal', key: 'nightlight', v: 1, name: 'Ночник-звёздочка', desc: 'Звёзды на потолке ночью', price: 60, lvl: 1 },
+    garland: { kind: 'item', room: 'zal', key: 'garland', v: 1, name: 'Гирлянда', desc: 'Тапни — сменит огоньки', price: 120, lvl: 3 },
+    guitar: { kind: 'item', room: 'zal', key: 'guitar', v: 1, name: 'Гитара в чехле', desc: 'Сыграет, как умеет. Открыть чехол — с «Детёныша»', price: 150, lvl: 2 },
+
+    // bath:
     duck: { kind: 'item', room: 'bath', key: 'duck', v: 1, name: 'Резиновая уточка', desc: 'Плавает в ванне', price: 30, lvl: 1 },
     bathmat: { kind: 'item', room: 'bath', key: 'bathmat', v: 1, name: 'Коврик', desc: 'Мягко лапкам после душа', price: 45, lvl: 1 },
     fern: { kind: 'item', room: 'bath', key: 'fern', v: 1, name: 'Папоротник', desc: 'В нём кто-то живёт…', price: 55, lvl: 2 },
-    hammock: { kind: 'item', room: 'balcony', key: 'hammock', v: 1, name: 'Гамак', desc: 'Покачаться на балконе', price: 150, lvl: 3 },
-    gnome: { kind: 'item', room: 'balcony', key: 'gnome', v: 1, name: 'Садовый гном', desc: 'Пружинит, если тапнуть', price: 70, lvl: 2 },
-    flamingo: { kind: 'item', room: 'balcony', key: 'flamingo', v: 1, name: 'Фламинго', desc: 'Розовый и гордый', price: 80, lvl: 2 },
-    feeder: { kind: 'item', room: 'balcony', key: 'feeder', v: 1, name: 'Кормушка для птиц', desc: 'К ней прилетают птички', price: 70, lvl: 2 },
-    flowers: { kind: 'item', room: 'balcony', key: 'flowers', v: 1, name: 'Ящик с цветами', desc: 'Пахнут… апчхи!', price: 120, lvl: 3 },
-    telescope: { kind: 'item', room: 'balcony', key: 'telescope', v: 1, name: 'Телескоп', desc: 'Смотреть на звёзды', price: 240, lvl: 5 },
-    lava: { kind: 'item', room: 'balcony', key: 'lava', v: 1, name: 'Лава-лампа', desc: 'В ней плавают пузыри', price: 90, lvl: 2 }, // Round 7 #5: on the sill where the table lamp was
-    // Round 10 #3: «Картина «Банан Лиза»», «Ковёр на стену» and «Фикус» are gone from the hall and the shop (refunded in state.js)
-    radio: { kind: 'item', room: 'balcony', key: 'radio', v: 1, name: 'Радиоприёмник', desc: 'Играет весёлую песенку', price: 110, lvl: 3 }, // …and where the basket plant was
-    // Round 9 #2: things that were always there are bought now (motivation to buy and poke more); old saves get them all for free (state.js v6)
-    kettle: { kind: 'item', room: 'kitchen', key: 'kettle', v: 1, name: 'Чайник Polaris', desc: 'Стеклянный, с подсветкой. Тапни — закипит', price: 40, lvl: 1 },
-    micro: { kind: 'item', room: 'kitchen', key: 'micro', v: 1, name: 'Микроволновка', desc: 'Гудит, крутит тарелку и звенит «дзынь!»', price: 90, lvl: 2 },
-    candles: { kind: 'item', room: 'kitchen', key: 'candles', v: 1, name: 'Свечи на стол', desc: 'Зажги, а потом задуй и загадай желание', price: 35, lvl: 1 },
-    guitar: { kind: 'item', room: 'zal', key: 'guitar', v: 1, name: 'Гитара в чехле', desc: 'Сыграет, как умеет. Открыть чехол — с «Детёныша»', price: 150, lvl: 2 },
-    vacuum: { kind: 'item', room: 'hall', key: 'vacuum', v: 1, name: 'Робот-пылесос', desc: 'Убирает прихожую и катает Абибяна', price: 200, lvl: 3 },
-    router: { kind: 'item', room: 'hall', key: 'router', v: 1, name: 'Роутер GL.iNet', desc: 'Наверх этажерки. Тапни — перезагрузится', price: 60, lvl: 1 },
-    hornets: { kind: 'item', room: 'hall', key: 'hornets', v: 1, name: 'Фигурки Хорнет', desc: 'Две Хорнет из Silksong — у роутера', price: 80, lvl: 2 },
-    toys: { kind: 'item', room: 'hall', key: 'toys', v: 1, name: 'Игрушки на полку', desc: 'Орангутанчики, лошадка, гномики, котик', price: 70, lvl: 2 },
-    linux: { kind: 'item', room: 'hall', key: 'linux', v: 1, name: 'Приставка на Linux', desc: 'Тапни — из-за неё выглянет пингвин Tux', price: 60, lvl: 2 },
-    figsN: { kind: 'item', room: 'hall', key: 'figsN', v: 1, name: 'Фигурки Nintendo', desc: 'Спайк, кротик Монти, гумба, Скромник, мишка', price: 70, lvl: 2 },
-    figsSP: { kind: 'item', room: 'hall', key: 'figsSP', v: 1, name: 'Фигурки South Park', desc: 'Мистер Хэнки, пришелец и Полотенчик', price: 90, lvl: 3 },
     washer: { kind: 'item', room: 'bath', key: 'washer', v: 1, name: 'Стиральная машина', desc: 'Стирает, полощет и отжимает под раковиной', price: 180, lvl: 3 },
-    // Round 7 #7: gear for the zal TV, sold in «Техника» (tech: not in «Дом»; need: only with a TV; fixed: stays once bought)
+
+    // hall:
+    linux: { kind: 'item', room: 'hall', key: 'linux', v: 1, name: 'Приставка на Linux', desc: 'Тапни — из-за неё выглянет пингвин Tux', price: 60, lvl: 2 },
+    router: { kind: 'item', room: 'hall', key: 'router', v: 1, name: 'Роутер GL.iNet', desc: 'Наверх этажерки. Тапни — перезагрузится', price: 60, lvl: 1 },
+    figsN: { kind: 'item', room: 'hall', key: 'figsN', v: 1, name: 'Фигурки Nintendo', desc: 'Спайк, кротик Монти, гумба, Скромник, мишка', price: 70, lvl: 2 },
+    toys: { kind: 'item', room: 'hall', key: 'toys', v: 1, name: 'Игрушки на полку', desc: 'Орангутанчики, лошадка, гномики, котик', price: 70, lvl: 2 },
+    hornets: { kind: 'item', room: 'hall', key: 'hornets', v: 1, name: 'Фигурки Хорнет', desc: 'Две Хорнет из Silksong — у роутера', price: 80, lvl: 2 },
+    figsSP: { kind: 'item', room: 'hall', key: 'figsSP', v: 1, name: 'Фигурки South Park', desc: 'Мистер Хэнки, пришелец и Полотенчик', price: 90, lvl: 3 },
+    vacuum: { kind: 'item', room: 'hall', key: 'vacuum', v: 1, name: 'Робот-пылесос', desc: 'Убирает прихожую и катает Абибяна', price: 200, lvl: 3 },
+
+    // balcony:
+    gnome: { kind: 'item', room: 'balcony', key: 'gnome', v: 1, name: 'Садовый гном', desc: 'Пружинит, если тапнуть', price: 70, lvl: 2 },
+    feeder: { kind: 'item', room: 'balcony', key: 'feeder', v: 1, name: 'Кормушка для птиц', desc: 'К ней прилетают птички', price: 70, lvl: 2 },
+    flamingo: { kind: 'item', room: 'balcony', key: 'flamingo', v: 1, name: 'Фламинго', desc: 'Розовый и гордый', price: 80, lvl: 2 },
+    lava: { kind: 'item', room: 'balcony', key: 'lava', v: 1, name: 'Лава-лампа', desc: 'В ней плавают пузыри', price: 90, lvl: 2 },
+    radio: { kind: 'item', room: 'balcony', key: 'radio', v: 1, name: 'Радиоприёмник', desc: 'Играет весёлую песенку', price: 110, lvl: 3 },
+    flowers: { kind: 'item', room: 'balcony', key: 'flowers', v: 1, name: 'Ящик с цветами', desc: 'Пахнут… апчхи!', price: 120, lvl: 3 },
+    hammock: { kind: 'item', room: 'balcony', key: 'hammock', v: 1, name: 'Гамак', desc: 'Покачаться на балконе', price: 150, lvl: 3 },
+    telescope: { kind: 'item', room: 'balcony', key: 'telescope', v: 1, name: 'Телескоп', desc: 'Смотреть на звёзды', price: 240, lvl: 5 },
+
+    // tech:
     soundbar: { kind: 'item', room: 'zal', key: 'soundbar', v: 1, name: 'Саундбар JBL Bar 1000', desc: 'Мощный звук для телевизора', price: 800, lvl: 6, need: 'tv', tech: 1, fixed: 1 },
-    // Round 7 #6: two game consoles for the zal TV — on the floor by the fireplace, cabled to the TV; each opens its own (the most profitable) game
     switch2: { kind: 'item', room: 'zal', key: 'switch2', v: 1, name: 'Nintendo Switch 2', desc: 'Приставка к телевизору. Игра «Супер Абибян»', price: 1600, lvl: 7, need: 'tv', tech: 1, fixed: 1 },
     ps5: { kind: 'item', room: 'zal', key: 'ps5', v: 1, name: 'PS5 Pro', desc: 'Мощная приставка к телевизору. Игра «Банановые гонки»', price: 2400, lvl: 8, need: 'tv', tech: 1, fixed: 1 },
   };
