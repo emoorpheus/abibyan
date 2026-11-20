@@ -328,7 +328,7 @@ const UI = (() => {
   // and «Приколы»: the gag map by room (found → a colour picture + its name, a tap takes him there; not yet → a dark «?»)
   function openAlbum(tab) {
     const tabs = [{ id: 'photos', name: 'Фото', icon: I('camera') }, { id: 'gags', name: 'Приколы', icon: I('star') }];
-    if (DASHA.heartsOn()) tabs.push({ id: 'hearts', name: 'Сердечки', icon: I('heart') }); else if (tab === 'hearts') tab = 'photos'; // Round 22: «24 секрета»
+    if (DASHA.heartsOn() || DASHA.foundN() > 0) tabs.push({ id: 'hearts', name: 'Сердечки', icon: I('heart') }); else if (tab === 'hearts') tab = 'photos'; // Round 22: «24 секрета»
     openSheet('album', 'Альбом', tabs, tab || 'photos', (t) => {
       const body = $('#sh-body'), s = S();
       if (t === 'photos') {

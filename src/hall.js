@@ -295,7 +295,7 @@ const HALL = (() => {
     const on = it || {}, wa = null; // Round 10 #3: no wall art
     return { wardrobe: WARD.slice(), mirror: MIRROR.slice(), rack: RACK.slice(), sconces: SCONCES.map(([x, y]) => [x, y, 10, 18]), plafond: [72, 25, 36, 22], wallart: wa, front: FRONT.slice(),
       etagere: ETAG.slice(), tiers: TIERS.map((r) => r.slice()), hornet: on.hornets ? [134, LIPS[0] - 15, 42, 15] : null, router: on.router ? [ROUTER[0] - 1, ROUTER[1] - 14, 22, 22] : null, toys: on.toys ? [134, TIERS[1][1], 42, LIPS[1] - TIERS[1][1]] : null,
-      linux: on.linux ? [144, LIPS[2] - 11, 22, 12] : null, figs: on.figsN || on.figsSP ? [134, LIPS[3] - 15, 42, 15] : null, vacuum: on.vacuum ? [DOCK[0] - 6, DOCK[1] - 1, DOCK[2] + 12, 22] : null, keys: KEYS.slice(), zhuk: ZHUK.slice(), zhukHook: ZHOOK.slice(), visit: [146, 276], visitFly: [146, 276, 70], party: { pusya: [42, 278], monty: [142, 278], mosq: [118, 276, 82] } };
+      linux: on.linux ? [144, LIPS[2] - 11, 22, 12] : null, figs: on.figsN || on.figsSP ? [134, LIPS[3] - 15, 42, 15] : null, vacuum: on.vacuum ? [DOCK[0] - 6, DOCK[1] - 1, DOCK[2] + 12, 22] : null, keys: KEYS.slice(), zhuk: ZHUK.slice(), zhukHook: ZHOOK.slice(), visit: [146, 276], visitFly: [146, 276, 70], party: { pusya: [40, 278], zhuk: [70, 286], monty: [142, 278], mosq: [118, 276, 82] } };
   }
   // «Дом» thumbnails: the thing drawn where it stands, cut out of an empty room-sized canvas
   const cut = (r, fn) => { const c = PX.canvas(r[2], r[3]), x = c.getContext('2d'); x.translate(-r[0], -r[1]); fn(x, Painter(x)); return c; };

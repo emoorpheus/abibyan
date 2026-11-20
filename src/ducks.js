@@ -40,11 +40,46 @@ const DUCKS = (() => {
     cache.set(key, c); return c;
   }
   const S = () => GAME.S;
+  const drawnDucks = new Set();
+  function startFrame() { drawnDucks.clear(); }
+  function laneY(x, room) {
+    let dy = 0;
+    if (typeof HOME !== 'undefined' && HOME.room === room && HOME.mk && typeof GAME !== 'undefined' && GAME.S && !GAME.S.sleeping) {
+      const mx = HOME.mk.x, my = HOME.mk.y;
+      const dx = Math.abs(x - mx);
+      if (dx < 32 && my > 220 && my < 290) {
+        const targetY = my < 282 ? Math.min(293, my + 14) : Math.max(250, my - 34);
+        const w = Math.cos((dx / 32) * (Math.PI / 2));
+        const cdy = (targetY - LANE) * w;
+        if (Math.abs(cdy) > Math.abs(dy)) dy = cdy;
+      }
+    }
+    if (typeof FRIENDS !== 'undefined' && FRIENDS.info) {
+      const here = (FRIENDS.info().here || []).filter((f) => f.id !== 'mosq');
+      for (const f of here) {
+        const fx = f.x, fy = f.y;
+        const dx = Math.abs(x - fx);
+        if (dx < 34 && fy > 220 && fy <= 292) {
+          const targetY = fy < 284 ? Math.min(294, Math.max(288, fy + 12)) : Math.max(250, fy - 34);
+          const w = Math.cos((dx / 34) * (Math.PI / 2));
+          const cdy = (targetY - LANE) * w;
+          if (Math.abs(cdy) > Math.abs(dy)) dy = cdy;
+        }
+      }
+    }
+    return Math.round(LANE + dy);
+  }
   function st() { const s = S(); if (!s.ducks || !ROUTE.includes(s.ducks.room)) s.ducks = { room: 'hall', x: 30, dir: 1 }; return s.ducks; }
   const width = (k) => sprite(k, 0, 1).width - 1, LEN = LINE.reduce((a, d) => a + width(d.kind) + GAP, 0);
   function pos() {
     const p = st(), out = []; let x = p.x, prevW = 0;
-    for (const d of LINE) { const w = width(d.kind); if (out.length) x -= p.dir * (prevW / 2 + GAP + w / 2); out.push({ id: d.id, kind: d.kind, x, y: LANE, w, h: sprite(d.kind, 0, 1).height }); prevW = w; }
+    for (const d of LINE) {
+      const w = width(d.kind);
+      if (out.length) x -= p.dir * (prevW / 2 + GAP + w / 2);
+      const y = laneY(x, p.room);
+      out.push({ id: d.id, kind: d.kind, x, y, w, h: sprite(d.kind, 0, 1).height });
+      prevW = w;
+    }
     return out;
   }
   // past the far edge with the whole line → the next room on the route; they come in at its edge, the other way round
@@ -55,9 +90,12 @@ const DUCKS = (() => {
   let t = 0, hop = null;
   function update(dt) { t += dt; if (hop) { hop.k += dt / 0.45; if (hop.k >= 1) hop = null; } if (APP.scene === 'home' && HOME.room === st().room && !S().sleeping) walk(SPEED * dt); }
   function moved() { walk(STEP); } // HOME: he went to another room
-  function render(c, P) {
+  function render(c, P, filterFn) {
     const p = st(); if (HOME.room !== p.room) return;
     pos().forEach((d, i) => {
+      if (filterFn && !filterFn(d)) return;
+      if (drawnDucks.has(d.id)) return;
+      drawnDucks.add(d.id);
       const step = Math.floor(t * 2.6 + i * 0.5) % 2, up = hop && hop.id === d.id ? Math.round(Math.sin(hop.k * Math.PI) * 6) : step, cv = sprite(d.kind, step, p.dir);
       if (d.x < -d.w || d.x > RW + d.w) return;
       P.shadow(d.x, d.y + 1, d.w / 2, 1.5, 0.22); c.drawImage(cv, Math.round(d.x - cv.width / 2), d.y - cv.height + 1 - up);
@@ -70,5 +108,5 @@ const DUCKS = (() => {
     HOME.fx.spawn('note', d.x + 2, d.y - d.h - 4, { vy: -22, vx: (Math.random() - 0.5) * 16, life: 0.9 }); // Round 10 #2: a little «кря» note pops up
     if (!GAME.ageDef().babble && Math.random() < 0.7) HOME.say(DATA.LINES.ducks[Math.floor(Math.random() * DATA.LINES.ducks.length)], 'happy');
   }
-  return { LINE, ROUTE, KIND, sprite, st, pos, update, moved, render, at, tap, info: () => ({ room: st().room, x: st().x, dir: st().dir, hop: hop ? hop.id : null }), _place: (room, x, dir) => { Object.assign(st(), { room, x, dir }); }, _hop: (h) => { hop = h; } };
+  return { LINE, ROUTE, KIND, sprite, st, pos, update, moved, render, startFrame, at, tap, info: () => ({ room: st().room, x: st().x, dir: st().dir, hop: hop ? hop.id : null }), _place: (room, x, dir) => { Object.assign(st(), { room, x, dir }); }, _hop: (h) => { hop = h; } };
 })();

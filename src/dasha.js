@@ -362,8 +362,8 @@ const DASHA = (() => {
     const c = C(), isTest = TEST();
     if (isTest) {
       // Test build: unencrypted secrets 23 & 24 only, to quickly test ticket #24
-      const t23 = TXT[23] || 'Двадцать третье сердечко за батареей! 🔥\nТвоя любовь греет меня сильнее любого отопления в самые морозные зимние вечера.';
-      const t24 = TXT[24] || 'Двадцать четвёртое сердечко — последнее перед финалом! 💡\nТы зажигаешь свет и даришь радость всем вокруг. Спасибо за то, что ты есть!';
+      const t23 = TXT[23] || 'кряхтогузка';
+      const t24 = TXT[24] || 'самая любимая девочка на планете земля';
       return [
         { n: 23, spot: 'radiator', text: t23, img: IMG[23] || '', locked: false },
         { n: 24, spot: 'sconce', text: t24, img: IMG[24] || '', locked: false }
@@ -374,9 +374,9 @@ const DASHA = (() => {
   }
   function place(x) { const p = C().spots[x.spot] || { room: 'zal', x: 90, y: 150 }; return Object.assign({}, p, { n: x.n, spot: x.spot, text: x.text, img: x.img, found: !!st().found[x.n] }); }
   const nextSlot = () => { const D = st(); return D.gift ? slots().find((x) => !D.found[x.n]) || null : null; };
-  function current() { if (pend) return null; const x = nextSlot(); return x ? place(x) : null; } // the one hidden now (none while its card is open)
+  function current() { if (pend || !heartsOn()) return null; const x = nextSlot(); return x ? place(x) : null; } // the one hidden now (none while its card is open or outside birthday event)
   function secrets() { const D = st(), c = current(); if (!D.gift) return []; return slots().filter((x) => D.found[x.n] || (c && c.n === x.n)).map(place); } // found + the hidden one
-  const heartsOn = () => slots().length > 0 && !!st().gift;
+  const heartsOn = () => slots().length > 0 && !!st().gift && (TEST() || !!bday() || (!!force && !force.off));
   const foundN = () => { const D = st(); return slots().filter((x) => D.found[x.n]).length; };
   // how a spot hides it: clip = only that part shows; behind = the room's own pixels of that kind cover it (bt = the brightness line for
   // 'light' / 'dark', r+g+b); dark = blends into the shadow around it; a = behind glass. Cut once per room visit from the picture under it.
@@ -404,7 +404,7 @@ const DASHA = (() => {
     const [gx, gy] = e.g; c.save(); c.globalAlpha = 0.9; P.p(gx, gy - 1, '#ffffff'); c.globalAlpha = 0.55; P.p(gx - 1, gy - 1, '#ffffff'); P.p(gx + 1, gy - 1, '#ffffff'); P.p(gx, gy - 2, '#ffffff'); P.p(gx, gy, '#ffffff'); c.restore();
   }
   function hit(room, x, y) {
-    if (busy()) return null; const h = current(); if (!h || h.room !== room) return null; const d = Math.hypot(h.x - x, h.y - y);
+    if (busy() || !heartsOn()) return null; const h = current(); if (!h || h.room !== room) return null; const d = Math.hypot(h.x - x, h.y - y);
     if (d < 9) return () => findHeart(h);
     if (d < 45) {
       if (d < 18) { glintAt = t; AUDIO.play('chime', 1.6); }

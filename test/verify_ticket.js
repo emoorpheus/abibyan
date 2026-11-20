@@ -1,4 +1,13 @@
-const { chromium } = require('/vercel/sandbox/node_modules/playwright');
+let chromium;
+try {
+  chromium = require('playwright').chromium;
+} catch (e) {
+  try {
+    chromium = require('/vercel/sandbox/node_modules/playwright').chromium;
+  } catch (e2) {
+    chromium = require('/Users/emoorpheus/Library/Caches/pnpm/dlx/a22d3c450bc2b9b728685c96a1951453/mw4wy74h-3mp/node_modules/playwright').chromium;
+  }
+}
 const path = require('path'), fs = require('fs');
 
 const ROOT = path.join(__dirname, '..');

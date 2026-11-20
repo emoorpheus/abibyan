@@ -373,7 +373,7 @@ const FRIENDS = (() => {
     let k = 0;
     for (const id of shuffle(IDS)) {
       const f = F[id]; f.until = 0;
-      if (f.room === r) { f.mode = 'party'; const v = pslot(f, r); f.gy = v[2]; if (Math.hypot(v[0] - f.x, v[1] - f.y) > 2) moveTo(f, v[0], v[1], FLY[id] ? 70 : 55, 0); continue; }
+      if (f.room === r) { f.mode = 'party'; const v = pslot(f, r); f.gy = v[2]; if (Math.hypot(v[0] - f.x, v[1] - f.y) > 2) walkTo(f, v[0], v[1], FLY[id] ? 70 : 55, 0); continue; }
       goHome(f); f.mode = 'party';
       later(0.4 + 0.9 * k++, () => { if (!party || f.mode !== 'party' || HOME.room !== party.room) return; const d = enterRoom(f, r, false, null, pslot(f, r)); AUDIO.play(SND[id]); f.pose = 'happy'; f.poseUntil = t + d + 0.6; });
     }
@@ -457,7 +457,7 @@ const FRIENDS = (() => {
     if (!party) return; const r = party.room; party = null; AUDIO.stop('disco'); AUDIO.duck(false); let k = 0;
     for (const id of IDS) {
       const f = F[id]; if (f.mode !== 'party') continue;
-      if (HOMES[id].room === r) { const h = HOMES[id]; f.mode = 'home'; if (Math.hypot(h.x - f.x, h.y - f.y) > 2) moveTo(f, h.x, h.y, 55, 0, () => goHome(f)); continue; }
+      if (HOMES[id].room === r) { const h = HOMES[id]; f.mode = 'home'; if (Math.hypot(h.x - f.x, h.y - f.y) > 2) walkTo(f, h.x, h.y, 55, 0, () => goHome(f)); continue; }
       f.mode = 'leave'; later(0.15 + 0.55 * k++, () => goAway(f));
     }
     S().friends.visitAt = Date.now();
@@ -697,7 +697,11 @@ const FRIENDS = (() => {
       for (const f of list) { drawFriend(c, P, f); drawMood(P, f); }
     } else if (layer === 'fur') {
       const front = IDS.map((id) => F[id]).filter((f) => f.room === room && (f.onFur || f.y > mky)).sort((a, b) => a.y - b.y);
-      for (const f of front) { drawFriend(c, P, f); drawMood(P, f); }
+      for (const f of front) {
+        if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P, (d) => d.y <= f.y);
+        drawFriend(c, P, f); drawMood(P, f);
+      }
+      if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P);
     } else if (layer === 'hug' && asleep) { drawPillow(c, P, PIL.carrot, true); hugPaws(P); }
     else if (layer === 'top') drawParty(c, P);
   }

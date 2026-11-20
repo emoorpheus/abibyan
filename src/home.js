@@ -305,13 +305,16 @@ const HOME = (() => {
     return { e, x: mk.x, jy: mk.jy, k, shine: trip && trip.kind === 'mirror' && trip.ph === 'do' ? Math.min(1, (trip.pt || 0) / 0.8) : 0 };
   }
   function renderScene() {
+    if (typeof DUCKS !== 'undefined' && DUCKS.startFrame) DUCKS.startFrame();
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
     c.drawImage(ROOMS.build(room, H), 0, 0);
     const pp = params(), sp = mk.sp = SPR.get(pp);
     ROOMS.dyn(c, room, H, t, { me: room === 'hall' ? mirrorMe(pp, sp) : null, tvOn, light: s.light, treeSlots: tree, front: GAGS.front(), g: GAGS.view(), lamp: kitchenLamp, sleeping: s.sleeping, th, balLamp: balLampOn(), radio: !!th.radio, guitar: guitarCase(), bagDx: bagDx(), sbOn: sbOn(), tvGame: tvGame(), con: trip && trip.con, sconces: th.sconces, fridge: trip && trip.kind === 'fridge' ? trip.door : 0, chairDx });
     if (room === 'balcony') drawYardBack(c);
     DASHA.draw(c, P, 'back'); // Round 22: her birthday decor in the zal, the hidden hearts
-    FRIENDS.render(c, P, 'back'); GAGS.draw(c, P, 'mid');
+    FRIENDS.render(c, P, 'back');
+    if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P, (d) => d.y <= mk.y);
+    GAGS.draw(c, P, 'mid');
     if (trip && trip.kind === 'guitar') drawGuitar(c, null, 0, 0, false);
     drawStool(c, false);
     let dx = 0; if (mk.act && mk.act.def.wig) dx = Math.round(Math.sin(t * 38) * mk.act.def.wig); if (mk.dizzy > 0) dx = Math.round(Math.sin(t * 5) * 2);
@@ -328,11 +331,11 @@ const HOME = (() => {
     if (trip && trip.kind === 'guitar') drawGuitar(c, sp, x0, y0, true);
     if (foam.length) drawFoam(c, mk.x + dx, mk.y + mk.jy);
     if (showerSt) drawStream(c);
-    FRIENDS.render(c, P, 'fur'); const duckFirst = room === 'bath'; if (duckFirst) DUCKS.render(c, P); // Round 9 #12: the rubber ducks, on the floor in front of him. Round 13b: after the room's front things (the balcony planter ends at y 274, above their lane 276); only the bath fern (pot down to y 290) stands in front of them
+    FRIENDS.render(c, P, 'fur');
     if (inBed) { ROOMS.bedFront(c, H, mk.x); FRIENDS.render(c, P, 'hug'); }
     if (s.st.clean < 20 && !showerSt) drawStink(c);
     ROOMS.front(c, room, H, t, { behind: !!((trip && trip.kind === 'fridge' && !trip.climb && trip.my < 250) || (room === 'kitchen' && FRIENDS.behindTable && FRIENDS.behindTable())), seat: trip && trip.kind === 'pc' ? trip.seat : 0, chairDx, g: GAGS.view() });
-    if (!duckFirst) DUCKS.render(c, P);
+    if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P);
     ROOMS.ambient(c, room, s.light);
     if (room === 'zal' && !s.light) ROOMS.night(c, H, t);
     FRIENDS.render(c, P, 'top'); GAGS.draw(c, P, 'top');
