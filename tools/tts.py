@@ -15,9 +15,14 @@ import numpy as np, soundfile as sf, pyworld as pw
 from scipy.signal import firwin2, fftconvolve
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WORK = '/data/voice'
+WORK = '/data/voice' if os.path.exists('/data/voice') else os.path.expanduser('~/.cache/abibyan_voice')
 CACHE = os.path.join(WORK, 'cache')
-MODEL = os.path.join(WORK, 'v4_ru.pt')
+MODEL_CANDIDATES = [
+    os.path.join('/data/voice', 'v4_ru.pt'),
+    os.path.expanduser('~/.cache/torch/hub/snakers4_silero-models_master/src/silero/model/v4_ru.pt'),
+    os.path.join(WORK, 'v4_ru.pt')
+]
+MODEL = next((p for p in MODEL_CANDIDATES if os.path.exists(p)), MODEL_CANDIDATES[0])
 REFS = [os.path.join(ROOT, 'assets', 'voice_src', 'v%d.ogg' % i) for i in (2, 3, 4)]
 SR = 48000
 WDUR = 0.8   # words / syllables for typed text are spoken a bit faster (they get glued together)
@@ -45,6 +50,9 @@ STRESS = {
     'диет-чай': 'ди+ет-ч+ай', 'тёпленькая': 'тёпленькая', 'вжух': 'вж+ух', 'буэ': 'бу+э', 'скуф': 'ск+уф', 'пельмени': 'пельм+ени',
     'урчит': 'урч+ит', 'милашка': 'мил+ашка', 'обнимашки': 'обним+ашки', 'бананчик': 'бан+анчик', 'малыш': 'мал+ыш',
     'дашулик': 'даш+улик', 'дашулика': 'даш+улика', 'дашулику': 'даш+улику', 'дашуликом': 'даш+уликом',
+    'оставшиеся': 'ост+авшиеся', 'кусочки': 'кус+очки', 'положил': 'полож+ил', 'холодильник': 'холод+ильник',
+    'сбудется': 'сб+удется', 'хэллуин': 'хэллоу+ин', 'отвалилась': 'отвал+илась', 'спрятал': 'спр+ятал',
+    'сердечки': 'серд+ечки', 'сердечко': 'серд+ечко', 'секретами': 'секр+етами',
 }
 LINE_TTS = {  # whole-line overrides
     'Абибя-а-ан!': 'Абибя+-а-а+ан!',
@@ -143,16 +151,35 @@ def finish(y, h, sr=SR):
     rr = np.sqrt((y ** 2).mean()); act = r[on].mean() if on.any() else rr
     y = y * (10 ** (-17 / 20) / (act + 1e-9))
     pkv = np.abs(y).max()
-    if pkv > 0.89: y = np.tanh(y / 0.89 * 0.95) * 0.89 / np.tanh(0.95)
+    if pkv > 0.80: y = np.tanh(y / 0.80 * 0.95) * 0.80 / np.tanh(0.95)
     return y
 
 def mp3(y, br=BR_LINE):
     # the formants sit ~1.6x higher than in normal speech, so keep LAME from low-passing them away at low bitrates
     wav = io.BytesIO(); sf.write(wav, y.astype(np.float32), SR, format='WAV', subtype='FLOAT')
-    p = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'wav', '-i', 'pipe:0', '-af', 'aresample=22050:resampler=soxr', '-ac', '1', '-c:a', 'libmp3lame',
-                        '-b:a', br, '-cutoff', str(CUT.get(br, 10500)), '-write_xing', '0', '-id3v2_version', '0', '-f', 'mp3', 'pipe:1'], input=wav.getvalue(), capture_output=True)
-    if p.returncode: raise RuntimeError(p.stderr.decode()[:300])
-    return p.stdout
+    try:
+        p = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'wav', '-i', 'pipe:0', '-af', 'aresample=22050:resampler=soxr', '-ac', '1', '-c:a', 'libmp3lame',
+                            '-b:a', br, '-cutoff', str(CUT.get(br, 10500)), '-write_xing', '0', '-id3v2_version', '0', '-f', 'mp3', 'pipe:1'], input=wav.getvalue(), capture_output=True)
+        if p.returncode == 0 and len(p.stdout) > 0:
+            return p.stdout
+    except Exception:
+        pass
+    import av
+    out = io.BytesIO()
+    container = av.open(out, mode='w', format='mp3')
+    stream = container.add_stream('libmp3lame', rate=22050)
+    stream.bit_rate = int(br.rstrip('k')) * 1000
+    stream.layout = 'mono'
+    resampler = av.AudioResampler(format='fltp', layout='mono', rate=22050)
+    frame = av.AudioFrame.from_ndarray(y.astype(np.float32).reshape(1, -1), format='flt', layout='mono')
+    frame.sample_rate = SR
+    for r_frame in resampler.resample(frame):
+        for packet in stream.encode(r_frame):
+            container.mux(packet)
+    for packet in stream.encode(None):
+        container.mux(packet)
+    container.close()
+    return out.getvalue()
 
 def key_of(*a): return hashlib.sha1(json.dumps([P, a], ensure_ascii=False).encode()).hexdigest()[:16]
 
@@ -218,7 +245,7 @@ PHRASES = ['Привет!', 'Привет, Абибян!', 'Абибян!', 'К�
 FX = {'giggle': ['Хи-хи-хи!', 'Хи-хи!'], 'happy': ['Уии!', 'Ммм!'], 'sad': ['Ох...', 'Эх...'], 'yawn': ['А-а-ах...'], 'boop': ['Ой!']}
 
 def get_lines():
-    out = subprocess.run(['node', os.path.join(ROOT, 'tools', 'lines.js')], capture_output=True, text=True, cwd='/data').stdout
+    out = subprocess.run(['node', os.path.join(ROOT, 'tools', 'lines.js')], capture_output=True, text=True, cwd=ROOT).stdout
     return json.loads(out)
 
 def get_words(lines, total=None):

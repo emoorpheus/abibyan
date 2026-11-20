@@ -330,14 +330,17 @@ const AUDIO = (() => {
     const prio = [
       'с днем рождения дашулик', 'кто там', 'открой меня',
       'сегодня твой праздник я позвал друзей', 'привет я так скучал',
-      'привет', 'дашулик', 'я абибян', 'теперь я живу у тебя'
+      'привет', 'дашулик', 'я абибян', 'теперь я живу у тебя',
+      'оставшиеся кусочки я положил в холодильник',
+      'а еще я спрятал сердечки с секретами найдешь',
+      'ура все пришли поздравить дашулика', 'ура желание обязательно сбудется'
     ];
     for (const k of prio) {
       if (SPEECH.lines && SPEECH.lines[k]) clip('L' + k, SPEECH.lines[k][0]).catch(() => { });
     }
   }
   // Pure neural monkey voice (Silero TTS -> WORLD -> EQ matched to assets/voice_src)
-  const TTS_UP = 1.12, WHINE = 'э-э-э-э-э';
+  const TTS_UP = 1.0, WHINE = 'э-э-э-э-э';
   const normT = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\- ]+/g, ' ').replace(/(^|\s)-+|-+(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
   function b2u(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
   // decoded clip (LRU cache): {buf, off = first audible sample (skips the mp3 decoder delay), env = 25 ms loudness 0..1}
@@ -376,7 +379,7 @@ const AUDIO = (() => {
       if (gl !== 1) src.playbackRate.linearRampToValueAtTime(rate * gl, tEnd);
     } catch (e) { try { src.playbackRate.value = rate; } catch (e2) {} }
     const g = ac.createGain(), v = 0.82 * (o.vol || 1), fa = Math.min(o.cut ? 0.02 : 0.008, wall / 3);
-    const attackEnd = tStart + Math.min(0.015, wall * 0.25), fadeStart = Math.max(attackEnd, tEnd - fa);
+    const attackEnd = tStart + Math.min(0.008, wall * 0.25), fadeStart = Math.max(attackEnd, tEnd - fa);
     try {
       g.gain.setValueAtTime(0.0001, tStart);
       g.gain.linearRampToValueAtTime(v, attackEnd);
@@ -384,12 +387,9 @@ const AUDIO = (() => {
       g.gain.linearRampToValueAtTime(0.0001, tEnd);
     } catch (e) { try { g.gain.value = v; } catch (e2) {} }
     let node = src; const via = (type, f, q, gain) => { try { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; } catch (e) {} };
-    via('highpass', 260, 0.707);
-    via('highpass', 240, 0.707);
-    via('peaking', 380, 1.4, -4.5);
-    via('peaking', 3300, 1.2, -4.0);
-    via('peaking', 5200, 1.8, -7.5);
-    via('lowpass', o.lp || 6400, 0.7);
+    via('highpass', 150, 0.707);
+    via('peaking', 5400, 1.0, -3.5);
+    via('lowpass', o.lp || 9500, 0.707);
     const targetBus = voxG || sfxG || master;
     node.connect(g);
     if (targetBus) g.connect(targetBus);
@@ -417,8 +417,8 @@ const AUDIO = (() => {
   function spell(w, segs) { // unknown word -> syllables (consonant clusters/codas are cut from the start of a CV unit)
     const S = SPEECH.syl, ch = [...w].filter((c) => VOW.includes(c) || CON.includes(c) || c === 'ь' || c === 'ъ'); let cl = [], sep = false;
     const cons = (c, soft) => {
-      if (c === 'й') { if (S['и']) segs.push({ id: 'Sи', e: S['и'], len: 0.07, r: 1.15 }); return; }
-      const k = c + (soft || 'чщ'.includes(c) ? 'и' : 'ы'), u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(0.13, Math.max(0.04, u[2] || 0.06)), r: 1.1, cut: 1 });
+      if (c === 'й') { if (S['и']) segs.push({ id: 'Sи', e: S['и'], len: 0.07, r: 1.0 }); return; }
+      const k = c + (soft || 'чщ'.includes(c) ? 'и' : 'ы'), u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(0.13, Math.max(0.04, u[2] || 0.06)), r: 1.0, cut: 1 });
     };
     for (let i = 0; i < ch.length; i++) {
       const c = ch[i];
@@ -426,7 +426,7 @@ const AUDIO = (() => {
       if (c === 'ь' || c === 'ъ') { if (VOW.includes(ch[i + 1] || '')) sep = true; continue; }
       let last = (!sep && cl.length) ? cl.pop() : null; for (const x of cl) cons(x[0], x[1]); cl = [];
       let v = c; if (sep || (last && last[0] === 'й')) { v = IOT[v] || v; if (last && last[0] === 'й') last = null; } sep = false;
-      const k = last ? last[0] + v : v, u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(u[1], (last ? u[2] || 0.06 : 0) + 0.17), r: 1.12, cut: 1 });
+      const k = last ? last[0] + v : v, u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(u[1], (last ? u[2] || 0.06 : 0) + 0.17), r: 1.0, cut: 1 });
     }
     for (const x of cl) cons(x[0], x[1]);
   }
