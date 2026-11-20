@@ -27,21 +27,49 @@ const DATA = (() => {
   const SLOTS = { hat: 'Шапки', glasses: 'Очки', top: 'Верх', bottom: 'Низ', neck: 'Шея', feet: 'Обувь' };
   const CLOTHES = {
     cap: { slot: 'hat', name: 'Кепка', price: 40, lvl: 1 }, headband: { slot: 'hat', name: 'Повязка', price: 35, lvl: 1 },
+    party_hat: { slot: 'hat', name: 'Праздничный колпак', price: 150, lvl: 1 },
+    beret: { slot: 'hat', name: 'Берет художника', price: 220, lvl: 2 },
     ushanka: { slot: 'hat', name: 'Ушанка', price: 120, lvl: 3 }, propeller: { slot: 'hat', name: 'Кепка с пропеллером', price: 140, lvl: 4 },
-    cowboy: { slot: 'hat', name: 'Ковбойская шляпа', price: 160, lvl: 5, age: 'teen' }, tophat: { slot: 'hat', name: 'Цилиндр', price: 220, lvl: 7, age: 'adult' }, crown: { slot: 'hat', name: 'Корона', price: 600, lvl: 10, age: 'adult' },
-    round: { slot: 'glasses', name: 'Круглые очки', price: 60, lvl: 2 }, sun: { slot: 'glasses', name: 'Тёмные очки', price: 90, lvl: 3, age: 'teen' }, pixel: { slot: 'glasses', name: 'Пиксельные очки', price: 150, lvl: 6 },
+    sombrero: { slot: 'hat', name: 'Сомбреро', price: 420, lvl: 3 },
+    cowboy: { slot: 'hat', name: 'Ковбойская шляпа', price: 280, lvl: 5, age: 'teen' }, tophat: { slot: 'hat', name: 'Цилиндр', price: 400, lvl: 7, age: 'adult' },
+    viking: { slot: 'hat', name: 'Шлем викинга', price: 950, lvl: 6, age: 'teen' },
+    crown: { slot: 'hat', name: 'Корона', price: 1500, lvl: 10, age: 'adult' },
+    halo: { slot: 'hat', name: 'Святой нимб', price: 2200, lvl: 9, age: 'adult' },
+
+    round: { slot: 'glasses', name: 'Круглые очки', price: 60, lvl: 2 }, sun: { slot: 'glasses', name: 'Тёмные очки', price: 90, lvl: 3, age: 'teen' },
+    aviator: { slot: 'glasses', name: 'Очки авиатора', price: 280, lvl: 3, age: 'teen' },
+    pixel: { slot: 'glasses', name: 'Пиксельные очки', price: 320, lvl: 6 },
+    monocle: { slot: 'glasses', name: 'Золотой монокль', price: 500, lvl: 4, age: 'adult' },
+    cyber_visor: { slot: 'glasses', name: 'Кибер-визор', price: 750, lvl: 5, age: 'teen' },
+
     tank: { slot: 'top', name: 'Майка-алкоголичка', price: 30, lvl: 1, age: 'adult' }, tshirt: { slot: 'top', name: 'Футболка «Банан»', price: 50, lvl: 1 },
     sailor: { slot: 'top', name: 'Тельняшка', price: 90, lvl: 2 }, hawaii: { slot: 'top', name: 'Гавайская рубашка', price: 110, lvl: 4 },
-    hoodie: { slot: 'top', name: 'Худи', price: 130, lvl: 3 }, tux: { slot: 'top', name: 'Смокинг', price: 350, lvl: 8, age: 'adult' },
+    hoodie: { slot: 'top', name: 'Худи', price: 130, lvl: 3 },
+    foncor_hoodie: { slot: 'top', name: 'Худи Фонкор', price: 650, lvl: 4 },
+    kimono: { slot: 'top', name: 'Кимоно самурая', price: 800, lvl: 5, age: 'teen' },
+    tux: { slot: 'top', name: 'Смокинг', price: 850, lvl: 8, age: 'adult' },
+    cyber_jacket: { slot: 'top', name: 'Кибер-куртка', price: 1200, lvl: 7, age: 'teen' },
+    royal_robe: { slot: 'top', name: 'Мантия монарха', price: 2500, lvl: 10, age: 'adult' },
+
     shorts: { slot: 'bottom', name: 'Джинсовые шорты', price: 45, lvl: 1 }, sweats: { slot: 'bottom', name: 'Треники с лампасами', price: 70, lvl: 2 },
-    scarf: { slot: 'neck', name: 'Шарф', price: 40, lvl: 1 }, bowtie: { slot: 'neck', name: 'Бабочка', price: 60, lvl: 3 }, chain: { slot: 'neck', name: 'Золотая цепь', price: 250, lvl: 6, age: 'adult' },
+    cargo: { slot: 'bottom', name: 'Штаны карго', price: 260, lvl: 2 },
+    royal_pants: { slot: 'bottom', name: 'Бархатные брюки', price: 800, lvl: 7, age: 'adult' },
+
+    scarf: { slot: 'neck', name: 'Шарф', price: 40, lvl: 1 }, bowtie: { slot: 'neck', name: 'Бабочка', price: 60, lvl: 3 },
+    medal: { slot: 'neck', name: 'Золотая медаль', price: 550, lvl: 4 },
+    chain: { slot: 'neck', name: 'Золотая цепь', price: 600, lvl: 6, age: 'adult' },
+    diamond_chain: { slot: 'neck', name: 'Бриллиантовая цепь', price: 1700, lvl: 8, age: 'adult' },
+
     slippers: { slot: 'feet', name: 'Тапки', price: 35, lvl: 1 }, sneakers: { slot: 'feet', name: 'Кроссовки', price: 120, lvl: 4 },
+    cyber_boots: { slot: 'feet', name: 'Неоновые кроссы', price: 750, lvl: 5, age: 'teen' },
+    golden_boots: { slot: 'feet', name: 'Золотые ботинки', price: 1400, lvl: 8, age: 'adult' },
+
     // Round 17: one new thing per growth stage — the friends' gift at the growth party (gift: stage), later also for sale
     bonnet: { slot: 'hat', name: 'Чепчик', price: 50, lvl: 1, age: 'baby', gift: 'baby' }, bib: { slot: 'neck', name: 'Слюнявчик', price: 40, lvl: 1, age: 'toddler', gift: 'toddler' },
     panama: { slot: 'hat', name: 'Панамка', price: 60, lvl: 1, age: 'kid', gift: 'kid' }, tie: { slot: 'neck', name: 'Галстук', price: 70, lvl: 1, age: 'school', gift: 'school' },
-    headphones: { slot: 'hat', name: 'Наушники', price: 150, lvl: 1, age: 'teen', gift: 'teen' }, leather: { slot: 'top', name: 'Кожанка', price: 220, lvl: 1, age: 'young', gift: 'young' },
+    headphones: { slot: 'hat', name: 'Наушники', price: 150, lvl: 1, age: 'teen', gift: 'teen' }, leather: { slot: 'top', name: 'Кожанка', price: 450, lvl: 1, age: 'young', gift: 'young' },
     keds: { slot: 'feet', name: 'Кеды', price: 140, lvl: 1, age: 'grown', gift: 'grown' }, fedora: { slot: 'hat', name: 'Шляпа-федора', price: 260, lvl: 1, age: 'adult', gift: 'adult' },
-    cape: { slot: 'neck', name: 'Плащ Легенды', price: 500, lvl: 1, age: 'legend', gift: 'legend' },
+    cape: { slot: 'neck', name: 'Плащ Легенды', price: 1800, lvl: 1, age: 'legend', gift: 'legend' },
   };
   // decor: kind 'wall' | 'floor' | 'item'; for items: key in home.items and value
   const DECOR = {
@@ -2024,7 +2052,7 @@ const DATA = (() => {
     dHello: ['Привет, Дашулик! Я Абибян, теперь я живу у тебя!'], dBday: ['С днём рождения, Дашулик!'], dBday2: ['Сегодня твой праздник! Я позвал друзей!'],
     dKnock: ['Кто там?', 'Открой меня!'], dWake: ['Ой! Сегодня же праздник!'], dGoZal: ['Пойдём в зал, там сюрприз!'],
     dWow: ['Ура! Все пришли поздравить Дашулика!'], dWish: ['Загадай желание и задуй свечки!'], dHarder: ['Подуй сильнее!'], dAlmost: ['Ещё чуть-чуть!'],
-    dYay: ['Ура! Желание обязательно сбудется!'], dGifts: ['Тортики я положил в холодильник!'], dPhoto: ['Праздничное фото! Все в кадр!'],
+    dYay: ['Ура! Желание обязательно сбудется!'], dGifts: ['Оставшиеся кусочки я положил в холодильник!'], dPhoto: ['Праздничное фото! Все в кадр!'],
     dSecrets: ['А ещё я спрятал сердечки с секретами. Найдёшь?'], dHeart: ['Ой, сердечко!', 'Нашла!'], dAllHearts: ['Ты нашла все сердечки!'],
     dNext: ['Я спрятал следующее сердечко! Ищи!', 'А следующее сердечко я спрятал в другом месте! Ищи!'],
     dHot: ['Тепло-тепло! Оно где-то здесь!', 'Горячо! Сердечко в этой комнате!'], dCold: ['Холодно! Поищи в другой комнате!', 'Холодно-холодно! Сердечко не здесь!'],
@@ -2105,7 +2133,7 @@ const DATA = (() => {
   // visit within GRACE days after it) the zal is decorated and the friends throw a party with a cake of AGE candles she blows out into the
   // microphone; «24 секрета» — hearts with his notes hidden around the flat, one at a time (texts: docs/24-secrets.md → text below).
   const DASHA = {
-    name: 'Дашулик', m: 11, d: 21, year0: 2026, age0: 24, grace: 7, coins: 100, cakes: 3,
+    name: 'Дашулик', m: 11, d: 21, year0: 2026, age0: 24, grace: 7, coins: 0, cakes: 2,
     // heart spots, scene coords
     // Round 23: ONE heart at a time — №1, then №2 … (a number with no text is skipped), each next one in another room, harder and harder.
     // A spot: x, y = the middle of the 7×6 heart; how it hides — clip [x0, y0, x1, y1]: only this part shows (the rest is behind something);
@@ -2150,7 +2178,7 @@ const DATA = (() => {
     party: { // the friends at her party (they speak in their own sounds, the text is in the bubble)
       surprise: { pusya: 'Мур! Сюрприз! С днём рождения, Дашулик!', monty: 'Бу-бу! С днём рождения, Дашулик!', mosq: 'З-з-з! Поздравляем! Ура-а-а!', zhuk: 'Жу-жу! С днём рождения! Я принёс шарик!' },
       cheer: { pusya: 'Мур-р! Все свечки задула!', monty: 'Бу-бу! Вот это сила!', mosq: 'З-з-з! Ура! Ура!', zhuk: 'Жу-жу! Желание сбудется!' },
-      gift: { pusya: 'Мур! А это подарки от всех нас!', monty: 'Бу-бу… Держи, это от всех нас!', mosq: 'З-з-з! Подарки! Открывай скорее!', zhuk: 'Жу-жу! Это тебе! Я сам завязывал бантик!' },
+      gift: { pusya: 'Мур! А наш подарок — этот большущий торт!', monty: 'Бу-бу… Мы вместе испекли этот торт!', mosq: 'З-з-з! Угощайтесь все тортиком!', zhuk: 'Жу-жу! Мы все старались над тортиком!' },
       bye: { pusya: 'Мур! С праздником, Дашулик!', monty: 'Бу-бу… Расти большой! Ой, ты уже…', mosq: 'З-з-з! Самый лучший праздник!', zhuk: 'Жу-жу! Пока-пока, Дашулик!' },
     },
   };

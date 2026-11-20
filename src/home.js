@@ -544,6 +544,8 @@ const HOME = (() => {
     rack: { path: [[96, 248]], dur: 99, wait: false, lead: 0, open: () => {} },
     // Round 10 #4: a tap on the floor — he just walks there and stays (walkTo)
     walk: { path: [[MX, GY]], dur: 0, wait: false, lead: 0, open: () => {} },
+    // window closing when cold (jumps on desk->sill on balcony, on bed footboard in zal)
+    winClose: { path: [[86, 248]], dur: 1.0, wait: false, lead: 0, open: () => {} },
   };
   const VAC_TOP = 4; // his feet on the vacuum's lid
   function vacTrip(tr, dt) {
@@ -627,6 +629,23 @@ const HOME = (() => {
     if (kind === 'fridge' && GAME.little()) { // too small for the shelves: climbs onto the chair in front of the fridge
       const ch = (ROOMS.spots('kitchen', S().home.items) || {}).chair || [152, 198, 22, 52];
       trip.climb = true; trip.cy = ch[1] + 30; trip.D = Object.assign({}, D, { path: [[ch[0] + ch[2] / 2, ch[1] + ch[3] + 6]], lead: 0.45 }); trip.path = trip.D.path.map((q) => q.slice());
+    }
+    if (kind === 'winClose') {
+      const r = con || room;
+      trip.winRoom = r;
+      if (r === 'balcony') {
+        trip.path = [[124, 248]];
+        trip.climb = true;
+        trip.hops = [[124, 172], [96, 132]];
+        trip.cy = 132;
+        trip.D = Object.assign({}, D, { dur: 1.0, lead: 2 * HOP_T, open: () => { GAGS.winTap('balcony'); AUDIO.play('window'); } });
+      } else {
+        trip.path = [[86, 248]];
+        trip.climb = true;
+        trip.hops = [[82, 213], [86, 178]];
+        trip.cy = 178;
+        trip.D = Object.assign({}, D, { dur: 1.0, lead: 2 * HOP_T, open: () => { GAGS.winTap('zal'); AUDIO.play('window'); } });
+      }
     }
   }
   // ---------- Round 6 E: the phone (HUD button) and the computer ----------
@@ -894,6 +913,14 @@ const HOME = (() => {
   function tripLeave(tr) { tr.path = tr.D.path.slice(0, -1).reverse().map((q) => q.slice()).concat([[rest.x, rest.y]]); tr.i = 0; if (!tr.D.lead) tr.left = true; }
   function tripBusy(tr, dt) { // rummaging: rustle, food / clothes flying out, keys clacking
     if (tr.kind === 'mirror') { tr.pt = (tr.pt || 0) + dt; return; }
+    if (tr.kind === 'winClose') {
+      if (!tr.closed && tr.t > 0.45) {
+        tr.closed = true;
+        if (tr.D.open) tr.D.open();
+        if (!GAME.ageDef().babble && Math.random() < 0.6) say('Фух! Теперь тепло.');
+      }
+      return;
+    }
     if (tr.kind === 'knob') { if (!tr.scr && tr.t > 0.45) { tr.scr = true; AUDIO.play('screw'); } return; } // Round 10 #5: screwing the knob back on
     if (tr.kind === 'guitar') { guitarTick(tr, dt); return; }
     if (tr.kind === 'stove') { tr.fxT -= dt; if (GAME.little() && !tr.stool && mk.jy >= 0 && tr.fxT <= 0 && GAGS.cooking() && GAGS.cookPose() !== 'head') { tr.fxT = rnd(0.6, 1.0); hop(60); } return; } // the little one hops to see into the pan
@@ -918,6 +945,17 @@ const HOME = (() => {
       return;
     }
     if (tr.kind === 'rack') { rackPose(p, tr); return; }
+    if (tr.kind === 'winClose') {
+      if (ph === 'sit' || ph === 'back') { p.legs = 'tuck'; p.pose = 'catch'; p.eyes = { mode: 'open', look: [1, -1] }; p.mouth = 'o'; return; }
+      const sc = GAME.ageDef().s;
+      const targetWin = tr.winRoom === 'balcony' ? [92, 108] : [80, 142];
+      p.legs = 'stand';
+      p.armR = [Math.round((targetWin[0] - tr.mx) / sc), Math.round((targetWin[1] - tr.my) / sc)];
+      p.armL = [-16, -30];
+      p.eyes = { mode: 'open', look: [-1, -1] };
+      p.mouth = tr.t > 0.45 ? 'smile' : 'o';
+      return;
+    }
     if (tr.kind === 'knob') { // Round 15b #4: scrambling up / down the bed corner; up there his paw goes out to the radiator knob
       if (ph === 'sit' || ph === 'back') { p.legs = 'tuck'; p.pose = 'catch'; p.eyes = { mode: 'open', look: [1, -1] }; p.mouth = 'o'; return; }
       const sc = GAME.ageDef().s; p.legs = 'stand'; p.armR = [Math.round((KNOB_BED.knob[0] - tr.mx) / sc), Math.round((KNOB_BED.knob[1] - tr.my) / sc)]; p.armL = [-19, -33];
@@ -1012,11 +1050,35 @@ const HOME = (() => {
   }
 
   // ---------- yard: banana tree ----------
-  function bananaRect(k) { const [x, y] = ROOMS.spots('balcony').slots[k]; return [x - 11, y + 8, 10, 12]; }
-  function treeAt(x, y) { for (let k = 4; k >= 0; k--) { if (!tree[k]) continue; const [bx, by, w, h] = bananaRect(k); if (inR(x, y, bx - 3, by - 3, w + 6, h + 6)) return k; } return -1; }
+  function bananaRect(k) {
+    const sp = ROOMS.spots('balcony', S().home.items);
+    const slots = (sp && sp.slots) || [[14, 60], [25, 66], [36, 60], [19, 72], [31, 74]];
+    const [x, y] = slots[k] || [25, 66];
+    return [x - 11, y + 8, 10, 12];
+  }
+  function treeAt(x, y) {
+    const maxN = typeof GAME !== 'undefined' && GAME.treeMax ? GAME.treeMax() : 5;
+    for (let k = maxN - 1; k >= 0; k--) {
+      if (!tree[k]) continue;
+      const [bx, by, w, h] = bananaRect(k);
+      if (inR(x, y, bx - 3, by - 3, w + 6, h + 6)) return k;
+    }
+    return -1;
+  }
   function syncTree(silent) {
-    const n = Math.max(0, Math.min(5, S().tree.n)); let have = tree.filter(Boolean).length;
-    while (have < n) { const k = tree.indexOf(false); tree[k] = true; have++; if (!silent) { const [bx, by] = bananaRect(k); for (let i = 0; i < 4; i++) fx.spawn('spark', bx + 5 + rnd(-6, 6), by + 6 + rnd(-6, 6), { life: 0.7 }); } }
+    const maxN = typeof GAME !== 'undefined' && GAME.treeMax ? GAME.treeMax() : 5;
+    const n = Math.max(0, Math.min(maxN, S().tree.n));
+    let have = tree.filter(Boolean).length;
+    while (have < n) {
+      const k = tree.indexOf(false);
+      if (k < 0 || k >= maxN) break;
+      tree[k] = true;
+      have++;
+      if (!silent) {
+        const [bx, by] = bananaRect(k);
+        for (let i = 0; i < 4; i++) fx.spawn('spark', bx + 5 + rnd(-6, 6), by + 6 + rnd(-6, 6), { life: 0.7 });
+      }
+    }
     while (have > n) { const k = tree.lastIndexOf(true); tree[k] = false; have--; }
   }
   function harvestAt(k) {
@@ -1035,9 +1097,20 @@ const HOME = (() => {
   }
   function waterTree() {
     if (room !== 'balcony') return; const s = S();
-    if (!GAME.water()) { const m = Math.max(1, Math.ceil((s.tree.water - Date.now()) / 60e3)); UI.toast(`Уже полито. Ещё ${m} мин бананы растут быстрее`, UI.I('can')); AUDIO.play('nope'); return; }
+    const res = GAME.water();
+    if (!res) { const m = Math.max(1, Math.ceil((s.tree.water - Date.now()) / 60e3)); UI.toast(`Уже полито. Ещё ${m} мин бананы растут быстрее`, UI.I('can')); AUDIO.play('nope'); return; }
     watering = { t: 0 }; AUDIO.play('water'); later(0.5, () => AUDIO.play('water')); later(1.1, () => AUDIO.play('water'));
-    UI.toast('Полито! 2 часа бананы растут вдвое быстрее', UI.I('can')); face('happy', 'smile', 1.5);
+    const names = ['Саженец', 'Молодая пальма', 'Подросшая пальма', 'Пышная пальма', 'Взрослая пальма'];
+    const stg = GAME.treeStage();
+    if (res === 'grew') {
+      AUDIO.play('star');
+      UI.toast(`Пальма подросла: «${names[stg]}»! (Урожай до ${GAME.treeMax()} бананов) 🌱✨`, UI.I('sprout'), 'gold', 4500);
+      celebrate();
+    } else {
+      UI.toast(`Полито! (${names[stg]}, урожай: до ${GAME.treeMax()} бананов). Бананы растут быстрее 💧`, UI.I('can'));
+      face('happy', 'smile', 1.5);
+    }
+    syncTree();
   }
   function fertilize() {
     if (room !== 'balcony') return; if (!GAME.fertilize()) { AUDIO.play('nope'); return; }
@@ -1208,6 +1281,13 @@ const HOME = (() => {
     later(0.35, () => { AUDIO.play('call'); act('hop'); }); later(1.9, () => say(pick(L.grew), 'happy'));
   }
   function setPreview(on) { preview = !!on; if (on) { cancelTool(); UI.hideBubble(); bubbleOn = false; } }
+  function closeWindow(r) {
+    if (trip || S().sleeping || trans) return false;
+    r = r || room;
+    if (r !== 'balcony' && r !== 'zal') return false;
+    tripStart('winClose', r);
+    return true;
+  }
   function key(k) { if (k === 'ArrowLeft') go(-1); else if (k === 'ArrowRight') go(1); }
   function pause() { cancelTool(); if (press && press.held) FRIENDS.release(press.fr.id); press = null; if (mic.on) micStop(); }
   return {
@@ -1215,7 +1295,7 @@ const HOME = (() => {
     lively: () => !!trans || t - movedT < 0.25 || mk.jy < 0 || camY !== camT || flash > 0.05 || (typeof FRIENDS !== 'undefined' && FRIENDS.busy()),
     init, update, render, down, move, up, hover, key, pause, go, goTo, slide: () => (trans ? { e: 1 - Math.pow(1 - Math.min(1, trans.t / trans.dur), 3), dir: trans.dir } : null), // Round 25: FILL slides the floor below along
     say, wake: (silent) => wakeUp(false, silent), react, celebrate, onWant, onWantDone, stageFx, growFx, portrait, photo, snap, inTrans: () => !!trans, flashOn: (v) => { flash = Math.max(flash, v); },
-    micToggle, micActive: () => mic.on, toggleLight, waterTree, fertilize, shower, showerOn: () => !!showerSt, startTool, setPreview,
+    micToggle, micActive: () => mic.on, toggleLight, waterTree, fertilize, shower, showerOn: () => !!showerSt, startTool, setPreview, closeWindow,
     monkeyAt: (x, y) => monkeyPart(x, y), clearTry: () => { tryCloth = null; }, dropFiller, tryOn: (id) => { tryCloth = id; }, tryId: () => tryCloth, feed, act, fx, face, lookAt, hop, headTop, busy, things, whine, tripStart, _params: () => params(), _mk: () => ({ x0: mk.x0, y0: mk.y0, cv: mk.sp && mk.sp.cv }),
     sneak, get sneaking() { return sneaking; },     get camY() { return camY; }, get tvOn() { return tvOn && GAME.hasUp('tv'); }, get trip() { return trip ? Object.assign({ kind: trip.kind, ph: trip.ph }, trip.climb ? { climb: true } : {}, trip.kind === 'mirror' ? { pose: trip.pose || null } : {}, trip.kind === 'guitar' ? { gp: trip.gp || null } : {}) : null; },
     phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; },

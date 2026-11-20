@@ -438,8 +438,9 @@ const FRIENDS = (() => {
         HOME.face('happy', 'laugh', 1.5); HOME.hop(90);
         return 1.0;
       },
-      phase('gift'), fl(giver, DP.gift[giver]), () => DASHA.gifts(F[giver]), ['a', pick(LN.dGifts), 'happy'],
-      () => bite(ord[0]), () => bite(ord[1]), () => bite(ord[2]), () => bite(ord[3]), () => bite(null), ['a', pick(LN.pYum), 'happy'],
+      phase('gift'), fl(giver, DP.gift[giver]),
+      () => bite(ord[0]), () => bite(ord[1]), () => bite(ord[2]), () => bite(ord[3]), () => bite(null),
+      () => DASHA.gifts(F[giver]), ['a', pick(LN.dGifts), 'happy'], ['a', pick(LN.pYum), 'happy'],
       phase('photo'), ['a', pick(LN.dPhoto), 'happy'], () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 4.5; } return 0.2; }, () => count(3), () => count(2), () => count(1),
       () => { count(0); const top = Math.min(170, Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14); DASHA.photo(top); return 1.3; }, ['w', 0.3]];
     if (DASHA.heartsOn()) L.push(() => DASHA.secretsHint());

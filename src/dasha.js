@@ -338,12 +338,13 @@ const DASHA = (() => {
   function gifts(f) {
     const s = S(), D = st(), b = force || due() || bday() || { y: new Date().getFullYear() }, c = C();
     const tx = HOME.mk.x, ty = HOME.headTop() + 20, T = 0.7, gr = 260, fx0 = f ? f.x : 40, fy0 = f ? f.headY + 8 : 250; AUDIO.play('whoosh');
-    HOME.fx.spawn('img', fx0, fy0, { img: ART.icon('gift'), vx: (tx - fx0) / T, vy: (ty - fy0 - 0.5 * gr * T * T) / T, g: gr, life: T });
+    HOME.fx.spawn('img', fx0, fy0, { img: ART.icon('cake'), vx: (tx - fx0) / T, vy: (ty - fy0 - 0.5 * gr * T * T) / T, g: gr, life: T });
     later(T, () => {
       AUDIO.play('star'); for (let k = 0; k < 8; k++) HOME.fx.spawn('puff', tx + rnd(-16, 16), ty + rnd(-14, 18), { c: '#ffffff', r0: 2, r1: 7, life: 0.6, alpha: 0.85 });
       for (let k = 0; k < 6; k++) HOME.fx.spawn('heart', tx + rnd(-20, 20), ty - rnd(0, 16), { vy: -22, life: 1.1, wob: 4 });
-      if (!D.gifts[b.y] || force) { if (!force) D.gifts[b.y] = GAME.dayStr(new Date()); GAME.addCoins(c.coins, 'gift'); s.inv.cake = (s.inv.cake || 0) + c.cakes; GAME.save(true); later(0.2, () => AUDIO.play('coin')); }
-      UI.toast(`Подарки от друзей: ${c.coins} монет и ${c.cakes} торта в холодильнике!`, UI.I('gift'), 'gold', 4200); UI.refresh();
+      const leftovers = c.cakes || 2;
+      if (!D.gifts[b.y] || force) { if (!force) D.gifts[b.y] = GAME.dayStr(new Date()); s.inv.cake = (s.inv.cake || 0) + leftovers; GAME.save(true); }
+      UI.toast(`Подарок от друзей — торт! 2 кусочка убрали в холодильник`, UI.I('cake'), 'gold', 4200); UI.refresh();
     });
     return T + 0.9;
   }

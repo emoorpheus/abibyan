@@ -143,7 +143,15 @@ const GAGS = (() => {
             });
           } else {
             line('g_cold');
-            later(1.6, () => { if (w.want) winTap(r); });
+            later(0.6, () => {
+              if (w.want) {
+                if (typeof HOME !== 'undefined' && HOME.closeWindow && (r === 'balcony' || r === 'zal')) {
+                  HOME.closeWindow(r);
+                } else if (w.want) {
+                  winTap(r);
+                }
+              }
+            });
           }
         } else {
           w.want = 0;

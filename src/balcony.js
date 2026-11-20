@@ -8,7 +8,13 @@ const BALCONY = (() => {
   const SP = MONKEY.sprite, K = MONKEY.K, IT = K.IT, ITC = K.ITC, R = ROOMS, RW = R.RW, RH = R.RH, FLOOR = R.FLOOR, GROUND = R.GROUND, fur = R.fur, hash = PX.hash;
   // ---- layout (canvas px): art, hotspots and tests read these ----
   const CEIL = 22, GL = [0, 32, RW, 96], SILL = 132, SASH = [[4, 58], [62, 118], [122, 176]], DESK = [114, 172], CHAIR = [128, 174], BOX = [-4, 236, 82, 38], TREE = [-14, 54];
-  const SLOTS = [[14, 60], [25, 66], [36, 60], [19, 72], [31, 74]], MONTY = [48, 256], HAM = [24, 146], TEL = [104, 98], FLO = [78, 112], FEED = [82, 34], LAVA = [158, 96], RADIO = [52, 114]; // Round 7 #5: the sill basket + table lamp are gone; bought things go there
+  const TREE_Y = [140, 118, 96, 74, 54];
+  function treeSlotsPos(stg) {
+    const s = Math.min(4, Math.max(0, (stg !== undefined ? stg : (typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4)) | 0));
+    const cy = TREE_Y[s];
+    return [[20, cy + 6], [27, cy + 12], [14, cy + 10], [22, cy + 18], [31, cy + 20]];
+  }
+  const SLOTS = treeSlotsPos(4), MONTY = [48, 256], HAM = [24, 146], TEL = [104, 98], FLO = [78, 112], FEED = [82, 34], LAVA = [158, 96], RADIO = [52, 114]; // Round 7 #5: the sill basket + table lamp are gone; bought things go there
   const PCS = { old: { at: [124, 132], scr: [132, 137, 26, 19] }, laptop: { at: [128, 148], scr: [134, 150, 26, 16] }, tower: { at: [116, 130], scr: [137, 132, 38, 22] } };
   const pcLvl = (it) => (PCS[it.pc] ? it.pc : null); // Round 6 E: null = no computer yet (an empty desk)
   // ---------- sprites ----------
@@ -163,8 +169,9 @@ const BALCONY = (() => {
     ctx.globalAlpha = 0.3; P.r(0, SILL + 6, RW, 4, '#2a1408'); ctx.globalAlpha = 1;
     P.r(0, FLOOR - 5, RW, 5, '#4e2a18'); P.r(0, FLOOR - 5, RW, 1, '#6e4428');
     floor(ctx, P);
-    // palm in the planter box (Монти lives in the soil)
-    R.sprAt(ctx, fur('tree', R.FUR.tree), TREE[0], TREE[1]);
+    // palm in the planter box (Монти lives in the soil) - scales with growth stage
+    const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
+    R.sprAt(ctx, fur('tree_' + stg, () => R.FUR.tree(stg)), TREE[0], TREE[1]);
     soil(P);
     // the gnome and the hammock are live (dyn): they bounce / swing when tapped
     // desk, computer, chair
@@ -176,7 +183,8 @@ const BALCONY = (() => {
   }
   let layer = null, layerKey = '';
   function roomLayer(H, ph) {
-    const key = JSON.stringify(H.items) + '|' + ph; if (layer && key === layerKey) return layer;
+    const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
+    const key = JSON.stringify(H.items) + '|' + ph + '|t' + stg; if (layer && key === layerKey) return layer;
     const c = PX.canvas(RW, RH), x = c.getContext('2d'); drawRoom(x, Painter(x), H, ph); layer = c; layerKey = key; return c;
   }
   // ---------- builders ----------
@@ -198,8 +206,11 @@ const BALCONY = (() => {
     if (it.gnome) R.sprAt(ctx, fur('gnome', R.FUR.gnome), -1, BOX[1] - 22 - Math.round((g.gnome || 0) * 4));
     if (it.hammock) { const k = (g.ham || 0) * 0.12; ctx.save(); ctx.imageSmoothingEnabled = false; ctx.transform(1, 0, k, 1, -k * HAM[1], 0); ctx.drawImage(spr('hammock'), HAM[0], HAM[1]); ctx.restore(); }
     // Round 11 #3: the drawer block (and its «stash» drawer) is gone
-    // bananas on the palm
-    const ts = st.treeSlots; for (let k = 0; k < 5; k++) { if (!ts || !ts[k]) continue; const [x, y] = SLOTS[k], sw = Math.sin(t * 2 + k) * 0.6; R.sprAt(ctx, fur('banana1', R.FUR.banana1), x - 11 + sw, y + 8); }
+    // bananas on the palm (scaled to treeStage and treeMax)
+    const ts = st.treeSlots;
+    const curSlots = treeSlotsPos(stg);
+    const maxN = typeof GAME !== 'undefined' && GAME.treeMax ? GAME.treeMax() : 5;
+    for (let k = 0; k < maxN; k++) { if (!ts || !ts[k]) continue; const [x, y] = curSlots[k], sw = Math.sin(t * 2 + k) * 0.6; R.sprAt(ctx, fur('banana1', R.FUR.banana1), x - 11 + sw, y + 8); }
     if (lvl) pcScreen(ctx, P, lvl, t);
     if (it.lava) lava(ctx, P, t, !!st.balLamp, ph);
     if (it.radio && st.radio) { const [x, y] = RADIO, k = Math.floor(t * 6) % 2; P.r(x + 17, y + 6, 6, 2, '#ffd23a'); P.p(x + 19 + k, y + 10, '#ff5a3a'); if (k) { P.r(x + 1, y + 6, 14, 1, '#ffffff'); } } // dial lit, the needle wiggles, the grille thumps
@@ -253,10 +264,12 @@ const BALCONY = (() => {
   }
   function spots(it) {
     it = it || {}; const lvl = pcLvl(it), c = lvl ? spr(lvl) : null, at = lvl ? PCS[lvl].at : null;
-    return { pc: lvl ? [at[0], at[1], c.width, c.height] : null, screen: lvl ? PCS[lvl].scr.slice() : null, palm: [0, 60, 64, 140], box: [BOX[0], BOX[1], BOX[2], BOX[3]], slots: SLOTS.map((s) => s.slice()),
+    const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
+    const curSlots = treeSlotsPos(stg);
+    return { pc: lvl ? [at[0], at[1], c.width, c.height] : null, screen: lvl ? PCS[lvl].scr.slice() : null, palm: [0, TREE_Y[stg], 64, 240 - TREE_Y[stg]], box: [BOX[0], BOX[1], BOX[2], BOX[3]], slots: curSlots.map((s) => s.slice()),
       gnome: [-1, BOX[1] - 22, 20, 30], flamingo: [156, 250, 22, 50], hammock: [HAM[0], HAM[1], 86, 36], telescope: [TEL[0], TEL[1], 26, 34], feeder: [FEED[0], FEED[1], 18, 26], flowers: [FLO[0], SILL - 20, 30, 22],
       desk: [DESK[0], DESK[1], 70, 66], window: [SASH[1][0], 32, SASH[1][1] - SASH[1][0], 96], lava: it.lava ? [LAVA[0], LAVA[1], 14, 36] : null, radio: it.radio ? [RADIO[0], RADIO[1], 26, 18] : null, soil: [64, BOX[1] + 2, 10, 12], chair: [CHAIR[0], CHAIR[1], 44, 92], seat: [CHAIR[0] + 22, CHAIR[1] + 57], monty: [MONTY[0], MONTY[1], MONTY[1]], visit: [134, 284], visitFly: [130, 280, 84], party: { pusya: [134, 284], mosq: [112, 282, 94], zhuk: [44, 290] } };
   }
   R.register('balcony', { bg, floor, dyn, front, spots, thumbs: { pc: (v) => spr(PCS[v] ? v : 'old'), hammock: () => spr('hammock'), feeder: () => spr('feeder'), flowers: () => spr('flowers'), telescope: () => spr('telescope'), lava: () => spr('lava'), radio: () => spr('radio') } });
-  return { spots };
+  return { spots, slots: treeSlotsPos, treeStage: () => (typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4) };
 })();

@@ -142,8 +142,9 @@ const GAME = (() => {
     }
     // slow natural weight loss
     S.kg = Math.max(DATA.KG0 * kgK(), S.kg - 0.05 * kgK() * h * (S.st.food < 40 ? 2 : 1));
-    // tree growth: 1 banana per 25 min (12 min if watered), max 5
-    const per = (Date.now() < S.tree.water ? 12 : 25) * 60e3; while (S.tree.n < 5 && Date.now() - S.tree.t > per) { S.tree.n++; S.tree.t += per; } if (S.tree.n >= 5) S.tree.t = Date.now();
+    // tree growth: depends on treeStage (max 1..5)
+    const maxN = treeMax();
+    const per = (Date.now() < S.tree.water ? 12 : 25) * 60e3; while (S.tree.n < maxN && Date.now() - S.tree.t > per) { S.tree.n++; S.tree.t += per; } if (S.tree.n >= maxN) S.tree.t = Date.now();
   }
   function catchUp() {
     const dt = Math.min(7 * 86400, Math.max(0, (Date.now() - S.last) / 1000)); if (dt > 5) simulate(dt, true);
@@ -324,12 +325,78 @@ const GAME = (() => {
     const coins = (10 + 5 * Math.min(7, S.daily.streak)) * (ageDef().legend ? 2 : 1); let food = null; if (S.daily.streak >= 3) { const pool = ['icecream', 'pelmeni', 'watermelon', 'cake', 'burger'].filter((id) => ageOK(DATA.FOODS[id])); food = pool[Math.floor(Math.random() * pool.length)]; S.inv[food] = (S.inv[food] || 0) + 1; }
     addCoins(coins, 'daily'); care(5, 'daily'); checkAch(); save(true); return { coins, food, streak: S.daily.streak };
   }
-  function harvest() { if (S.tree.n <= 0) return false; S.tree.n--; if (S.tree.n === 4) S.tree.t = Date.now(); S.inv.banana = (S.inv.banana || 0) + 1; S.stats.harvested++; addXP(1); care(1, 'harvest'); fulfill('harvest'); checkAch(); save(); return true; }
-  function water() { if (Date.now() < S.tree.water) return false; S.tree.water = Date.now() + 2 * 3600e3; S.stats.watered = (S.stats.watered || 0) + 1; addXP(1); care(2, 'water'); save(); return true; }
-  function fertilize() { if (!(S.inv.fertilizer > 0)) return false; S.inv.fertilizer--; if (!S.inv.fertilizer) delete S.inv.fertilizer; S.tree.n = Math.min(5, S.tree.n + 3); save(); return true; }
+  function treeStage() {
+    if (!S || !S.tree) return 0;
+    if (S.tree.stage !== undefined) return Math.min(4, Math.max(0, S.tree.stage | 0));
+    const days = (S.grow && S.grow.days) || 0;
+    const w = (S.stats && S.stats.watered) || 0;
+    const progress = days + Math.floor(w / 3);
+    if (progress >= 15) return 4;
+    if (progress >= 9) return 3;
+    if (progress >= 5) return 2;
+    if (progress >= 2) return 1;
+    return 0;
+  }
+  function treeMax() { return Math.min(5, Math.max(1, treeStage() + 1)); }
+  function checkTreeGrow() {
+    if (!S || !S.tree) return false;
+    const cur = treeStage();
+    if (cur >= 4) return false;
+    const days = (S.grow && S.grow.days) || 0;
+    const xp = (S.tree && S.tree.xp) || 0;
+    const reqDays = [2, 5, 9, 15];
+    const reqXp = [3, 8, 14, 22];
+    if (days >= reqDays[cur] || xp >= reqXp[cur]) {
+      S.tree.stage = cur + 1;
+      save(true);
+      emit('treeGrow', S.tree.stage);
+      return true;
+    }
+    return false;
+  }
+  function harvest() {
+    if (S.tree.n <= 0) return false;
+    const stg = treeStage();
+    const maxN = treeMax();
+    S.tree.n--;
+    if (S.tree.n === maxN - 1) S.tree.t = Date.now();
+    let yieldBananas = 1;
+    if (stg >= 3) yieldBananas = 2;
+    else if (stg === 2 && Math.random() < 0.45) yieldBananas = 2;
+    if (stg === 4 && Math.random() < 0.35) {
+      yieldBananas = 3;
+      addCoins(5, 'golden_banana');
+      if (typeof UI !== 'undefined' && UI.toast) UI.toast('Золотой урожай! +3 банана и 5 монет! 🍌✨', UI.I('coin'), 'gold');
+    } else if (yieldBananas > 1) {
+      if (typeof UI !== 'undefined' && UI.toast) UI.toast(`Отличный урожай! +${yieldBananas} банана! 🍌`, UI.F('banana'));
+    }
+    S.inv.banana = (S.inv.banana || 0) + yieldBananas;
+    S.stats.harvested = (S.stats.harvested || 0) + yieldBananas;
+    addXP(1); care(1, 'harvest'); fulfill('harvest'); checkAch(); save(); return true;
+  }
+  function water() {
+    if (Date.now() < S.tree.water) return false;
+    S.tree.water = Date.now() + 2 * 3600e3;
+    S.stats.watered = (S.stats.watered || 0) + 1;
+    S.tree.xp = (S.tree.xp || 0) + 1;
+    const grew = checkTreeGrow();
+    addXP(1); care(2, 'water'); save();
+    return grew ? 'grew' : true;
+  }
+  function fertilize() {
+    if (!(S.inv.fertilizer > 0)) return false;
+    S.inv.fertilizer--;
+    if (!S.inv.fertilizer) delete S.inv.fertilizer;
+    const maxN = treeMax();
+    S.tree.n = Math.min(maxN, S.tree.n + 3);
+    S.tree.xp = (S.tree.xp || 0) + 2;
+    checkTreeGrow();
+    save(); return true;
+  }
   function mood() { const s = S.st; return (s.food + s.fun + s.energy + s.clean) / 4; }
   return { giftCloth, saveKey: () => KEY, albumKey: () => KEY + '_album', hasPhone, tutDone, gamesOpen, devLvl, gameDev, devOK, canPlay, buyPhone, tutSet, TUT_AT, isSkuf, skufKg, load, save, reset, exportCode, importCode, on, emit, simulate, catchUp, addCoins, spend, addXP, stat, setKg, fat, form, eat, care, dayRoll, nextAge, ageDef, little, ageOK, adult, hasUp,
     tasksRoll, taskProg, taskReady, tasksReady, claimTask, claimBonus, buyFood, feedFriend, buyCloth, wear, buyDecor, place, placed, upgrade, upgradeInfo, gameReward, tickWant, wish, fulfill, checkAch, dailyAvailable, claimDaily, harvest, water, fertilize, mood, clamp, takeRefund, spLeft, friendChat, friendSpecial, duelReward, friendship, fgain, fmood, moodAdd, partyReward, dayStr, crave, taste, friendGift, giftToday,
+    treeStage, treeMax, checkTreeGrow,
     _ownAll: () => { ownAll(); emit('home'); }, // tests: every Round 9 #2 thing owned and in its place (the old tests' world)
     get S() { return S; }, get storageOK() { return storageOK; } };
 })();

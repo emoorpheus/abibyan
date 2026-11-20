@@ -92,14 +92,47 @@ const ROOMS = (() => {
       for (let k = 0; k < 12; k++) { d.px(7 + k, 26 - Math.round(Math.sin(k / 11 * Math.PI) * 5), '#f4cc3a'); d.px(7 + k, 27 - Math.round(Math.sin(k / 11 * Math.PI) * 5), '#d9a020'); }
       d.hline(4, 21, 31, '#ff5c8a'); d.hline(7, 18, 33, '#59c1ff'); }),
     nightlight: () => SP(16, 16, (a) => { const pts = []; for (let i = 0; i < 10; i++) { const an = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 3.2 : 7.4; pts.push([8 + Math.cos(an) * r, 8.6 + Math.sin(an) * r]); } a.poly(pts, IT, a.mat('starY', '#ffd23a')); }, (d) => { d.px(7, 8, '#7a5a12'); d.px(9, 8, '#7a5a12'); d.px(8, 10, '#a8781a'); }),
-    // yard
-    tree: () => SP(100, 186, (a) => {
+    // yard / balcony palm tree with growth stages (0..4)
+    tree: (stg = 4) => SP(100, 186, (a) => {
       const bark = a.mat('bark', '#8f6c44', 2), lf = a.mat('palm', '#4fa043'), lf2 = a.mat('palm2', '#69bb4d');
-      a.tube([[40, 186, 7.4], [37, 140, 6.6], [33, 96, 5.6], [33, 62, 5]], IT, bark);
+      const heights = [148, 126, 104, 82, 62];
+      const s = Math.min(4, Math.max(0, stg | 0));
+      const topY = heights[s];
+      const midY1 = 186 - (186 - topY) * 0.35, midY2 = 186 - (186 - topY) * 0.7;
+      a.tube([[40, 186, 7.4], [37, midY1, 6.6], [33, midY2, 5.6], [33, topY, 5]], IT, bark);
       const leaf = (pts, m) => a.tube(ART.curve(pts, 18, (t) => 0.9 + 7.4 * Math.sin(Math.PI * Math.pow(t, 0.8))), ITC, m);
-      leaf([[33, 58], [6, 40], [-8, 62]], lf); leaf([[33, 58], [60, 38], [80, 62]], lf);
-      leaf([[33, 58], [16, 20], [2, 18]], lf2); leaf([[33, 58], [54, 20], [72, 22]], lf2);
-      leaf([[33, 58], [30, 26], [36, 4]], lf); leaf([[33, 58], [10, 66], [2, 92]], lf2); leaf([[33, 58], [58, 68], [66, 94]], lf2);
+      const cy = topY - 4;
+      if (s === 0) {
+        leaf([[33, cy], [14, cy - 16], [-2, cy + 2]], lf);
+        leaf([[33, cy], [52, cy - 16], [68, cy + 2]], lf);
+        leaf([[33, cy], [33, cy - 24], [35, cy - 32]], lf2);
+      } else if (s === 1) {
+        leaf([[33, cy], [10, cy - 16], [-6, cy + 4]], lf);
+        leaf([[33, cy], [56, cy - 16], [74, cy + 4]], lf);
+        leaf([[33, cy], [20, cy - 26], [10, cy - 34]], lf2);
+        leaf([[33, cy], [48, cy - 26], [58, cy - 34]], lf2);
+      } else if (s === 2) {
+        leaf([[33, cy], [6, cy - 18], [-8, cy + 4]], lf);
+        leaf([[33, cy], [60, cy - 18], [80, cy + 4]], lf);
+        leaf([[33, cy], [16, cy - 32], [4, cy - 36]], lf2);
+        leaf([[33, cy], [52, cy - 32], [68, cy - 36]], lf2);
+        leaf([[33, cy], [30, cy - 30], [36, cy - 48]], lf);
+      } else if (s === 3) {
+        leaf([[33, cy], [6, cy - 18], [-8, cy + 4]], lf);
+        leaf([[33, cy], [60, cy - 18], [80, cy + 4]], lf);
+        leaf([[33, cy], [16, cy - 36], [2, cy - 38]], lf2);
+        leaf([[33, cy], [54, cy - 36], [72, cy - 36]], lf2);
+        leaf([[33, cy], [30, cy - 30], [36, cy - 52]], lf);
+        leaf([[33, cy], [12, cy + 10], [4, cy + 30]], lf2);
+      } else {
+        leaf([[33, cy], [6, cy - 18], [-8, cy + 4]], lf);
+        leaf([[33, cy], [60, cy - 18], [80, cy + 4]], lf);
+        leaf([[33, cy], [16, cy - 38], [2, cy - 40]], lf2);
+        leaf([[33, cy], [54, cy - 38], [72, cy - 36]], lf2);
+        leaf([[33, cy], [30, cy - 32], [36, cy - 54]], lf);
+        leaf([[33, cy], [10, cy + 8], [2, cy + 34]], lf2);
+        leaf([[33, cy], [58, cy + 10], [66, cy + 36]], lf2);
+      }
     }, (d) => { for (let y = 70; y < 186; y += 7) for (let x = 26; x < 48; x++) if (d.on(x, y)) d.shade(x, y, -1); }),
     hammock: () => SP(130, 60, (a) => { const wd = a.mat('woodD', '#6b4426', 2); a.box(120, 0, 126, 60, IT, wd); const pts = []; for (let i = 0; i <= 20; i++) { const t = i / 20; pts.push([4 + t * 118, 10 + Math.sin(Math.PI * t) * 26, 2.6 + Math.sin(Math.PI * t) * 1.6]); } a.tube(pts, IT, a.mat('hamm', '#e8504a', 3)); }, (d) => { for (let x = 8; x < 120; x += 5) { const t = (x - 4) / 118; const y = Math.round(10 + Math.sin(Math.PI * t) * 26); d.pxk(x, y, '#ffd23a', 1 << IT); d.pxk(x, y + 1, '#ffd23a', 1 << IT); } }),
     gnome: () => SP(20, 30, (a) => { a.ellU([[10, 22, 7, 7], [10, 28, 8, 2]], IT, a.mat('gnB', '#4f78c8')); a.ell(10, 16, 6.6, 5, ITC, a.mat('beard', '#f4f4f0')); a.ell(10, 11, 4.4, 3.6, IT, a.mat('skin', '#f0c0a0')); a.poly([[4, 10], [16, 10], [12, 0], [9, 1]], ITC, a.mat('gnH', '#e8403a')); }, (d) => { d.px(8, 11, '#2a1a10'); d.px(12, 11, '#2a1a10'); d.px(10, 13, '#e88a80'); }),

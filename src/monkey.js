@@ -18,6 +18,7 @@ const MONKEY = (() => {
   cmat('purple', '#7c5ab8'); cmat('orange', '#ee8a2e'); cmat('grey', '#8a8f98'); cmat('sky', '#5cb6e8');
   // Round 17: the stage gifts
   cmat('babyblue', '#a6cdf2'); cmat('khaki', '#d9c78e'); cmat('leather', '#4b3129'); cmat('blue', '#3e6fd2'); cmat('felt', '#6b5847'); cmat('cape', '#c8283a'); cmat('capeIn', '#7e1a2c'); cmat('silver', '#c8ccd4');
+  cmat('neon', '#00f0ff'); cmat('royal', '#521888'); cmat('iron', '#707886');
 
   const LX = -0.446, LY = -0.595, LZ = 0.669, AMB = 0.1, DIF = 0.92;
   let W = 0, H = 0, S = 1, OX = 0, OY = 0, zc = 0, AGEH = 1;
@@ -251,9 +252,17 @@ const MONKEY = (() => {
     tshirt: { slot: 'top', mat: 'red', sl: 0.4, print: 'banana' }, tank: { slot: 'top', mat: 'white', sl: 0, tank: 1 },
     hoodie: { slot: 'top', mat: 'green', sl: 0.86, hood: 1, pocket: 1 }, sailor: { slot: 'top', mat: 'white', sl: 0.62, stripes: 'navy' },
     hawaii: { slot: 'top', mat: 'teal', sl: 0.36, flowers: 1 }, tux: { slot: 'top', mat: 'black', sl: 0.88, tux: 1 },
+    foncor_hoodie: { slot: 'top', mat: 'black', sl: 0.86, hood: 1, pocket: 1, foncor: 1 },
+    cyber_jacket: { slot: 'top', mat: 'black', sl: 0.88, open: 1, cyber: 1 },
+    kimono: { slot: 'top', mat: 'maroon', sl: 0.72, kimono: 1 },
+    royal_robe: { slot: 'top', mat: 'royal', sl: 0.88, robe: 1 },
     sweats: { slot: 'bottom', mat: 'navy2', full: 1, lampas: 1 }, shorts: { slot: 'bottom', mat: 'denim', full: 0 },
+    cargo: { slot: 'bottom', mat: 'khaki', full: 1 },
+    royal_pants: { slot: 'bottom', mat: 'royal', full: 1, lampas: 1 },
     slippers: { slot: 'feet', mat: 'maroon' }, sneakers: { slot: 'feet', mat: 'white', sole: 'red' },
     leather: { slot: 'top', mat: 'leather', sl: 0.88, open: 1 }, keds: { slot: 'feet', mat: 'blue', sole: 'white', toe: 1 }, // Round 17
+    cyber_boots: { slot: 'feet', mat: 'black', sole: 'neon', toe: 1 },
+    golden_boots: { slot: 'feet', mat: 'gold', sole: 'yellow' },
   };
 
   // ---------- hair (plush yarn fur) ----------
@@ -459,6 +468,29 @@ const MONKEY = (() => {
     if (!back) {
     if (top) clothDecals(top, bc, br, ec, er, hem, bob, f);
     if (cl.neck === 'chain') { const cy0 = -49.2 + bob; for (let x = Math.round(-8.5 - 2.5 * f); x <= Math.round(8.5 + 2.5 * f); x++) { const yy = cy0 + 0.045 * x * x * (1 - f * 0.3); const px = toPX(x), py = toPY(yy); dpx(px, py, (x & 1) ? hx('#ffe27a') : hx('#c98f12'), 0); if (S > 0.8) dpx(px, py + 1, hx('#8a5c08'), 0); } const pxc = toPX(0), pyc = toPY(cy0 + 3); [[0, 0], [1, 0], [-1, 1], [0, 1], [1, 1], [0, 2], [1, 2], [-1, 2]].forEach(([a, b]) => dpx(pxc + a, pyc + b, (a + b) & 1 ? hx('#ffe27a') : hx('#e8b830'), 0)); }
+    if (cl.neck === 'diamond_chain') {
+      const cy0 = -49.2 + bob;
+      for (let x = Math.round(-9 - 2.5 * f); x <= Math.round(9 + 2.5 * f); x++) {
+        const yy = cy0 + 0.045 * x * x * (1 - f * 0.3);
+        const px = toPX(x), py = toPY(yy);
+        dpx(px, py, (x & 1) ? hx('#ffffff') : hx('#b0c4de'), 0);
+      }
+      const pxc = toPX(0), pyc = toPY(cy0 + 3.2);
+      [[-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [2, 1], [-1, 2], [0, 2], [1, 2], [0, 3]].forEach(([a, b]) => {
+        dpx(pxc + a, pyc + b, (a === 0 && b === 0) ? hx('#ffffff') : hx('#00f0ff'), 0);
+      });
+      dpx(pxc, pyc + 1, hx('#ffffff'), 0);
+    }
+    if (cl.neck === 'medal') {
+      const cy0 = -49 + bob, px0 = toPX(0);
+      for (let y = toPY(cy0); y <= toPY(cy0 + 4); y++) {
+        for (let x = -2; x <= 2; x++) dpx(px0 + x, y, (x < 0 ? hx('#3b6fd8') : hx('#d8453f')), 0);
+      }
+      const pyc = toPY(cy0 + 5.5);
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        if (dx * dx + dy * dy <= 5) dpx(px0 + dx, pyc + dy, (dx === -1 && dy === -1) ? hx('#ffffff') : hx('#e8b830'), 0);
+      }
+    }
     if (cl.neck === 'tie') { // Round 17: a school tie — a knot under the chin, a long striped blade down the chest
       const CB = bit(K.BODY, K.BELLY, K.ACC), tx = toPX(0), y0 = toPY(-49 + bob), y1 = toPY(-34.5 + bob + 2 * f), kn = Math.max(2, Math.round(1.8 * S)), red = hx('#d8453f'), rd = hx('#8f2422'), nv = hx('#2f4a8a');
       for (let y = y0; y < y0 + kn + 1; y++) for (let x = tx - kn; x <= tx + kn - 1; x++) dpx(x, y, y === y0 ? red : rd, CB);
@@ -561,6 +593,29 @@ const MONKEY = (() => {
       ell(0, top + 4.6, hw * 1.32, 2.8, K.HAT, M.felt, { vb: 0.05 });
     }
     else if (hat === 'headband') { tube([[-hw * 0.98, top + 10.5, 2.3], [0, top + 8.6, 2.4], [hw * 0.98, top + 10.5, 2.3]], K.HAT, M.red); tube([[hw * 0.9, top + 10.5, 1.6], [hw + 5, top + 15, 1.4]], K.HAT, M.red); tube([[hw * 0.9, top + 10.8, 1.5], [hw + 3, top + 17, 1.3]], K.HAT, M.red); }
+    else if (hat === 'halo') {
+      const z0 = top - 8;
+      tube([[-hw * 0.65, z0, 1.4], [0, z0 - 2, 1.6], [hw * 0.65, z0, 1.4], [0, z0 + 2, 1.6], [-hw * 0.65, z0, 1.4]], K.HAT, M.gold);
+    }
+    else if (hat === 'viking') {
+      ell(0, top + 5, hw * 0.94, 9, K.HAT, M.iron || M.silver, { clip: (mx, my) => my <= top + 8 });
+      tube([[-hw * 0.94, top + 7.5, 1.8], [0, top + 6.5, 2.0], [hw * 0.94, top + 7.5, 1.8]], K.HAT, M.gold);
+      tube([[-hw * 0.75, top + 4, 2.4], [-hw * 1.15, top - 2, 2.0], [-hw * 1.35, top - 11, 1.2], [-hw * 1.25, top - 16, 0.6]], K.HAT, M.white);
+      tube([[hw * 0.75, top + 4, 2.4], [hw * 1.15, top - 2, 2.0], [hw * 1.35, top - 11, 1.2], [hw * 1.25, top - 16, 0.6]], K.HAT, M.white);
+    }
+    else if (hat === 'sombrero') {
+      ell(0, top - 2, hw * 0.65, 11, K.HAT, M.khaki, { clip: (mx, my) => my <= top + 6 });
+      ell(0, top + 7, hw * 1.55, 3.8, K.HAT, M.khaki);
+      tube([[-hw * 1.55, top + 8.5, 1.2], [0, top + 8.5, 1.4], [hw * 1.55, top + 8.5, 1.2]], K.HAT, M.red);
+    }
+    else if (hat === 'beret') {
+      ell(2, top + 4, hw * 1.12, 6.5, K.HAT, M.black);
+      tube([[2, top - 2.5, 0.8], [2, top - 5, 0.6]], K.HAT, M.black);
+    }
+    else if (hat === 'party_hat') {
+      polyPart([[0, top - 16], [-hw * 0.52, top + 6], [hw * 0.52, top + 6]], K.HAT, M.pink);
+      ell(0, top - 17, 2.2, 2.2, K.HAT, M.yellow);
+    }
   }
   function polyPart(pts, kind, mat) {
     const z = newZ(kind, 1); const P = pts.map(([a, b]) => [OX + a * S, OY + b * S]);
@@ -589,10 +644,74 @@ const MONKEY = (() => {
       for (let a = -Math.round(span); a <= Math.round(span); a++) { dpx(sx + a, by, a < 0 ? hx('#ff4d6d') : hx('#3fb6ff'), 0); if (S > 0.8 && Math.abs(a) > 1) dpx(sx + a, by - 1, a < 0 ? hx('#b52a45') : hx('#1f7fc1'), 0); }
       dpx(sx, by, hx('#ffe14d'), 0);
     }
+    if (hat === 'halo') {
+      const z0 = toPY(top - 8);
+      dpx(toPX(0), z0 - 2, hx('#ffffff'), 0);
+      dpx(toPX(-hw * 0.3), z0 - 1, hx('#fff6c8'), 0);
+      dpx(toPX(hw * 0.3), z0 - 1, hx('#fff6c8'), 0);
+    }
+    if (hat === 'sombrero' && !back) {
+      const y0 = toPY(top + 7);
+      for (let x = toPX(-hw * 1.3); x <= toPX(hw * 1.3); x += 3) {
+        dpx(x, y0, hx('#3fb6ff'), HB);
+        dpx(x + 1, y0, hx('#ff4d6d'), HB);
+      }
+    }
+    if (hat === 'party_hat' && !back) {
+      [[-2, -8], [2, -4], [-1, 0], [3, 2]].forEach(([a, b]) => {
+        dpx(toPX(a), toPY(top + b), hx('#ffffff'), HB);
+      });
+    }
   }
   function drawGlasses(g, eyY, hr, bob) {
     if (!g) return; const ok = bit(K.FACE, K.HEAD, K.NOSE, K.TUFT, K.EAR, 31);
     const cy = OY + eyY * S; const ex = 5;
+    if (g === 'cyber_visor') {
+      const vw = 11.5 * S, vh = 3.6 * S;
+      for (let y = Math.floor(cy - vh); y <= Math.ceil(cy + vh); y++) {
+        for (let x = Math.floor(OX - vw); x <= Math.ceil(OX + vw); x++) {
+          const rx = (x - OX) / vw, ry = (y - cy) / vh;
+          if (rx * rx + ry * ry <= 1.0) {
+            const col = ry < -0.4 ? hx('#ffffff') : ry > 0.4 ? hx('#00a8cc') : hx('#00f0ff');
+            dpx(x, y, col, ok);
+          }
+        }
+      }
+      for (const sd of [-1, 1]) for (let a = 0; a < Math.round(3 * S); a++) dpx(Math.round(OX + sd * vw + sd * a), Math.round(cy), hx('#16121a'), ok);
+    }
+    if (g === 'monocle') {
+      const r = 4.2 * S, cx = OX + 5 * S;
+      for (let y = Math.floor(cy - r - 1); y <= Math.ceil(cy + r); y++) {
+        for (let x = Math.floor(cx - r - 1); x <= Math.ceil(cx + r); x++) {
+          const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
+          if (d <= r && d > r - 1) dpx(x, y, hx('#e8b830'), ok);
+          else if (d <= r - 1 && d > r - 2 && (x - cx < -0.5 && y - cy < -0.5)) dpx(x, y, hx('#ffffff'), ok);
+        }
+      }
+      for (let i = 0; i < Math.round(7 * S); i++) dpx(Math.round(cx + r - 0.5 + Math.sin(i * 0.4) * 1.5), Math.round(cy + r * 0.5 + i), hx('#c89a20'), ok);
+    }
+    if (g === 'aviator') {
+      const aw = 4.8 * S, ah = 3.8 * S;
+      for (const sd of [-1, 1]) {
+        const cx = OX + sd * 5 * S;
+        for (let y = Math.floor(cy - ah * 0.6); y < Math.ceil(cy + ah); y++) {
+          for (let x = Math.floor(cx - aw); x < Math.ceil(cx + aw); x++) {
+            const rx = (x + 0.5 - cx) / aw, ry = (y + 0.5 - cy) / ah;
+            if (rx * rx + (ry > 0 ? ry * 0.8 : ry * 1.2) ** 2 <= 0.85) {
+              const col = ry < -0.2 ? hx('#304858') : hx('#182430');
+              dpx(x, y, col, ok);
+            } else if (rx * rx + (ry > 0 ? ry * 0.8 : ry * 1.2) ** 2 <= 1.05) {
+              dpx(x, y, hx('#e8b830'), ok);
+            }
+          }
+        }
+        dpx(Math.round(cx - aw * 0.4), Math.round(cy - ah * 0.2), hx('#ffffff'), ok);
+      }
+      for (let x = Math.round(OX - 1.5 * S); x <= Math.round(OX + 1.5 * S); x++) {
+        dpx(x, Math.round(cy - ah * 0.5), hx('#e8b830'), ok);
+        dpx(x, Math.round(cy - ah * 0.1), hx('#e8b830'), ok);
+      }
+    }
     if (g === 'sun' || g === 'pixel') {
       const lw = (g === 'pixel' ? 4.4 : 4.6) * S, lh = (g === 'pixel' ? 2.4 : 2.8) * S;
       for (const sd of [-1, 1]) { const cx = OX + sd * ex * S; for (let y = Math.floor(cy - lh); y < Math.ceil(cy + lh); y++) for (let x = Math.floor(cx - lw); x < Math.ceil(cx + lw); x++) { const ry = (y + 0.5 - cy) / lh, rx = (x + 0.5 - cx) / lw; if (g === 'sun' && rx * rx * 0.4 + ry * ry > 1.05) continue; let col = hx('#16121a'); if (g === 'sun' && ry < -0.45) col = hx('#3b3446'); if (g === 'pixel' && ((Math.floor(x - cx + 50) + Math.floor(y - cy + 50)) % 2 === 0) && rx < -0.2 && ry < 0.1 && rx > -0.75) col = hx('#ffffff'); dpx(x, y, col, ok); }
@@ -613,6 +732,38 @@ const MONKEY = (() => {
     if (top.pocket) { const y0 = toPY(Math.max(hem - 7, -33 + bob)), y1 = toPY(Math.max(hem - 2, -27 + bob)), hw2 = Math.round((5.5 + 4 * f) * S); for (let x = OX - hw2; x <= OX + hw2; x++) { dpx(x, y0, mats[M.green].ramp[1], CB); } for (let y = y0; y <= y1; y++) { dpx(OX - hw2, y, mats[M.green].ramp[1], CB); dpx(OX + hw2, y, mats[M.green].ramp[1], CB); }
       for (const sd of [-1, 1]) for (let a = 0; a < Math.round(5 * S); a++) dpx(OX + sd * Math.round(2.5 * S) - (sd > 0 ? 1 : 0), toPY(-49 + bob) + a, hx('#f2efe6'), CB); }
     if (top.tux) { for (let k = 0; k < 2; k++) dpx(OX, toPY(-42 + bob + k * 4), hx('#1e1a22'), CB); }
+    if (top.foncor) {
+      const fx = toPX(-4.5), fy = toPY(-42 + bob);
+      dpx(fx, fy, hx('#ffffff'), CB); dpx(fx + 1, fy, hx('#ffffff'), CB);
+      dpx(fx, fy + 1, hx('#3fb6ff'), CB); dpx(fx + 1, fy + 1, hx('#3fb6ff'), CB);
+      dpx(fx + 2, fy, hx('#ffffff'), CB);
+    }
+    if (top.cyber) {
+      const y0 = toPY(-49 + bob), y1 = toPY(hem - 0.5);
+      for (let y = y0; y <= y1; y += 2) {
+        dpx(OX - Math.round(5 * S), y, hx('#00f0ff'), CB);
+        dpx(OX + Math.round(5 * S), y, hx('#00f0ff'), CB);
+      }
+    }
+    if (top.kimono) {
+      const y0 = toPY(-49 + bob), y1 = toPY(hem - 2);
+      for (let y = y0; y <= y1; y++) {
+        const k = (y - y0) / Math.max(1, y1 - y0);
+        dpx(Math.round(OX - 4 * S + k * 3 * S), y, hx('#f0c43a'), CB);
+      }
+      const by0 = toPY(hem - 6), by1 = toPY(hem - 2);
+      for (let y = by0; y <= by1; y++) for (let x = toPX(-br[0] * 0.8); x <= toPX(br[0] * 0.8); x++) dpx(x, y, hx('#1a1620'), CB);
+    }
+    if (top.robe) {
+      const y0 = toPY(-50 + bob), y1 = toPY(-43 + bob);
+      for (let y = y0; y <= y1; y++) {
+        for (let x = toPX(-br[0] * 0.9); x <= toPX(br[0] * 0.9); x++) {
+          const isDot = ((x + y) % 5 === 0) && y > y0 + 1;
+          dpx(x, y, isDot ? hx('#16121a') : hx('#f4f4f0'), CB);
+        }
+      }
+      dpx(toPX(0), toPY(-46 + bob), hx('#ffd23a'), CB);
+    }
     if (top.tank) { /* armholes rim */ }
   }
   // ---------- generic shaded sprite builder (items, icons, furniture) ----------
