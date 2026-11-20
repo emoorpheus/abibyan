@@ -651,13 +651,13 @@ const HOME = (() => {
         trip.climb = true;
         trip.hops = [[124, 172], [96, 132]];
         trip.cy = 132;
-        trip.D = Object.assign({}, D, { dur: 1.0, lead: 2 * HOP_T, open: () => { GAGS.winTap('balcony'); AUDIO.play('window'); } });
+        trip.D = Object.assign({}, D, { dur: 1.0, lead: 2 * HOP_T, open: () => { if (typeof GAGS !== 'undefined' && GAGS.winClose) GAGS.winClose('balcony'); } });
       } else {
         trip.path = [[86, 248]];
         trip.climb = true;
         trip.hops = [[82, 213], [86, 178]];
         trip.cy = 178;
-        trip.D = Object.assign({}, D, { dur: 1.0, lead: 2 * HOP_T, open: () => { GAGS.winTap('zal'); AUDIO.play('window'); } });
+        trip.D = Object.assign({}, D, { dur: 1.0, lead: 2 * HOP_T, open: () => { if (typeof GAGS !== 'undefined' && GAGS.winClose) GAGS.winClose('zal'); } });
       }
     }
   }
@@ -929,6 +929,7 @@ const HOME = (() => {
     if (tr.kind === 'winClose') {
       if (!tr.closed && tr.t > 0.45) {
         tr.closed = true;
+        tr.opened = true;
         if (tr.D.open) tr.D.open();
         if (!GAME.ageDef().babble && Math.random() < 0.6) say('Фух! Теперь тепло.');
       }
@@ -1298,6 +1299,13 @@ const HOME = (() => {
     if (trip || S().sleeping || trans) return false;
     r = r || room;
     if (r !== 'balcony' && r !== 'zal') return false;
+    if (room !== r) {
+      goTo(r);
+      later(0.35, () => {
+        if (room === r && !trip) tripStart('winClose', r);
+      });
+      return true;
+    }
     tripStart('winClose', r);
     return true;
   }

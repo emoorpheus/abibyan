@@ -411,7 +411,7 @@ const MONKEY = (() => {
     }
     if (!hatOn && age < 0.5) { const tt = hc[1] - hr[1]; tube([[0.4, tt + 1.2, 1.5], [1.2, tt - 2.6, 1.2], [3.2, tt - 4.4, 0.95], [4.9, tt - 3.4, 0.7]], K.TUFT, M.fur, { edge: 0, seed: 79 }); } // baby curl
     // hats & neck accessories (parts)
-    drawHatParts(cl.hat, hc, hr, p.t || 0);
+    drawHatParts(cl.hat, hc, hr, p.t || 0, back);
     hOff();
     if (cl.neck === 'bib' && !back) { // Round 17: a baby bib on the chest (a blue rim, white cloth)
       ell(0, -43.2 + bob, 10.4 + 3 * f, 8.8, K.ACC, M.babyblue, { edge: 1, clip: (mx, my) => my >= -50.5 + bob }); ell(0, -43.6 + bob, 9 + 2.8 * f, 7.4, K.ACC, M.white, { edge: 0, clip: (mx, my) => my >= -49.6 + bob });
@@ -548,7 +548,7 @@ const MONKEY = (() => {
   }
   function smooth(a, b, x) { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 
-  function drawHatParts(hat, hc, hr, t) {
+  function drawHatParts(hat, hc, hr, t, back) {
     if (!hat) return; const top = hc[1] - hr[1]; const hw = hr[0];
     if (hat === 'cap') { ell(0, top + 5.5, hw * 0.84, 8.2, K.HAT, M.red, { clip: (mx, my) => my <= top + 6.5 }); ell(-1, top + 6.8, hw * 0.92, 2.6, K.HAT, M.red, { vb: -0.06, clip: (mx, my) => my >= top + 5.2 }); }
     else if (hat === 'ushanka') {

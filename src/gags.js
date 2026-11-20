@@ -73,6 +73,17 @@ const GAGS = (() => {
     if (w.want) { Object.assign(w, { cold: 0, gustT: 1.4, sndT: 0.5, pigT: rnd(6, 12), plane: false, said: false }); later(0.55, () => { if (here(r) && !HOME.busy()) line('g_air', 'happy'); }); }
     else if (r === 'zal' && pig && pig.st !== 'off') pigeonOff();
   }
+  function winClose(r) {
+    const w = WIN[r]; if (!w) return;
+    if (w.want || V.win[r] > 0) {
+      w.want = 0; sfx('window');
+      if (r === 'zal' && pig && pig.st !== 'off') pigeonOff();
+    }
+  }
+  function winOpen(r) {
+    const w = WIN[r]; if (!w) return;
+    if (!w.want) winTap(r);
+  }
   function gust(r) {
     V.gust = 1; sfx('wind'); const ph = ROOMS.phase(); if (ph === 'night') return;
     const box = r === 'zal' ? [102, 84, 12, 36] : [66, 40, 50, 80];
@@ -138,7 +149,7 @@ const GAGS = (() => {
             UI.fbubble(fLine, friendInRoom.x, friendInRoom.headY || (friendInRoom.y - 30), 2.2);
             sfx(friendInRoom.id === 'monty' ? 'monty' : friendInRoom.id === 'pusya' ? 'cat' : 'pop');
             later(1.8, () => {
-              if (w.want) winTap(r);
+              winClose(r);
               UI.fhideBubble();
             });
           } else {
@@ -146,9 +157,10 @@ const GAGS = (() => {
             later(0.6, () => {
               if (w.want) {
                 if (typeof HOME !== 'undefined' && HOME.closeWindow && (r === 'balcony' || r === 'zal')) {
-                  HOME.closeWindow(r);
+                  const ok = HOME.closeWindow(r);
+                  if (!ok && w.want) winClose(r);
                 } else if (w.want) {
-                  winTap(r);
+                  winClose(r);
                 }
               }
             });
@@ -548,6 +560,7 @@ const GAGS = (() => {
   function cookPose() { return cook ? cook.ph : null; }
   const ids = () => [...new Set(Object.values(T).flat().map((e) => e[0]))]; // every gag there is (with everything bought)
   return { hit, update, draw, leave, info, ids, map, found, vacBody, knobPick, knobFix, view: () => V, cooking: () => !!cook, cookGo, rackSet, cookPose, front: () => V.front, vacGo, vacTap, vacRiding: () => !!(vac && vac.ride),
+    winClose, winOpen, winTap,
     _reset: () => { Object.assign(V.knob, { st: 'on', n: 0, nT: 0, w: 0 }); for (const id in anim) delete anim[id]; V.rack.held = false; timers = []; pig = null; moth = null; fly = null; plaster = 0; parcel = null; frontWant = 0; if (cook) cookEnd(false); wash = null; for (const r in WIN) WIN[r].want = 0; V.win.zal = V.win.balcony = 0; V.candles = false; V.garland = 0; V.poster = 0; V.rack = { a: 0, fall: 0 }; V.bsc = true; last = null;
       curt.want = 0; curt.said = true; V.curtain = 0; if (vac) AUDIO.stop('vacuum'); vac = null; figSel = null; V.torsher = false; V.fig = null; V.router = V.linux = V.mask = -1; V.vac = { x: VAC_PATH[0][0], y: VAC_PATH[0][1], on: false, t: 0 }; },
     _force: (o) => Object.assign(force, o), get t() { return t; } };
