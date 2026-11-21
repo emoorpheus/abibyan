@@ -81,7 +81,7 @@ const FX = (() => {
 const HOME = (() => {
   const RW = ROOMS.RW, RH = ROOMS.RH, GY = ROOMS.GROUND, SC = 1.2, MX = 90;
   const rest = { x: MX, y: GY }; // Round 10 #4: where he stands — a tap on the floor sends him there; a new room puts him back in the middle
-  const WALK = { x0: 16, x1: 164, y0: 246, y1: 272 };
+  const WALK = { x0: 12, x1: 168, y0: 236, y1: 304 };
   const S = () => GAME.S, L = DATA.LINES, IDS = DATA.ROOMS.map((r) => r.id);
   const pick = (a) => a[Math.floor(Math.random() * a.length)], rnd = (a, b) => a + Math.random() * (b - a), q3 = (v) => Math.round(Math.max(0, Math.min(1, v)) * 3) / 3;
   const off = PX.canvas(RW, RH), oc = off.getContext('2d'), P = Painter(oc);
@@ -279,14 +279,15 @@ const HOME = (() => {
     else if (Math.random() < 0.35) return;
     say(pick(pool));
   }
-  function wantLine(w) { if (w.type === 'food') { const f = DATA.FOODS[w.id]; return 'Хочу ' + (f.acc || f.name.toLowerCase()) + '!'; } return { play: 'Давай поиграем в игру!', pet: 'Погладь меня по голове!', wash: 'Хочу в душ с мыльной пеной!', harvest: 'Сорви мне банан с дерева!', tickle: 'Пощекочи мне пузико!' }[w.type] || 'Хочу кое-что!'; }
+  function wantLine(w) { if (w.type === 'food') { const f = DATA.FOODS[w.id]; return 'Хочу ' + (f.acc || f.name.toLowerCase()) + '!'; } return { play: 'Давай поиграем в игру!', pet: 'Погладь меня по голове!', wash: 'Хочу в душ ш мыльной пеной!', harvest: 'Шорви мне банан ш дерева!', tickle: 'Пощекочи мне пузико!' }[w.type] || 'Хочу кое-что!'; }
   const lisp = (s) => String(s).replace(/с/g, 'ш').replace(/С/g, 'Ш');
   function say(text, mood) {
     if (APP.scene !== 'home' && APP.scene !== 'boot') return; lastSay = t;
+    text = lisp(text);
     if (!mood && S().st.energy < 20) mood = 'tired';
     const r = AUDIO.say(text, { mood }); let dur = (r && r.dur) || 0; if (!dur) dur = Math.min(2.2, 0.35 + text.length * 0.045);
     if (!S().sleeping) mk.talk = { t: 0, dur: Math.max(0.45, dur), env: r && r.env };
-    UI.bubble(lisp(text), mk.x, headTop() - 12 - camY, Math.max(2300, dur * 1000 + 1400)); bubbleOn = true;
+    UI.bubble(text, mk.x, headTop() - 12 - camY, Math.max(2300, dur * 1000 + 1400)); bubbleOn = true;
     if (mood === 'happy') face('happy', null, Math.max(0.8, dur));
     return dur;
   }
@@ -441,7 +442,7 @@ const HOME = (() => {
     if (pr.moved < 10) {
       if (pr.part) { tapMonkey(pr.part, x, y); return; }
       if (pr.hs) { pr.hs.fn(); return; }
-      if (y >= ROOMS.FLOOR + 8 && walkTo(x, y)) { if (typeof TUT !== 'undefined') TUT.on('walk'); return; } // Round 10 #4: the bare floor (Round 13: a tour step)
+      if (y >= ROOMS.FLOOR + 6 && walkTo(x, y)) { if (typeof TUT !== 'undefined') TUT.on('walk'); return; } // Round 10 #4: the bare floor (Round 13: a tour step)
     }
     if (!pr.part && Math.abs(dx) > 22 && Math.abs(dx) > Math.abs(dy) * 1.15 && camY < 1) { go(dx < 0 ? 1 : -1); return; }
     if (pr.part === 'head' && pr.moved >= 10 && pr.moved < 22) pet(x, y);
@@ -508,7 +509,7 @@ const HOME = (() => {
   }
   function poke(x, y) { AUDIO.play('giggle'); face('closed', 'laugh', 0.6); hop(50); fx.spawn('spark', x, y, { life: 0.4 }); }
   function dizzy() { mk.dizzy = 2.6; mk.act = null; AUDIO.play('whoosh'); later(0.3, () => say(pick(L.dizzy), 'sad')); }
-  function sleepyPoke() { if (t < mk.sleepyCD) return; mk.sleepyCD = t + 2.5; face(null, null, 1.2, { poke: 1 }); const l = pick(L.sleepy), r = AUDIO.say(l, { mood: 'tired' }); UI.bubble(l, mk.x, headTop() - 12 - camY, Math.max(1800, (r ? r.dur : 1) * 1000 + 900)); bubbleOn = true; }
+  function sleepyPoke() { if (t < mk.sleepyCD) return; mk.sleepyCD = t + 2.5; face(null, null, 1.2, { poke: 1 }); say(pick(L.sleepy), 'tired'); }
 
   let kitchenLamp = true;
   // ---------- live things: kettle, microwave, balcony table lamp, hall sconces (the kitchen floor lamp is kitchenLamp) ----------
@@ -1054,7 +1055,7 @@ const HOME = (() => {
     }
     if (showerSt) showerSt.soaped = true;
     GAME.stat('clean', 5);
-    say(pick(['Мылимся!', 'Сколько пены!', 'Пенная вечеринка!']), 'happy');
+    say(pick(['Мылимшя!', 'Школько пены!', 'Пенная вечеринка!']), 'happy');
   }
   function hotspot0(x, y) {
     const it = S().home.items, F = ROOMS.FUR, FL = ROOMS.FLOOR;
@@ -1084,7 +1085,7 @@ const HOME = (() => {
     }
     if (room === 'bath') {
       return (it.duck ? H(sp.duck, () => { AUDIO.play('boop'); const [dx, dy] = sp.duck; fx.spawn('ring', dx + 9, dy + 9, { r0: 2, r1: 8, life: 0.3 }); fx.spawn('note', dx + 9, dy - 2, { vy: -14, life: 1, c: 1 }); }) : null)
-        || H(sp.mirror, () => { act('mirror'); say(pick(['Красавчик!', 'Ну я и пушистик!', GAME.isSkuf() ? 'Солидный мужчина.' : GAME.ageDef().age < 0.4 ? 'Какой я милашка!' : 'Какой стройный!'])); })
+        || H(sp.mirror, () => { act('mirror'); say(pick(['Крашавчик!', 'Ну я и пушиштик!', GAME.isSkuf() ? 'Шолидный мужчина.' : GAME.ageDef().age < 0.4 ? 'Какой я милашка!' : 'Какой штройный!'])); })
         || H(sp.shower, () => shower())
         || H(sp.sink, () => soapTap())
         || H(sp.faucet, () => soapTap())
@@ -1146,7 +1147,7 @@ const HOME = (() => {
     for (let i = falling.length - 1; i >= 0; i--) {
       const b = falling[i]; b.t += dt;
       if (b.st === 'fall') { b.vy += 520 * dt; b.y += b.vy * dt; b.x += b.vx * dt; b.rot += b.vr * dt; const gy = 258; if (b.y >= gy) { b.y = gy; if (!b.bounced && b.vy > 80) { b.vy = -b.vy * 0.35; b.bounced = 1; AUDIO.play('hit'); } else { b.st = 'ground'; b.t = 0; b.rot = 0; } } }
-      else if (b.t > 0.25 && !b.got) { b.got = 1; AUDIO.play('harvest'); UI.float(b.x, b.y - 14 - camY, '+1', UI.F('banana')); fx.spawn('spark', b.x, b.y - 4, { life: 0.5 }); face('happy', 'laugh', 0.9); if (Math.random() < 0.4) say(pick(['Свежий банан!', 'Прямо с ветки!', 'Урожай!'])); }
+      else if (b.t > 0.25 && !b.got) { b.got = 1; AUDIO.play('harvest'); UI.float(b.x, b.y - 14 - camY, '+1', UI.F('banana')); fx.spawn('spark', b.x, b.y - 4, { life: 0.5 }); face('happy', 'laugh', 0.9); if (Math.random() < 0.4) say(pick(['Швежий банан!', 'Прямо ш ветки!', 'Урожай!'])); }
       if (b.st === 'ground' && b.t > 0.6) falling.splice(i, 1);
     }
   }
@@ -1228,7 +1229,7 @@ const HOME = (() => {
       if (id === 'coffee' || id === 'energy') { act('wow'); for (let i = 0; i < 6; i++) fx.spawn('spark', mk.x + rnd(-24, 24), mk.y - rnd(40, 100), { life: 0.6 }); if (Math.random() < 0.6) later(0.2, () => say(id === 'coffee' ? 'Бодрячком!' : 'Вжух! Я заряжен!', 'happy')); return; }
       if (id === 'potion') { for (let i = 0; i < 8; i++) fx.spawn('heart', mk.x + rnd(-26, 26), mk.y - rnd(40, 100), { vy: -20, life: 1.2, wob: 5 }); act('dance'); return; }
       if (id === 'cake') { confetti(24); }
-      if (id === 'tea') { for (let i = 0; i < 6; i++) fx.spawn('spark', mk.x + rnd(-20, 20), mk.y - rnd(20, 60), { life: 0.8 }); later(0.2, () => say('Чувствую лёгкость!', 'happy')); return; }
+      if (id === 'tea') { for (let i = 0; i < 6; i++) fx.spawn('spark', mk.x + rnd(-20, 20), mk.y - rnd(20, 60), { life: 0.8 }); later(0.2, () => say('Чувштвую лёгкошть!', 'happy')); return; }
       if (GAME.fat() > 0.45 && Math.random() < 0.6) act('belly'); else face('happy', 'smile', 1);
       if (Math.random() < 0.45) later(0.25, () => say(pick(L.yum), 'happy'));
     }
@@ -1248,8 +1249,8 @@ const HOME = (() => {
     GAME.stat('clean', dt * 4);
     if (sh.t >= sh.dur) {
       showerSt = null; const washed = sh.foam0 >= 6 || sh.soaped; foam = []; UI.updateBar(); const s = S();
-      if (washed) { s.stats.washed++; GAME.stat('clean', 15); GAME.care(6, 'wash'); GAME.fulfill('wash'); GAME.checkAch(); GAME.addXP(2); for (let i = 0; i < 8; i++) fx.spawn('spark', mk.x + rnd(-24, 24), mk.y - rnd(20, 100), { life: rnd(0.5, 1) }); later(1, () => say(pick(['Чистенький!', 'Свежесть!', 'Блестю!']), 'happy')); }
-      else later(1, () => say('Сначала намыль меня!'));
+      if (washed) { s.stats.washed++; GAME.stat('clean', 15); GAME.care(6, 'wash'); GAME.fulfill('wash'); GAME.checkAch(); GAME.addXP(2); for (let i = 0; i < 8; i++) fx.spawn('spark', mk.x + rnd(-24, 24), mk.y - rnd(20, 100), { life: rnd(0.5, 1) }); later(1, () => say(pick(['Чиштенький!', 'Швежешть!', 'Блештю!']), 'happy')); }
+      else later(1, () => say('Шначала намыль меня!'));
       act('shake');
     }
   }
@@ -1260,7 +1261,7 @@ const HOME = (() => {
   function fireTap([x, y, w, h]) {
     AUDIO.play('sizzle'); later(0.12, () => AUDIO.play('pop'));
     for (let i = 0; i < 9; i++) fx.spawn('spark', x + w / 2 + rnd(-w / 2.5, w / 2.5), y + h - 10 - rnd(0, 10), { vx: rnd(-16, 16), vy: rnd(-55, -25), life: 0.6 + rnd(0, 0.4) });
-    if (!S().sleeping && t > fireCD) { fireCD = t + 6; later(0.4, () => say(pick(['Тёпленько!', 'Трещит!', 'Люблю камин.', 'Уютно у нас.']))); }
+    if (!S().sleeping && t > fireCD) { fireCD = t + 6; later(0.4, () => say(pick(['Тёпленько!', 'Трещит!', 'Люблю камин.', 'Уютно у наш.']))); }
   }
   // ---------- bedroom: sleep ----------
   function toggleLight() {
@@ -1272,7 +1273,7 @@ const HOME = (() => {
   function wakeUp(auto, silent) {
     const s = S(); s.sleeping = false; s.light = true; GAME.checkAch(); UI.updateBar(); GAME.save(true);
     if (silent) return; act('stretch');
-    if (auto) later(1.6, () => say(pick(['Выспался!', 'Доброе утро!', 'Я полон сил!']), 'happy')); else if (s.st.energy < 60) later(1.6, () => say('Ну вот, разбудили...', 'sad'));
+    if (auto) later(1.6, () => say(pick(['Вышпалшя!', 'Доброе утро!', 'Я полон шил!']), 'happy')); else if (s.st.energy < 60) later(1.6, () => say('Ну вот, разбудили...', 'sad'));
   }
   function sleepTick(dt) {
     const s = S(); GAME.stat('energy', dt * 0.32); s.stats.slept += dt; mk.sleepAcc = (mk.sleepAcc || 0) + dt; if (mk.sleepAcc >= 6) { GAME.care(mk.sleepAcc / 60, 'sleep'); mk.sleepAcc = 0; }
@@ -1339,8 +1340,8 @@ const HOME = (() => {
   function react(type) { if (type === 'happy') { face('happy', 'laugh', 0.8); hop(110); } else if (type === 'sad') { act('sad'); } }
   function celebrate() { AUDIO.play('star'); confetti(30); face('happy', 'laugh', 1.2); hop(150); }
   function onWant(w) { if (w && APP.scene === 'home' && !S().sleeping && t - lastSay > 2) later(0.4, () => say(wantLine(w))); }
-  function onWantDone() { const ht = headTop(); UI.float(mk.x + 34, ht + 4 - camY, '+3', UI.I('coin')); AUDIO.play('coin'); for (let i = 0; i < 5; i++) fx.spawn('heart', mk.x + rnd(-20, 20), ht + rnd(0, 30), { vy: -22, life: 1.1, wob: 5 }); later(0.2, () => say(pick(['Спасибо!', 'Ура, ты лучший!', 'Обожаю тебя!']), 'happy')); }
-  function stageFx(a) { confetti(20); for (let i = 0; i < 6; i++) fx.spawn('puff', mk.x + rnd(-30, 30), mk.y - rnd(10, 90), { c: '#ffffff', r0: 2, r1: 8, life: 0.6, alpha: 0.8 }); if (a.after === 'Скуф') ALBUM.moment('skuf', { title: 'Настоящий скуф!', delay: 1.2, room }); later(0.6, () => say(a.after === 'Скуф' ? 'Я стал настоящим скуфом!' : a.up ? 'Кажется, я поправился...' : 'Я похудел!', 'happy')); }
+  function onWantDone() { const ht = headTop(); UI.float(mk.x + 34, ht + 4 - camY, '+3', UI.I('coin')); AUDIO.play('coin'); for (let i = 0; i < 5; i++) fx.spawn('heart', mk.x + rnd(-20, 20), ht + rnd(0, 30), { vy: -22, life: 1.1, wob: 5 }); later(0.2, () => say(pick(['Шпашибо!', 'Ура, ты лучший!', 'Обожаю тебя!']), 'happy')); }
+  function stageFx(a) { confetti(20); for (let i = 0; i < 6; i++) fx.spawn('puff', mk.x + rnd(-30, 30), mk.y - rnd(10, 90), { c: '#ffffff', r0: 2, r1: 8, life: 0.6, alpha: 0.8 }); if (a.after === 'Скуф') ALBUM.moment('skuf', { title: 'Настоящий скуф!', delay: 1.2, room }); later(0.6, () => say(a.after === 'Скуф' ? 'Я штал наштоящим шкуфом!' : a.up ? 'Кажетшя, я поправилшя...' : 'Я похудел!', 'happy')); }
   function growFx() {
     mk.act = null; mk.eat = null; confetti(40); flash = 0.6; AUDIO.play('star');
     for (let i = 0; i < 10; i++) fx.spawn('puff', mk.x + rnd(-30, 30), mk.y - rnd(10, 100), { c: '#ffffff', r0: 2, r1: 9, life: 0.7, alpha: 0.85 });

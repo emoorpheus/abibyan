@@ -3,10 +3,11 @@ const fs = require('fs'), vm = require('vm'), path = require('path');
 const SRC = path.join(__dirname, '..', 'src');
 const ctx = {}; vm.createContext(ctx); vm.runInContext(fs.readFileSync(path.join(SRC, 'data.js'), 'utf8') + '\nthis.DATA = DATA;', ctx);
 const D = ctx.DATA, out = new Set();
-const add = (s) => { s = String(s).trim(); if (s) out.add(s); };
+const lisp = (s) => String(s).replace(/с/g, 'ш').replace(/С/g, 'Ш');
+const add = (s) => { s = lisp(String(s).trim()); if (s) out.add(s); };
 for (const k in D.LINES) for (const s of D.LINES[k]) add(s);
 for (const id of D.FOOD_ORDER) { const f = D.FOODS[id]; if (!f.nonfood) add('Хочу ' + (f.acc || f.name.toLowerCase()) + '!'); }
-['Давай поиграем в игру!', 'Погладь меня по голове!', 'Хочу в душ с мыльной пеной!', 'Сорви мне банан с дерева!', 'Пощекочи мне пузико!', 'Хочу кое-что!'].forEach(add);
+['Давай поиграем в игру!', 'Погладь меня по голове!', 'Хочу в душ ш мыльной пеной!', 'Шорви мне банан ш дерева!', 'Пощекочи мне пузико!', 'Хочу кое-что!'].forEach(add);
 const SKIP = new Set(['happy', 'sad', 'tired', 'Скуф']);
 // friends' scenes: only Абибян's own lines ('a') are voiced — friends speak in creature sounds
 for (const id in D.FRIENDS) { const F = D.FRIENDS[id]; for (const k of ['chat', 'stories']) for (const sc of F[k] || []) for (const l of sc) if (l[0] === 'a') add(l[1]); for (const k of ['spGo', 'spDone', 'visit']) for (const l of F[k] || []) if (l[0] === 'a') add(l[1]); }

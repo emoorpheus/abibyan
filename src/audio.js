@@ -465,8 +465,10 @@ const AUDIO = (() => {
     return segs;
   }
   // speak a bubble line / typed text; returns {dur, env(t)} for lip sync (t = seconds since the call)
+  const lisp = (s) => String(s).replace(/с/g, 'ш').replace(/С/g, 'Ш');
   function say(text, o = {}) {
     if (!ac || !st.sfx) return null;
+    text = lisp(text);
     if (!SP.ok) { const d = voice(text, SP.rate * (o.rate || 1)); return d ? { dur: d } : null; }
     hush();
     const mood = o.mood || '';

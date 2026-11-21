@@ -26,8 +26,11 @@ PRIORITY_KEYS = [
     'ура я абибян', 'фух теперь тепло',
     'привет я так скучал', 'о ты вернулся', 'ура гости',
     'привет абибян', 'привет как дела',
-    'буп', 'мой нос', 'пип', 'голова кружится', 'не мешай я сплю', 'хррр что'
+    'буп', 'мой нос', 'пип', 'голова кружится', 'не мешай я сплю', 'хррр что',
+    'шпашибо', 'шпашибо друзья мне так нравитшя', 'ш днем рождения дашулик'
 ]
+def _lisp_key(s): return s.replace('с', 'ш').replace('С', 'Ш')
+PRIORITY_KEYS = list(dict.fromkeys(PRIORITY_KEYS + [_lisp_key(k) for k in PRIORITY_KEYS]))
 prio_lines = {k: BANK['lines'][k] for k in PRIORITY_KEYS if k in BANK['lines']}
 prio_fx = BANK.get('fx', {})
 

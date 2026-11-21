@@ -280,7 +280,7 @@ const FRIENDS = (() => {
     const g = guest; if (!g) return; const f = F[g.id], v = gspot(g.id); g.ph = 'there';
     if (HOME.room === g.room) { const d = enterRoom(f, g.room, false, g.from, v); AUDIO.play(SND[g.id]); later(d + 0.3, startChat); return; }
     Object.assign(f, { room: g.room, x: v[0], y: v[1], gy: v[2], path: null, jy: 0, vy: 0 });
-    if (HOME.room === g.from) later(0.4, () => { if (guest === g && HOME.room === g.from && !scene) { if (babble()) AUDIO.play('giggle'); else monkeySay(pick(DATA.LINES['fc_away_' + g.id] || ['Ушёл в гости!'])); } });
+    if (HOME.room === g.from) later(0.4, () => { if (guest === g && HOME.room === g.from && !scene) { if (babble()) AUDIO.play('giggle'); else monkeySay(pick(DATA.LINES['fc_away_' + g.id] || ['Ушёл в гошти!'])); } });
   }
   function lookEach(g) { const a = F[g.id], b = F[g.host]; if (a.room !== b.room) return 0.05; a.look = [Math.sign(b.x - a.x) || 1, 0]; b.look = [Math.sign(a.x - b.x) || 1, 0]; a.lookUntil = b.lookUntil = t + 4; return 0.05; }
   function startChat() {
@@ -805,12 +805,12 @@ const FRIENDS = (() => {
     if (s.sleeping) { p.jig = 0.3; AUDIO.play(id === 'carrot' ? 'squeak' : 'bubble'); const [x] = NIGHT[id]; HOME.fx.spawn('z', x + 4, p.top - 2, { vy: -12, vx: 6, life: 1.2 }); return; }
     if (id === 'carrot') {
       p.taps.push(t); p.taps = p.taps.filter((q) => t - q < 1.6); p.anim = { t: 0, seq: [1, 2, 2, 1, 0, -1, 0] }; AUDIO.play('squeak');
-      if (p.taps.length >= 3) { p.taps = []; p.mood = 'hide'; p.moodUntil = t + 2.6; if (Math.random() < 0.3) later(0.5, () => monkeySay('Морковка стесняется!', 'happy')); }
+      if (p.taps.length >= 3) { p.taps = []; p.mood = 'hide'; p.moodUntil = t + 2.6; if (Math.random() < 0.3) later(0.5, () => monkeySay('Морковка штешняетшя!', 'happy')); }
       else { p.mood = 'shy'; p.moodUntil = t + 1.6; HOME.fx.spawn('heart', p.x + rnd(-5, 5), p.top + 6, { vy: -16, life: 0.9, wob: 4 }); if (Math.random() < 0.25) fsay('carrot', pick(PL.carrot), 'carrot'); }
     } else {
       p.anim = { t: 0, seq: [-1, -1, -1, 0, 1, 0] }; AUDIO.play('sizzle'); p.mood = Math.random() < 0.5 ? 'wink' : 'proud'; p.moodUntil = t + 1.6;
       for (let k = 0; k < 7; k++) HOME.fx.spawn('crumb', p.x + rnd(-7, 7), p.top + rnd(10, 26), { c: pick(['#ff8a2a', '#ffd23a', '#ff5c3c']), sz: Math.random() < 0.5 ? 2 : 1, vx: rnd(-10, 10), vy: rnd(-45, -20), g: -15, life: rnd(0.4, 0.7) });
-      if (Math.random() < 0.7) { const d = fsay('pepper', pick(PL.pepper), 'pepper'); if (Math.random() < 0.25) later(d + 0.4, () => monkeySay('Ну ты и хвастун, Перчик!', 'happy')); }
+      if (Math.random() < 0.7) { const d = fsay('pepper', pick(PL.pepper), 'pepper'); if (Math.random() < 0.25) later(d + 0.4, () => monkeySay('Ну ты и хваштун, Перчик!', 'happy')); }
     }
   }
   function hold(id) {

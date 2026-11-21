@@ -71,7 +71,7 @@ const TOUR = (() => {
       <div class="bt"><button class="btn g" id="t-ok">${r.place === 1 ? 'Ура!' : 'Отлично'}</button></div>`);
     GAME.addCoins(r.prize, 'tour'); GAME.checkAch(); if (r.place !== 1) AUDIO.play('coin'); // the 1st: celebrate() plays the star
     if (r.place === 1) { HOME.celebrate(); HOME.say('Я чемпион недели!', 'happy'); ALBUM.moment('tour:' + r.wk, { title: 'Чемпион недели', cap: S().name + ' · ' + gname(r.gid) }); }
-    else HOME.say(r.place === 2 ? 'Почти первое место!' : 'В следующий раз я выиграю!', 'happy');
+    else HOME.say(r.place === 2 ? 'Почти первое мешто!' : 'В шледующий раз я выиграю!', 'happy');
     w.querySelector('#t-ok').onclick = () => { AUDIO.play('click'); UI.closeModal(w); };
   }
   return { POOL, PRIZE, cur, table, place: placeOf, onResult, html, check, rowsHtml, get wins() { return (S().tour && S().tour.wins) || 0; }, _reset() { S().tour = null; roll(); } };
