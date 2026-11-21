@@ -234,7 +234,21 @@ const HOME = (() => {
     if (mic.on) micTick(dt);
     if (tool) toolTick(dt);
     thingsTick(dt);
-    if (watering) { watering.t += dt; if (watering.t < 1.8 && Math.random() < dt * 30) fx.spawn('drop', 56 + rnd(-2, 2), 56, { vx: rnd(-14, 4), vy: rnd(20, 40), g: 300, life: 0.8, floor: 80 + rnd(0, 20) }); if (watering.t > 2.3) watering = null; }
+    if (watering) {
+      watering.t += dt;
+      const s = Math.min(4, Math.max(0, (watering.stg !== undefined ? watering.stg : (typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4)) | 0));
+      const TREE_Y = [140, 118, 96, 74, 54];
+      const cy = TREE_Y[s] - 10, cx = 62;
+      const spoutX = cx - 14, spoutY = cy + 6;
+      if (watering.t > 0.25 && watering.t < 1.85 && Math.random() < dt * 34) {
+        const splashSoil = Math.random() < 0.35;
+        fx.spawn('drop', spoutX + rnd(-2, 2), spoutY, {
+          vx: rnd(-16, -2), vy: rnd(25, 50), g: 360, life: 1.2,
+          floor: splashSoil ? 236 + rnd(-2, 4) : TREE_Y[s] + 16 + rnd(0, 30)
+        });
+      }
+      if (watering.t > 2.3) watering = null;
+    }
     for (const b of foam) if (b.k < 1) b.k = Math.min(1, b.k + dt * 7);
     if (room === 'balcony') { syncTree(); fallTick(dt); }
     if (press && press.fr && press.fr.kind === 'pillow' && !press.held && press.moved < 12 && t - press.t > 0.45) { press.held = true; FRIENDS.hold(press.fr.id); }
@@ -382,8 +396,11 @@ const HOME = (() => {
   let canSpr = null;
   function drawCan(c) {
     if (!canSpr) canSpr = MONKEY.sprite(26, 18, (a) => { const m = a.mat('can', '#5fae45'); a.rbox(5, 5, 19, 16, 2, a.K.IT, m); a.tube([[6, 12, 1.5], [1, 6, 1.1]], a.K.IT, m); a.tube([[9, 5, 1.1], [14, 1, 1.1], [19, 5, 1.1]], a.K.IT, a.mat('canH', '#3d7a33')); }, (d) => { d.hline(7, 17, 9, '#8fd36c'); });
+    const s = Math.min(4, Math.max(0, (watering && watering.stg !== undefined ? watering.stg : (typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4)) | 0));
+    const TREE_Y = [140, 118, 96, 74, 54];
+    const cx = 62, cy = TREE_Y[s] - 10;
     const k = watering.t, tilt = k < 0.3 ? k / 0.3 : k > 1.9 ? Math.max(0, 1 - (k - 1.9) / 0.4) : 1;
-    c.save(); c.translate(70, 50); c.rotate(-0.6 * tilt); c.drawImage(canSpr, -13, -9); c.restore();
+    c.save(); c.translate(cx, cy); c.rotate(-0.6 * tilt); c.drawImage(canSpr, -13, -9); c.restore();
   }
   function drawTool(c) { const im = tool.img; const x = Math.round(tool.x - im.width / 2), y = Math.round(tool.y + tool.dy - im.height / 2); if (!tool.back) P.shadow(tool.x, tool.y + tool.dy + 10, 6, 2, 0.15); c.globalAlpha = tool.back ? Math.max(0, 1 - tool.back.t) : 1; c.drawImage(im, x, y); c.globalAlpha = 1; }
   function drawYardBack(c) { for (const b of falling) { const im = ROOMS.fur('banana1', ROOMS.FUR.banana1); c.globalAlpha = b.st === 'ground' ? Math.max(0, 1 - b.t * 2) : 1; c.save(); c.translate(Math.round(b.x), Math.round(b.y)); if (b.st === 'fall') c.rotate(b.rot); c.drawImage(im, -5, -6); c.restore(); c.globalAlpha = 1; } }
@@ -1137,9 +1154,9 @@ const HOME = (() => {
     if (room !== 'balcony') return; const s = S();
     const res = GAME.water();
     if (!res) { const m = Math.max(1, Math.ceil((s.tree.water - Date.now()) / 60e3)); UI.toast(`Уже полито. Ещё ${m} мин бананы растут быстрее`, UI.I('can')); AUDIO.play('nope'); return; }
-    watering = { t: 0 }; AUDIO.play('water'); later(0.5, () => AUDIO.play('water')); later(1.1, () => AUDIO.play('water'));
-    const names = ['Саженец', 'Молодая пальма', 'Подросшая пальма', 'Пышная пальма', 'Взрослая пальма'];
     const stg = GAME.treeStage();
+    watering = { t: 0, stg }; AUDIO.play('water'); later(0.5, () => AUDIO.play('water')); later(1.1, () => AUDIO.play('water'));
+    const names = ['Саженец', 'Молодая пальма', 'Подросшая пальма', 'Пышная пальма', 'Взрослая пальма'];
     if (res === 'grew') {
       AUDIO.play('star');
       UI.toast(`Пальма подросла: «${names[stg]}»! (Урожай до ${GAME.treeMax()} бананов) 🌱✨`, UI.I('sprout'), 'gold', 4500);

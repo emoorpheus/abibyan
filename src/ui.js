@@ -373,8 +373,9 @@ const UI = (() => {
       <div class="toggle"><span>Звуки</span><button class="btn sm ${s.settings.sfx ? 'g' : 'w'}" id="t-sfx">${s.settings.sfx ? 'Вкл' : 'Выкл'}</button></div>
       <div class="toggle"><span>Музыка</span><button class="btn sm ${s.settings.music ? 'g' : 'w'}" id="t-mus">${s.settings.music ? 'Вкл' : 'Выкл'}</button></div>
       <div class="bt"><button class="btn" id="t-name">Переименовать</button><button class="btn" id="t-help">Как играть</button></div>
+      <div class="bt"><button class="btn g" id="t-album">Альбом</button><button class="btn b" id="t-prof">Профиль</button></div>
       <p style="font-size:${U(6.5)};opacity:.75;margin-bottom:0">Перенос прогресса на другое устройство:</p><div class="bt"><button class="btn" id="t-exp">Получить код</button><button class="btn" id="t-imp">Ввести код</button></div>
-      <div class="bt"><button class="btn b" id="t-prof">Профиль</button><button class="btn r" id="t-reset">Сброс</button></div>
+      <div class="bt"><button class="btn r" id="t-reset">Сброс</button></div>
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
@@ -383,6 +384,7 @@ const UI = (() => {
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
     $('#t-name', w).onclick = () => { click(); closeModal(w); askName(); };
     $('#t-help', w).onclick = () => { click(); closeModal(w); help(); };
+    $('#t-album', w).onclick = () => { click(); closeModal(w); openAlbum(); };
     $('#t-prof', w).onclick = () => { click(); closeModal(w); openProfile(); };
     $('#t-exp', w).onclick = () => { click(); closeModal(w); exportSave(); };
     $('#t-imp', w).onclick = () => { click(); closeModal(w); importSave(); };
@@ -407,10 +409,11 @@ const UI = (() => {
   function openProfile() {
     const s = S(); const st = GAME.form(); const days = Math.max(1, Math.ceil((Date.now() - s.created) / 86400e3)); const done = DATA.ACH.filter((a) => s.ach[a.id]).length;
     const hero = HOME.portrait();
-    modal(`<h2>${esc(s.name)}</h2><img class="px hero" src="${hero}" alt=""><div class="kv">
+    const w = modal(`<h2>${esc(s.name)}</h2><img class="px hero" src="${hero}" alt=""><div class="kv">
       <span>Возраст</span><b>${GAME.ageDef().name}</b><span>Дней заботы</span><b>${s.grow.days}</b><span>Форма</span><b>${st.name}</b><span>Вес</span><b>${s.kg.toFixed(1).replace('.', ',')} кг</b><span>Уровень</span><b>${s.lvl}</b><span>Дней вместе</span><b>${days}</b>
       <span>Заработано монет</span><b>${s.totalCoins}</b><span>Покормлен раз</span><b>${s.stats.fed}</b><span>Пройдено уровней</span><b>${s.stats.levels}</b><span>Достижения</span><b>${done}/${DATA.ACH.length}</b><span>Стрик входов</span><b>${s.daily.streak} дн.</b></div>
-      <p style="font-size:${U(6.5)};opacity:.75">${skufNote()}</p><button class="btn" data-close>Ок</button>`, { dismiss: true });
+      <p style="font-size:${U(6.5)};opacity:.75">${skufNote()}</p><div class="bt"><button class="btn g" id="p-album">Альбом</button><button class="btn" data-close>Ок</button></div>`, { dismiss: true });
+    $('#p-album', w).onclick = () => { click(); closeModal(w); openAlbum(); };
   }
   // Round 6: a skuf at any age — the profile says the weight for his current size and how much is left
   function skufNote() { const s = S(), need = GAME.skufKg(), kg = (v) => v.toFixed(1).replace('.', ',') + ' кг';
