@@ -18,9 +18,9 @@ const FILL = (() => {
   function layout(u) {
     ec = ec || document.getElementById('ext'); if (!ec) return;
     const cv = document.getElementById('cv'), r = cv.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
-    let fullH = vh; // iOS 26 from the home screen: the viewport ends a safe area short of the screen's bottom
-    if (ios() && standalone() && vw < vh && Math.abs(screen.width - vw) <= 2 && screen.height > vh) fullH = screen.height;
-    const gl = r.left, gr = vw - r.right, want = r.width > 0 && vh > vw && gl <= 12 * u + 0.5 && gr <= 12 * u + 0.5;
+    let fullH = Math.max(vh, (window.screen && window.screen.height) || 0);
+    const gl = Math.max(0, r.left), gr = Math.max(0, vw - r.right);
+    const want = r.width > 0 && vh >= vw * 1.05;
     on = want; document.documentElement.classList.toggle('fill', on);
     if (!on) { if (bgCss) { document.documentElement.style.backgroundColor = ''; bgCss = ''; } return; }
     const c = (v) => Math.max(0, Math.ceil(v / u - 0.01));
@@ -59,7 +59,13 @@ const FILL = (() => {
     else if (!sl && cam < 1 && g.R1) { const L = light(c.getImageData(0, RH - 8, RW, 8).data, room); if (L) { smp.lit = L; smp.room = room; } else smp.bot = mode(c.getImageData(0, RH - 2, RW, 2).data); }
     sig = [smp.top.a, smp.top.b, smp.top.ph, smp.bot, smp.lit].join('|');
   }
+  let metaTheme = null;
+  function updateThemeColor(c) {
+    if (!metaTheme) metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme && c) metaTheme.setAttribute('content', rgb(c));
+  }
   function topBand(e, dim) { // the ceiling going on up: its natural colour (or its dither)
+    if (e && e.a) updateThemeColor(e.a);
     if (!g.R0) return; const im = ex.createImageData(g.W, g.R0), d = im.data;
     for (let y = 0; y < g.R0; y++) { const dy = g.R0 - y; // dy: rows above the picture's top
       for (let x = 0; x < g.W; x++) { const i = (y * g.W + x) * 4;

@@ -19,9 +19,9 @@ const TOUR = (() => {
   function make(m, prev) {
     const s = S(), list = POOL.filter((g) => GAME.canPlay(g)); if (!list.length) return null;
     let i = ((weekN(m) % list.length) + list.length) % list.length; if (list.length > 1 && list[i] === (prev && prev.gid)) i = (i + 1) % list.length;
-    const gid = list[i], wk = key(m), R = rng(wk + gid), ref = Math.max(3, s.best[gid] || 0), fin = {};
+    const gid = list[i], wk = key(m), R = rng(wk + gid), ref = Math.max(8, s.best[gid] || 0), fin = {};
     const lead = DATA.FIDS[Math.floor(R() * DATA.FIDS.length)];
-    for (const id of DATA.FIDS) { const k = (id === lead ? 0.95 + R() * 0.2 : 0.5 + R() * 0.45) + (SPEC[id] === gid ? 0.15 : 0); fin[id] = Math.max(1, Math.round(ref * k)); }
+    for (const id of DATA.FIDS) { const k = (id === lead ? 1.15 + R() * 0.25 : 0.9 + R() * 0.3) + (SPEC[id] === gid ? 0.2 : 0); fin[id] = Math.max(4, Math.round(ref * k)); }
     return { wk, gid, ref, fin, me: 0, wins: (prev && prev.wins) || 0, res: (prev && prev.res) || null };
   }
   // the week changed → settle the old one (only if he played it) and start the new one
@@ -37,8 +37,8 @@ const TOUR = (() => {
     const rows = [{ id: 'me', name: S().name, score: t.me }].concat(DATA.FIDS.map((id) => ({ id, name: fname(id), score: sc[id] })));
     rows.sort((a, b) => b.score - a.score || (a.id === 'me' ? -1 : b.id === 'me' ? 1 : 0)); rows.forEach((r, i) => { r.place = i + 1; }); return rows;
   }
-  // the friends' scores right now: a fifth of the total each day, all of it by Friday
-  const now = (t) => { const f = Math.min(1, (dayIdx() + 1) / 5), o = {}; for (const id of DATA.FIDS) o[id] = Math.max(1, Math.round(t.fin[id] * f)); return o; };
+  // the friends' scores right now: competitive from Monday (65% base), rising to 100%
+  const now = (t) => { const f = Math.min(1, 0.65 + (dayIdx() / 6) * 0.35), o = {}; for (const id of DATA.FIDS) o[id] = Math.max(1, Math.round(t.fin[id] * f)); return o; };
   function cur() { const t = roll(); return t && t.gid ? { wk: t.wk, gid: t.gid, ref: t.ref, fin: Object.assign({}, t.fin) } : null; }
   function table() { const t = roll(); return t && t.gid ? rank(t, now(t)) : []; }
   const placeOf = () => { const r = table().find((x) => x.id === 'me'); return r ? r.place : 0; };

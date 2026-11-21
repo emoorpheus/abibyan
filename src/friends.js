@@ -202,7 +202,9 @@ const FRIENDS = (() => {
   const gspot = (id) => { const v = GSPOT[id]; return [v[0], v[1], v[2] || v[1]]; };
   const babble = () => !!GAME.ageDef().babble;
   function startGuest(id, targetHost) {
-    const host = targetHost || PAIR[id], f = F[id], h = host && F[host]; if (!h || guest || party || heist || visitorId() || f.mode !== 'home' || h.mode !== 'home' || f.onFur || f.path || S().sleeping) return false;
+    const host = targetHost || PAIR[id];
+    if (id === 'pusya' && host === 'monty' && ROOMS.phase() === 'night') return false;
+    const f = F[id], h = host && F[host]; if (!h || guest || party || heist || visitorId() || f.mode !== 'home' || h.mode !== 'home' || f.onFur || f.path || S().sleeping) return false;
     const room = HOMES[host].room, from = HOMES[id].room; if (scene && (scene.id === id || scene.id === host)) cancelScene();
     guest = { id, host, room, from, ph: 'go', until: t + GUEST_LEN, n: 0 }; guestT = t + GUEST_LEN + GUEST_GAP; f.mode = 'guest';
     if (HOME.room === from) { // seen leaving
@@ -224,7 +226,12 @@ const FRIENDS = (() => {
   function lookEach(g) { const a = F[g.id], b = F[g.host]; if (a.room !== b.room) return 0.05; a.look = [Math.sign(b.x - a.x) || 1, 0]; b.look = [Math.sign(a.x - b.x) || 1, 0]; a.lookUntil = b.lookUntil = t + 4; return 0.05; }
   function startChat() {
     const g = guest; if (!g || g.ph !== 'there' || HOME.room !== g.room || scene || party || S().sleeping || UI.hasModal() || g.n >= 2) return;
-    const fs = S().friends[g.id] || (S().friends[g.id] = {}), D = FC[g.id + '>' + g.host] || [], i = ((fs.fci || 0) + 0) % Math.max(1, D.length), dl = D[i] || []; fs.fci = i + 1;
+    const fs = S().friends[g.id] || (S().friends[g.id] = {});
+    let D = FC[g.id + '>' + g.host] || [];
+    if (ROOMS.phase() === 'night') {
+      D = D.filter((dl) => !dl.some(([who, text]) => /солн/i.test(text)));
+    }
+    const i = ((fs.fci || 0) + 0) % Math.max(1, D.length), dl = D[i] || []; fs.fci = i + 1;
     const L = [];
     dl.forEach(([who, text, pose], k) => { L.push(() => lookEach(g), fl(who, text, pose || 'idle')); if (k === 1) L.push(babble() ? () => { AUDIO.play('giggle'); HOME.face('happy', 'smile', 1); return 0.7; } : ['a', pick(DATA.LINES.fc_peek), 'happy']); });
     g.until = Math.max(g.until, t + 25);
@@ -408,7 +415,7 @@ const FRIENDS = (() => {
         return T + 0.5; },
       () => bite(ord[0]), () => bite(ord[1]), () => bite(ord[2]), () => bite(ord[3]), () => bite(null), ['a', pick(DATA.LINES.pYum), 'happy'], () => { party.cake = null; return 0.3; },
       phase('photo'), ['a', pick(GP.photo), 'happy'], () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 4.5; } return 0.2; }, () => count(3), () => count(2), () => count(1),
-      () => { count(0); const top = Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14; HOME.photo({ title: 'Праздник: ' + A.name, cap: S().name + ' и друзья', top, k: 'grow:' + st });
+      () => { count(0); const top = Math.min(120, Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14); HOME.photo({ title: 'Праздник: ' + A.name, cap: S().name + ' и друзья', top, k: 'grow:' + st });
         const ms = S().moments || (S().moments = {}); ms['grow:' + st] = 1; return 1.3; }, ['w', 0.3]];
   }
   // Round 22: Дашулик's birthday (DATA.DASHA, dasha.js) — «Сюрприз!», the cake with her candles: she blows them out (the microphone or a
@@ -442,7 +449,7 @@ const FRIENDS = (() => {
       () => bite(ord[0]), () => bite(ord[1]), () => bite(ord[2]), () => bite(ord[3]), () => bite(null),
       () => DASHA.gifts(F[giver]), ['a', pick(LN.dGifts), 'happy'], ['a', pick(LN.pYum), 'happy'],
       phase('photo'), ['a', pick(LN.dPhoto), 'happy'], () => { for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 4.5; } return 0.2; }, () => count(3), () => count(2), () => count(1),
-      () => { count(0); const top = Math.min(170, Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14); DASHA.photo(top); return 1.3; }, ['w', 0.3]];
+      () => { count(0); const top = Math.min(120, Math.min(HOME.headTop(), ...here().map((f) => f.headY)) - 14); DASHA.photo(top); return 1.3; }, ['w', 0.3]];
     if (DASHA.heartsOn()) L.push(() => DASHA.secretsHint());
     L.push(() => { party.cake = null; DASHA.cakeOut(); return 0.4; }, phase('bye'), ['a', pick(LN.dBye), 'happy'], fl(ord[3], DP.bye[ord[3]]),
       () => { HOME.act('wave'); for (const f of here()) { f.pose = 'happy'; f.poseUntil = t + 1.2; } return 0.6; });

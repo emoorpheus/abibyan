@@ -376,7 +376,7 @@ const FART = (() => {
   const pcache = {};
   function portrait(id) {
     if (pcache[id]) return pcache[id];
-    const big = id === 'zhuk' || id === 'mosq' ? 3 : 1, e = sprite(id, { pose: 'happy', k: big, big: 1 }), k = 3 / big, pad = 4 * big, c = PX.canvas((e.w + pad * 2) * k, (e.h + pad * 2) * k), x = c.getContext('2d');
+    const e = sprite(id, { pose: 'happy', k: 1, big: 1 }), k = 3, pad = 4, c = PX.canvas((e.w + pad * 2) * k, (e.h + pad * 2) * k), x = c.getContext('2d');
     x.imageSmoothingEnabled = false; x.drawImage(e.cv, pad * k, pad * k, e.w * k, e.h * k); return (pcache[id] = c.toDataURL());
   }
   // alpha-mask hit test in sprite-local pixels, with a little finger padding

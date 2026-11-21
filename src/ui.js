@@ -107,23 +107,21 @@ const UI = (() => {
   // ---- bottom bar per room ----
   let barRoom = null, carIdx = 0;
   function setBar(room) {
-    barRoom = room; const s = S();
-    const nav = (d) => `<button class="nav notch" id="nav-${d}" aria-label="${d === 'L' ? 'Влево' : 'Вправо'}">${im(ARR[d])}</button>`;
-    let mid = '';
-    const ab = (id, icon, lab, extra = '') => `<button class="abtn notch" id="a-${id}" aria-label="${lab}">${im(icon)}<span class="lab">${lab}</span>${extra}</button>`;
-    if (room === 'zal') mid = ab('light', s.light ? I('bulb') : I('moon'), 'Свет') + ab('photo', I('camera'), 'Фото');
-    else if (room === 'kitchen') mid = ab('fshop', I('shop'), 'Магазин еды') + `<div class="carousel"><button class="arr notch" id="c-l" aria-label="Предыдущая еда">${im(ARR.l)}</button><div class="slot notch" id="c-slot">${im(F('banana'))}</div><button class="arr notch" id="c-r" aria-label="Следующая еда">${im(ARR.r)}</button></div>`;
-    else if (room === 'bath') mid = ab('soap', I('soap'), 'Мыло') + ab('shower', I('shower'), 'Душ');
-    else if (room === 'hall') mid = ab('wardrobe', I('shirt'), 'Гардероб');
-    else if (room === 'balcony') mid = ab('water', I('can'), 'Полить') + (s.inv.fertilizer ? ab('fert', F('fertilizer'), 'Удобрить', `<span class="badge">${s.inv.fertilizer}</span>`) : '');
-    bar.innerHTML = nav('L') + `<div class="acts">${mid}</div>` + nav('R') + (room === 'kitchen' ? '<div class="flabel" id="c-lab"></div>' : '');
-    $('#nav-L').onclick = () => { click(); HOME.go(-1); }; $('#nav-R').onclick = () => { click(); HOME.go(1); };
-    const on = (id, fn) => { const e = $('#a-' + id); if (e) e.onclick = (ev) => { click(); fn(ev); }; };
-    on('games', () => openGames()); on('mic', () => HOME.micToggle()); on('photo', () => openAlbum());
-    on('fshop', () => openShop('food')); on('light', () => HOME.toggleLight()); on('wardrobe', () => openWardrobe());
-    on('water', () => HOME.waterTree()); on('fert', () => HOME.fertilize()); on('shower', () => HOME.shower());
-    const soap = $('#a-soap'); if (soap) { soap.onclick = null; soap.addEventListener('pointerdown', (e) => { e.preventDefault(); HOME.startTool('soap', e); }); }
-    if (room === 'kitchen') { $('#c-l').onclick = () => { click(); carStep(-1); }; $('#c-r').onclick = () => { click(); carStep(1); }; $('#c-slot').addEventListener('pointerdown', (e) => { e.preventDefault(); const id = carItems()[carIdx]; if (id && S().inv[id] > 0) HOME.startTool('food', e, id); else { AUDIO.play('nope'); toast('Нет еды — купи в магазине!', I('shop')); } }); carUpdate(); }
+    barRoom = room;
+    if (room === 'kitchen') {
+      bar.innerHTML = `<div class="carousel"><button class="arr notch" id="c-l" aria-label="Предыдущая еда">${im(ARR.l)}</button><div class="slot notch" id="c-slot">${im(F('banana'))}</div><button class="arr notch" id="c-r" aria-label="Следующая еда">${im(ARR.r)}</button></div><div class="flabel" id="c-lab"></div>`;
+      $('#c-l').onclick = () => { click(); carStep(-1); };
+      $('#c-r').onclick = () => { click(); carStep(1); };
+      $('#c-slot').addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const id = carItems()[carIdx];
+        if (id && S().inv[id] > 0) HOME.startTool('food', e, id);
+        else { AUDIO.play('nope'); toast('Нет еды — нажми на холодильник!', I('shop')); }
+      });
+      carUpdate();
+    } else {
+      bar.innerHTML = '';
+    }
     updateBar();
   }
   function carItems() { const s = S(); const have = DATA.FOOD_ORDER.filter((f) => s.inv[f] > 0 && !DATA.FOODS[f].nonfood); return have.length ? have : ['banana']; }
@@ -134,9 +132,6 @@ const UI = (() => {
     const lab = $('#c-lab'); if (lab) lab.textContent = n ? `${DATA.FOODS[id].name} · тяни в рот` : 'Холодильник пуст';
   }
   function updateBar() {
-    const s = S(); const l = $('#a-light'); if (l) { l.querySelector('img').src = s.light ? I('bulb') : I('moon'); l.classList.toggle('on', !s.light); }
-    const m = $('#a-mic'); if (m) m.classList.toggle('on', HOME.micActive());
-    const w = $('#a-shower'); if (w) w.classList.toggle('on', HOME.showerOn());
     carUpdate();
   }
   function showRoomTitle(name) { roomt.textContent = name; roomt.classList.add('show'); clearTimeout(roomt._t); roomt._t = setTimeout(() => roomt.classList.remove('show'), 1100); }
@@ -318,6 +313,7 @@ const UI = (() => {
       ${u.length ? `<p class="unl">Открыто: ${u.join(', ')}</p>` : ''}<p class="unl">Друзья готовят сюрприз…</p><button class="btn g" data-close>Ура!</button>`);
   }
   function openAch() {
+    if (typeof GAME !== 'undefined' && GAME.checkAch) GAME.checkAch();
     openSheet('ach', 'Достижения', null, null, () => {
       const s = S(); const body = $('#sh-body'); const done = DATA.ACH.filter((a) => s.ach[a.id]).length;
       body.innerHTML = `<div class="hint" style="padding:0 0 ${U(3)}">Получено ${done} из ${DATA.ACH.length}</div><div class="list">${DATA.ACH.map((a) => { const v = Math.min(a.goal, a.val(s)), d = !!s.ach[a.id]; return `<div class="li notch ${d ? 'done' : ''}">${im(d ? I('trophy') : I('lock'), 'px ic')}<div class="tx"><div class="t1">${a.name}</div><div class="t2">${a.desc} · ${im(I('coin'))}${a.coins}</div>${d ? '' : `<div class="pbar"><i style="width:${(v / a.goal * 100).toFixed(0)}%"></i></div>`}</div></div>`; }).join('')}</div>`;

@@ -229,7 +229,7 @@ const MINI = (() => {
     function spawn(L) {
       const r = Math.random(), bad = Math.min(0.42, 0.1 + L * 0.03); let type = 'banana';
       if (r < bad) type = (L >= 4 && Math.random() < 0.4) ? 'bee' : 'coconut';
-      else if (r < bad + 0.04) type = 'gold'; else if (L >= 3 && r < bad + 0.1) type = 'bunch'; else if (L >= 5 && api.hearts < 3 && r < bad + 0.12) type = 'heart';
+      else if (r < bad + 0.04) type = 'gold'; else if (L >= 3 && r < bad + 0.1) type = 'bunch';
       const v = Math.min(235, (68 + L * 8) * rnd(0.85, 1.15)) * (type === 'bee' ? 0.7 : 1); const x = rnd(14, 166);
       items.push({ type, x, x0: x, y: -14, vy: v, ph: rnd(0, 6) });
     }
@@ -709,12 +709,12 @@ const MINI = (() => {
         ctx.drawImage(bgGym(), 0, 0); const over = api.over_, d = api.duel || {};
         meter(P, A); meter(P, B);
         // Москит pumps a tiny dumbbell
-        const up = B.phase === 'lift' && B.pt < 0.45, by = 226 + Math.round(Math.sin(gT * 3) * 2);
-        P.shadow(64, 268, 10, 2.5, 0.2);
-        const e = FART.sprite('mosq', { pose: over ? (d.win ? 'idle' : 'happy') : B.phase === 'fail' ? 'idle' : up ? 'lift' : 'idle', f: Math.floor(gT * 14) % 2, look: [1, 0], k: 3 }); // the gym keeps the big one (he is drawn game-size too)
+        const up = B.phase === 'lift' && B.pt < 0.45, by = 250 + Math.round(Math.sin(gT * 3) * 2);
+        P.shadow(64, 268, 7, 2, 0.2);
+        const e = FART.sprite('mosq', { pose: over ? (d.win ? 'idle' : 'happy') : B.phase === 'fail' ? 'idle' : up ? 'lift' : 'idle', f: Math.floor(gT * 14) % 2, look: [1, 0], k: 1 });
         ctx.drawImage(e.cv, Math.round(64 - e.ox), Math.round(by - e.oy));
-        const dy = up ? by - 46 : by - 20; P.r(52, dy, 24, 2, '#3b2433'); P.hl(53, dy, 22, '#c8ccd8'); for (const sx of [50, 74]) { P.r(sx, dy - 4, 4, 10, '#3b2433'); P.r(sx + 1, dy - 3, 2, 8, '#e8453c'); }
-        if (B.phase === 'fail') for (let k = 0; k < 2; k++) P.p(56 + k * 14, by - 40 - (Math.floor(gT * 8 + k) % 3), '#bfe6ff');
+        const dy = up ? by - 25 : by - 12; P.r(56, dy, 16, 2, '#3b2433'); P.hl(57, dy, 14, '#c8ccd8'); for (const sx of [54, 70]) { P.r(sx, dy - 3, 3, 7, '#3b2433'); P.r(sx + 1, dy - 2, 1, 5, '#e8453c'); }
+        if (B.phase === 'fail') for (let k = 0; k < 2; k++) P.p(60 + k * 8, by - 22 - (Math.floor(gT * 8 + k) % 3), '#bfe6ff');
         // Абибян
         P.shadow(110, 268, 30 * GK(0.95), 6, 0.32);
         const q = mp(0.95, { pose: 'liftLow' }); q.eyes = { mode: 'open', look: [1, 0] }; q.mouth = 'flat'; let shake = 0;

@@ -476,3 +476,30 @@
     - High-pass 150 Гц (Q=0.707) для полного среза задуваний и взрывных призвуков без ущерба для фундаментального тона;
     - Де-эссер (peaking 5400 Гц, -3.5 дБ) для мягкого звучания свистящих;
     - Сглаженная атака гейна (8 мс) для исключения щелчков в начале буферов.
+
+## Round 37: Direct taps, iPhone 17 fullscreen, balance, lisping & friend cards (2026-11-21)
+- **Direct Object Interactions & Swipe Navigation**:
+  - Removed bottom action/nav buttons (`#nav-L`, `#nav-R`, `.acts`) in `src/ui.js`.
+  - Room transitions now purely via horizontal swipe (`src/home.js`, swipe threshold lowered to 22 px for ultra-smooth gestures).
+  - Direct object taps: tap fridge in kitchen -> food shop; tap bed in zal -> sleep/wake up; tap wardrobe in hall -> wardrobe; tap sink/faucet in bath -> wash with soap (`soapTap()`); tap palm on balcony -> water/fertilize.
+  - In kitchen, only the food carousel (`#c-slot`, `#c-l`, `#c-r`) remains at the bottom for dragging food into the mouth.
+- **iPhone 17 Fullscreen & Dynamic Island Fix**:
+  - `src/fill.js`: `want = r.width > 0 && vh >= vw * 1.05` ensures full ambient canvas expansion on modern tall aspect ratios (iPhone 17, 19.5:9+).
+  - Viewport extends to `screen.height` in PWA / standalone mode.
+  - Dynamically updates `<meta name="theme-color">` to match ceiling color, removing the dark status bar blur under Dynamic Island.
+- **Gameplay Balance & Difficulty**:
+  - Catch game: removed falling hearts (`type = 'heart'`) to increase challenge.
+  - Gym game: reduced Mosq sprite to `k: 1`, adjusted dumbbell offsets and sweat particles.
+  - Tournament: buffed friends' progression starting from 65% on Monday, with multipliers 0.9..1.4 and min reference score 8.
+- **Lisping Monkey Dialogue (шепелявость)**:
+  - Added Russian lisping filter in `HOME.say()` (`с` -> `ш`, `С` -> `Ш`), e.g. «шпашибо», «я не шоглашен», «шлава». Speech audio bank keys preserve exact non-lisped strings for zero-latency audio playback.
+- **Dialogue & Visit Polish**:
+  - Pusya blocked from visiting Monty at night (`ROOMS.phase() === 'night'`), sunshine dialogues filtered out at night.
+  - Autonomous monkey activity triggers only after 2 minutes (120 s) of user inactivity.
+- **Achievements & Album Fixes**:
+  - `src/state.js`: removed `|| DASHA.bday()` from `checkAch()` guard so achievements unlock and update correctly during birthday week.
+  - Album group photos: expanded capture box to 176×176 px anchored at floor level (296 px), preventing character cropping (Pusya, Monty, Monkey).
+- **Friend Info Cards**:
+  - Added unique character traits to all friends in `DATA.FRIENDS` (`pusya`, `monty`, `mosq`, `zhuk`).
+  - Switched Mosq and Zhuk card portraits in `friends_art.js` to sharp 3x pixel-art sprites.
+

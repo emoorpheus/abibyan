@@ -4,7 +4,7 @@
 // night (22–6) — yawns, goes to the zal, asks for the light off (again every ~75 s while awake). Never during the tutorial, a sheet,
 // a modal, a game, a friend's scene or while he is busy; 20 s without a tap first; any tap stops him (HOME.stopTravel) and restarts the wait.
 const ROUTINE = (() => {
-  const IDLE = 15, FREE_CD = 25, S = () => GAME.S; // Round 14b: 15 s (a phone locks its screen after ~30 s)
+  const IDLE = 120, FREE_CD = 120, S = () => GAME.S; // 2 min idle before playing on his own
   let idle = 0, cur = null, chk = 0, snackCD = 0, nightCD = 0, freeCD = 0, lastFree = null, force = null, off = false;
   // Round 14b (user: «не трогал экран больше минуты — никуда не ходил»): with every need fine he still has things of his own to do —
   // poses at the hall mirror, rides the robot vacuum, strums the guitar, watches TV, waves out of the balcony window, dances

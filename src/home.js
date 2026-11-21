@@ -266,12 +266,13 @@ const HOME = (() => {
     say(pick(pool));
   }
   function wantLine(w) { if (w.type === 'food') { const f = DATA.FOODS[w.id]; return 'Хочу ' + (f.acc || f.name.toLowerCase()) + '!'; } return { play: 'Давай поиграем в игру!', pet: 'Погладь меня по голове!', wash: 'Хочу в душ с мыльной пеной!', harvest: 'Сорви мне банан с дерева!', tickle: 'Пощекочи мне пузико!' }[w.type] || 'Хочу кое-что!'; }
+  const lisp = (s) => String(s).replace(/с/g, 'ш').replace(/С/g, 'Ш');
   function say(text, mood) {
     if (APP.scene !== 'home' && APP.scene !== 'boot') return; lastSay = t;
     if (!mood && S().st.energy < 20) mood = 'tired';
     const r = AUDIO.say(text, { mood }); let dur = (r && r.dur) || 0; if (!dur) dur = Math.min(2.2, 0.35 + text.length * 0.045);
     if (!S().sleeping) mk.talk = { t: 0, dur: Math.max(0.45, dur), env: r && r.env };
-    UI.bubble(text, mk.x, headTop() - 12 - camY, Math.max(2300, dur * 1000 + 1400)); bubbleOn = true;
+    UI.bubble(lisp(text), mk.x, headTop() - 12 - camY, Math.max(2300, dur * 1000 + 1400)); bubbleOn = true;
     if (mood === 'happy') face('happy', null, Math.max(0.8, dur));
     return dur;
   }
@@ -425,7 +426,7 @@ const HOME = (() => {
       if (pr.hs) { pr.hs.fn(); return; }
       if (y >= ROOMS.FLOOR + 8 && walkTo(x, y)) { if (typeof TUT !== 'undefined') TUT.on('walk'); return; } // Round 10 #4: the bare floor (Round 13: a tour step)
     }
-    if (!pr.part && Math.abs(dx) > 34 && Math.abs(dx) > Math.abs(dy) * 1.4 && camY < 1) { go(dx < 0 ? 1 : -1); return; }
+    if (!pr.part && Math.abs(dx) > 22 && Math.abs(dx) > Math.abs(dy) * 1.15 && camY < 1) { go(dx < 0 ? 1 : -1); return; }
     if (pr.part === 'head' && pr.moved >= 10 && pr.moved < 22) pet(x, y);
   }
   function walkTo(x, y, then) { // Round 10 #4: tap on the floor → he walks over there (in scene coords); Round 11 #6: then() when he is there
@@ -1028,21 +1029,39 @@ const HOME = (() => {
   function furR(key, fn, x, y) { const c = ROOMS.fur(key, fn); return [x, y, c.width, c.height]; }
   // every thing in the flat: GAGS first takes a few taps before the old handlers (pigeon, bed, parcel, doorbell, stove, gnome), then the rest after them
   function hotspot(x, y) { return (room === 'zal' && GAME.placed('guitar') && ZAL.guitarHit(x, y) ? { fn: () => tripStart('guitar') } : null) || GAGS.hit(room, x, y, true) || hotspot0(x, y) || GAGS.hit(room, x, y, false); } // the guitar bag stands in front of the drape / radiator
+  function soapTap() {
+    if (room !== 'bath' || S().sleeping) return;
+    AUDIO.play('pop');
+    for (let i = 0; i < 4; i++) {
+      addFoam(mk.x + rnd(-14, 14), mk.y - rnd(25, 75));
+    }
+    if (showerSt) showerSt.soaped = true;
+    GAME.stat('clean', 5);
+    say(pick(['Мылимся!', 'Сколько пены!', 'Пенная вечеринка!']), 'happy');
+  }
   function hotspot0(x, y) {
     const it = S().home.items, F = ROOMS.FUR, FL = ROOMS.FLOOR;
     const H = (r, fn) => (r && inR(x, y, ...r) ? { fn } : null);
     const sp = ROOMS.spots(room, it) || {}, flip = () => { AUDIO.play('click'); }, tvTap = () => { tvOn = !tvOn; AUDIO.play('click'); if (S().sleeping) return; if (tvOn) act('tv'); else face('open', 'o', 0.6); };
     if (room === 'zal') {
-      return H(sp.light, () => toggleLight()) || H(sp.tv, tvTap) || H(sp.soundbar, () => sbTap(sp.soundbar)) || H(sp.switch2, () => tripStart('console', 'switch2')) || H(sp.ps5, () => tripStart('console', 'ps5')) || H(sp.fire, () => fireTap(sp.fire));
+      return H(sp.light, () => toggleLight())
+        || H(sp.bed, () => toggleLight())
+        || H(sp.tv, tvTap)
+        || H(sp.soundbar, () => sbTap(sp.soundbar))
+        || H(sp.switch2, () => tripStart('console', 'switch2'))
+        || H(sp.ps5, () => tripStart('console', 'ps5'))
+        || H(sp.fire, () => fireTap(sp.fire));
     }
     if (room === 'hall') {
       const sc = (sp.sconces || []).find((r) => inR(x, y, r[0] - 2, r[1] - 2, r[2] + 4, r[3] + 4));
       if (sc) return { fn: () => { AUDIO.play('switch'); th.sconces = !th.sconces; } };
-      return H(sp.wardrobe, () => tripStart('wardrobe')) || H(sp.mirror, () => tripStart('mirror'))
+      return H(sp.wardrobe, () => { if (trip && trip.kind === 'wardrobe') tripOpen(); else tripStart('wardrobe'); })
+        || H(sp.mirror, () => tripStart('mirror'));
     }
     if (room === 'kitchen') {
-      return H(sp.kettle, () => kettleTap(sp.kettle)) || H(sp.micro, () => microTap(sp.micro))
-        || H(sp.fridge, () => tripStart('fridge'))
+      return H(sp.kettle, () => kettleTap(sp.kettle))
+        || H(sp.micro, () => microTap(sp.micro))
+        || H(sp.fridge, () => { if (trip && trip.kind === 'fridge') tripOpen(); else tripStart('fridge'); })
         || (it.disco ? H(sp.disco, () => { AUDIO.play('star'); act('dance'); }) : null)
         || (it.lamp ? H(sp.lamp, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; }) : null);
     }
@@ -1050,15 +1069,20 @@ const HOME = (() => {
       return (it.duck ? H(sp.duck, () => { AUDIO.play('boop'); const [dx, dy] = sp.duck; fx.spawn('ring', dx + 9, dy + 9, { r0: 2, r1: 8, life: 0.3 }); fx.spawn('note', dx + 9, dy - 2, { vy: -14, life: 1, c: 1 }); }) : null)
         || H(sp.mirror, () => { act('mirror'); say(pick(['Красавчик!', 'Ну я и пушистик!', GAME.isSkuf() ? 'Солидный мужчина.' : GAME.ageDef().age < 0.4 ? 'Какой я милашка!' : 'Какой стройный!'])); })
         || H(sp.shower, () => shower())
+        || H(sp.sink, () => soapTap())
+        || H(sp.faucet, () => soapTap())
         || H(sp.toilet, () => { AUDIO.play('splash'); say(pick(['Буль!', 'Тут занято!', 'Крышка деревянная!'])); });
     }
     if (room === 'balcony') {
       const bi = treeAt(x, y); if (bi >= 0) return { fn: () => harvestAt(bi) };
-      return H(sp.lava, () => { AUDIO.play('switch'); th.balLamp = !balLampOn(); }) || H(sp.radio, () => radioTap())
-        || H(sp.pc, () => tripStart('pc')) || H(sp.chair, () => tripStart('pc')) || (!sp.pc ? H(sp.desk, () => noPc()) : null)
-        || H(sp.palm, () => { AUDIO.play('whoosh'); for (let i = 0; i < 5; i++) fx.spawn('leaf', sp.palm[0] + sp.palm[2] / 2 + rnd(-20, 20), sp.palm[1] + 20 + rnd(-10, 20), { vx: rnd(-20, 20), vy: rnd(10, 30), g: 40, life: 1.4, wob: 6 }); if (!S().tree.n) UI.toast('Бананы ещё растут. Полей пальму — будут быстрее!', UI.I('can')); })
-        || (it.telescope ? H(sp.telescope, () => { AUDIO.play('star'); act('wow'); say(pick(ROOMS.phase() === 'night' ? ['Звёзды!', 'Вижу Луну!'] : ['Вижу голубей!', 'Вон наш двор!'])); }) : null)
-        || (it.feeder ? H(sp.feeder, () => { AUDIO.play('flap'); for (let i = 0; i < 4; i++) fx.spawn('spark', sp.feeder[0] + 8 + rnd(-6, 6), sp.feeder[1] + 12, { life: 0.6, vy: -10 }); }) : null);
+      return H(sp.palm, () => {
+        if (S().inv.fertilizer > 0 && S().tree.n < GAME.treeMax()) fertilize();
+        else waterTree();
+      })
+      || H(sp.lava, () => { AUDIO.play('switch'); th.balLamp = !balLampOn(); }) || H(sp.radio, () => radioTap())
+      || H(sp.pc, () => tripStart('pc')) || H(sp.chair, () => tripStart('pc')) || (!sp.pc ? H(sp.desk, () => noPc()) : null)
+      || (it.telescope ? H(sp.telescope, () => { AUDIO.play('star'); act('wow'); say(pick(ROOMS.phase() === 'night' ? ['Звёзды!', 'Вижу Луну!'] : ['Вижу голубей!', 'Вон наш двор!'])); }) : null)
+      || (it.feeder ? H(sp.feeder, () => { AUDIO.play('flap'); for (let i = 0; i < 4; i++) fx.spawn('spark', sp.feeder[0] + 8 + rnd(-6, 6), sp.feeder[1] + 12, { life: 0.6, vy: -10 }); }) : null);
     }
     return null;
   }
@@ -1251,9 +1275,21 @@ const HOME = (() => {
   // each (shrunk to fit), drawn only once the game font is loaded (no monospace fallback); «Сохранить» → the share sheet with the PNG
   // (on a phone: «Сохранить изображение»), else a download; the photo itself can be long-pressed on iOS.
   // Round 16: the polaroid, the font wait and «Сохранить» moved to ALBUM (album.js); every photo also goes into the album
-  function snap(top) { // the room right now: a 150×150 square around his head (the photo's frame)
-    const cw = 150, ch = 150, sx = 15, sy = Math.max(0, Math.min(RH - ch, Math.round(top !== undefined ? top : headTop() - 26)));
-    const c = PX.canvas(cw, ch); c.getContext('2d').drawImage(off, sx, sy, cw, ch, 0, 0, cw, ch); return c;
+  function snap(top) { // the room right now: square frame fitting floor characters and head
+    const sw = 176, sh = 176, sx = 2;
+    const targetBottom = 296;
+    let sy;
+    if (top !== undefined) {
+      sy = Math.max(0, Math.min(targetBottom - sh, Math.round(top)));
+    } else {
+      sy = Math.max(0, Math.min(RH - sh, Math.round(headTop() - 30)));
+      if (sy + sh < targetBottom) sy = Math.min(RH - sh, targetBottom - sh);
+    }
+    const cw = 150, ch = 150;
+    const c = PX.canvas(cw, ch); const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(off, sx, sy, sw, sh, 0, 0, cw, ch);
+    return c;
   }
   function photo(o = {}) {
     if (trans) return; act('pose'); AUDIO.play('click');
