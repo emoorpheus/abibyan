@@ -301,7 +301,7 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 #ui #gift *{pointer-events:none}
 #ui #gift .g-t{margin-top:34u;font-size:17u;line-height:1.05;font-weight:700;text-align:center;color:#fff;text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433,1u 1u 0 #3b2433,-1u 1u 0 #3b2433,0 2u 0 #3b2433;animation:gbob 2.2s ease-in-out infinite}
 #ui #gift .g-s{margin-top:5u;font-size:8u;color:#fff;padding:1.5u 5u;background:rgba(45,26,40,.7)}
-#ui #gift .btn{position:absolute;bottom:22u;left:50%;transform:translateX(-50%);min-height:20u;font-size:9u;padding:0 9u;pointer-events:auto}
+#ui #gift .btn{display:none}
 #ui #gift .btn *{pointer-events:none}
 #ui #gift .btn:active{transform:translate(-50%,1u)}
 #ui #gift.out{transition:opacity .5s;opacity:0}

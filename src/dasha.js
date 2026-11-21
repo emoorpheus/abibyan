@@ -88,8 +88,8 @@ const DASHA = (() => {
     gift = { taps: 0, t: 0, jy: 0, vy: 0, sq: 0, wob: 0, lid: 0, idle: 2.2, open: 0 };
     const u = $ui(); u.classList.add('gifting'); const old = document.getElementById('gift'); if (old) old.remove();
     const w = document.createElement('div'); w.id = 'gift';
-    w.innerHTML = `<div class="g-t">${UI.esc(C().name)},<br>это тебе!</div><div class="g-s">Постучи по коробке</div><button class="btn g notch" id="nm-ok">${UI.im(UI.I('gift'))}<span>Открыть</span></button>`;
-    u.appendChild(w); w.querySelector('#nm-ok').onclick = () => { AUDIO.init(); openGift(); };
+    w.innerHTML = `<div class="g-t">${UI.esc(C().name)},<br>это тебе!</div><div class="g-s">Постучи по коробке</div><button id="nm-ok" style="display:none"></button>`;
+    u.appendChild(w); const btn = w.querySelector('#nm-ok'); if (btn) btn.onclick = () => { AUDIO.init(); openGift(); };
     if (typeof TUT !== 'undefined') TUT.check();
   }
   function giftTap(x, y) {
@@ -511,7 +511,7 @@ const DASHA = (() => {
   }
   return {
     sealed: () => !opened, // Round 26: the notes are still under the lock (test/r26.js)
-    boot, update, check, draw, down, move, up, pause, giftStart, giftOn, hideMk: () => giftOn(), giftBox: () => Object.assign({}, BOX), giftTaps: () => (gift ? gift.taps : 0),
+    boot, update, check, draw, down, move, up, pause, giftStart, giftOn, hideMk: () => giftOn(), giftBox: () => Object.assign({}, BOX), giftTaps: () => (gift ? gift.taps : 0), openGift,
     busy, due, decor, bday, cakeIn, cakeOut, cakeLit: lit, blowStart, gifts, photo, secretsHint, abort, heartsOn, secrets, current, hit, foundN, card, albumHtml, albumBind,
     isGreeting: () => bdayGreeting,
     dbg, heartSize: () => { const A = art().mini; return { w: A.width, h: A.height }; },
