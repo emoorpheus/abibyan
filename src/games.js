@@ -627,22 +627,28 @@ const MINI = (() => {
 
   // ---- 2) Бонго-дуэль vs Монти: he plays, you repeat + add a beat, he repeats + adds… first mistake loses ----
   function DuelBongo() {
-    const DX = [27, 69, 111, 153], DY = 268, MXA = 58, MXF = 128, BASE = [0.03, 0.025, 0.02, 0.016, 0.012];
-    let seq, phase, idx, timer, lit, hitT, hitI, faceT, faceM, mT, mArm, mPose, mPoseT, mumbleT, sg, errs;
+    const DX = [27, 69, 111, 153], DY = 268, MXA = 58, MXF = 128;
+    let seq, phase, idx, timer, pTimer, lit, hitT, hitI, faceT, faceM, mT, mArm, mPose, mPoseT, mumbleT, sg, errs;
     const g = {
       snapY: 160,
-      init() { sg = api.duel ? api.duel.stage : 0; seq = [Math.floor(rng() * 4), Math.floor(rng() * 4)]; lit = [0, 0, 0, 0]; phase = 'pre'; timer = 1.2; idx = 0; hitT = 0; faceT = 0; mT = 0; mArm = ''; mPose = 'idle'; mPoseT = 0; mumbleT = 7; errs = 0; },
+      init() { sg = api.duel ? api.duel.stage : 0; seq = [Math.floor(rng() * 4), Math.floor(rng() * 4)]; lit = [0, 0, 0, 0]; phase = 'pre'; timer = 1.2; pTimer = 3.8; idx = 0; hitT = 0; faceT = 0; mT = 0; mArm = ''; mPose = 'idle'; mPoseT = 0; mumbleT = 7; errs = 0; },
       update(dt) {
         for (let i = 0; i < 4; i++) lit[i] = Math.max(0, lit[i] - dt); if (hitT > 0) hitT -= dt; if (faceT > 0) faceT -= dt; if (mT > 0) mT -= dt; if (mPoseT > 0) mPoseT -= dt;
-        const iv = 0.56 - sg * 0.03;
+        const iv = Math.max(0.32, 0.54 - sg * 0.025 - Math.max(0, seq.length - 3) * 0.016);
         if (phase === 'pre') { timer -= dt; if (timer <= 0) { phase = 'fshow'; idx = 0; timer = 0.2; msg('Монти играет…'); } }
         else if (phase === 'fshow') { timer -= dt; if (timer <= 0) { if (idx < seq.length) { fhit(seq[idx]); idx++; timer = iv; } else toInput(); } }
-        else if (phase === 'pin' || phase === 'padd') { mumbleT -= dt; if (mumbleT <= 0) { mumbleT = 7; mPose = 'talk'; mPoseT = 1; snd('mumble'); tip(phase === 'pin' ? 'Повтори ритм Монти' : 'Добавь свой удар — любой барабан'); } }
+        else if (phase === 'pin' || phase === 'padd') {
+          pTimer -= dt;
+          if (pTimer <= 0) {
+            phase = 'pbad'; timer = 1.3; faceT = 1.3; faceM = 'bad'; mPose = 'happy'; mPoseT = 9; snd('nope'); msg('Не успел!');
+          }
+          mumbleT -= dt; if (mumbleT <= 0) { mumbleT = 7; mPose = 'talk'; mPoseT = 1; snd('mumble'); tip(phase === 'pin' ? 'Повтори ритм Монти' : 'Добавь свой удар — любой барабан'); }
+        }
         else if (phase === 'fwait') { timer -= dt; if (timer <= 0) { phase = 'fturn'; idx = 0; timer = 0.3; msg('Ход Монти…'); } }
         else if (phase === 'fturn') { timer -= dt; if (timer <= 0) {
           if (idx < seq.length) { const n = seq[idx]; if (rng() < errP(idx)) { errs++; fhit((n + 1 + Math.floor(rng() * 3)) % 4); phase = 'ferr'; timer = 1.3; mPose = 'sad'; mPoseT = 9; snd('nope'); setTimeout(() => snd('mumble'), 350); } else { fhit(n); idx++; timer = iv; } }
-          else { phase = 'fadd'; timer = 0.5; } } }
-        else if (phase === 'fadd') { timer -= dt; if (timer <= 0) { const n = Math.floor(rng() * 4); seq.push(n); fhit(n); api.duelPts('fr', 1); mPose = 'happy'; mPoseT = 0.6; phase = 'fdone'; timer = 0.8; } }
+          else { phase = 'fadd'; timer = 0.45; } } }
+        else if (phase === 'fadd') { timer -= dt; if (timer <= 0) { const n = Math.floor(rng() * 4); seq.push(n); fhit(n); api.duelPts('fr', 1); mPose = 'happy'; mPoseT = 0.6; phase = 'fdone'; timer = 0.7; } }
         else if (phase === 'fdone') { timer -= dt; if (timer <= 0) toInput(); }
         else if (phase === 'ferr') { timer -= dt; if (timer <= 0) api.duelEnd(true); }
         else if (phase === 'pbad') { timer -= dt; if (timer <= 0) api.duelEnd(false); }
@@ -667,19 +673,28 @@ const MINI = (() => {
         ctx.drawImage(e.cv, Math.round(MXF - e.ox), Math.round(239 - e.oy));
         for (let i = 0; i < 4; i++) { const on = lit[i] > 0; if (on) { ctx.globalAlpha = 0.35; P.circ(DX[i], DY - 18, 22, ['#ff8a80', '#ffe080', '#90f080', '#80c0ff'][i]); ctx.globalAlpha = 1; } ctx.drawImage(ARTG.drum(i, on), DX[i] - 19, DY - 30 + (on ? 1 : 0)); }
         if (myTurn) for (let i = 0; i < 4; i++) { ctx.globalAlpha = 0.5 + Math.sin(gT * 4 + i) * 0.2; P.r(DX[i] - 1, DY + 16, 3, 3, '#fff6d8'); ctx.globalAlpha = 1; }
-        // sequence pips: how long the rhythm is now
-        for (let i = 0; i < seq.length; i++) { const x = 90 - seq.length * 3.5 + i * 7, y = 300; P.r(Math.round(x), y, 5, 5, '#3b2433'); P.r(Math.round(x) + 1, y + 1, 3, 3, (phase === 'pin' && i < idx) ? '#ffd23a' : ['#e0483e', '#f0b830', '#4fb04a', '#3f86d8'][seq[i]]); }
+        // sequence pips: neutral dots indicating rhythm length and player's progress (does not cheat-leak colors)
+        for (let i = 0; i < seq.length; i++) {
+          const x = 90 - seq.length * 3.5 + i * 7, y = 300;
+          const hit = (phase === 'pin' && i < idx) || phase === 'padd' || phase === 'fwait' || phase === 'fturn';
+          P.r(Math.round(x), y, 5, 5, '#3b2433');
+          P.r(Math.round(x) + 1, y + 1, 3, 3, hit ? '#ffd23a' : '#605868');
+        }
       },
       down(x, y) { if ((phase !== 'pin' && phase !== 'padd') || y < 190) return; let best = -1, bd = 99; for (let i = 0; i < 4; i++) { const dd = Math.abs(x - DX[i]); if (dd < bd) { bd = dd; best = i; } } if (bd < 22) tap(best); },
       key(k, dn) { if (!dn || (phase !== 'pin' && phase !== 'padd')) return; const map = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, KeyA: 0, KeyS: 1, KeyD: 2, KeyF: 3, ArrowLeft: 0, ArrowDown: 1, ArrowUp: 2, ArrowRight: 3 }; if (k in map) tap(map[k]); },
       get phase() { return phase; }, get seq() { return seq; }, get idx() { return idx; }, errP: (i) => errP(i), get errs() { return errs; },
     };
-    function errP(i) { return BASE[sg] + 0.015 * Math.max(0, seq.length - 3) + (i > 0 && Math.abs(seq[i] - seq[i - 1]) >= 2 ? 0.05 : 0); }
-    function toInput() { phase = 'pin'; idx = 0; mumbleT = 7; msg('Повтори!'); }
+    function errP(i) {
+      if (seq.length < 6) return 0; // Monty plays reliably up to 5 beats without early blunders
+      const lenFactor = (seq.length - 5) * 0.012;
+      return Math.min(0.18, lenFactor + (i === seq.length - 1 ? 0.035 : 0.005));
+    }
+    function toInput() { phase = 'pin'; idx = 0; pTimer = 3.8; mumbleT = 7; msg('Повтори!'); }
     function lightUp(i, who) { lit[i] = 0.26; hitT = 0.18; hitI = { i, who }; snd('drum', i); fx.spawn('note', DX[i] + rnd(-6, 6), DY - 40, { vy: -24, vx: rnd(-8, 8), life: 0.9, wob: 4, c: i % 3 }); }
     function fhit(i) { lightUp(i, 'fr'); mT = 0.2; mArm = i < 2 ? 'L' : 'R'; }
     function tap(i) {
-      lightUp(i, 'me'); tip(null); mumbleT = 7;
+      lightUp(i, 'me'); tip(null); mumbleT = 7; pTimer = 3.5;
       if (phase === 'padd') { seq.push(i); api.duelPts('me', 1); faceT = 0.6; faceM = 'ok'; phase = 'fwait'; timer = 0.8; return; }
       if (seq[idx] === i) { idx++; if (idx >= seq.length) { phase = 'padd'; msg('Добавь свой удар!'); snd('happy'); } }
       else { phase = 'pbad'; timer = 1.3; faceT = 1.3; faceM = 'bad'; mPose = 'happy'; mPoseT = 9; snd('nope'); }

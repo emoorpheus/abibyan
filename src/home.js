@@ -1258,7 +1258,7 @@ const HOME = (() => {
     if (auto) later(1.6, () => say(pick(['Выспался!', 'Доброе утро!', 'Я полон сил!']), 'happy')); else if (s.st.energy < 60) later(1.6, () => say('Ну вот, разбудили...', 'sad'));
   }
   function sleepTick(dt) {
-    const s = S(); GAME.stat('energy', dt * 1.3); s.stats.slept += dt; mk.sleepAcc = (mk.sleepAcc || 0) + dt; if (mk.sleepAcc >= 6) { GAME.care(mk.sleepAcc / 60, 'sleep'); mk.sleepAcc = 0; }
+    const s = S(); GAME.stat('energy', dt * 0.32); s.stats.slept += dt; mk.sleepAcc = (mk.sleepAcc || 0) + dt; if (mk.sleepAcc >= 6) { GAME.care(mk.sleepAcc / 60, 'sleep'); mk.sleepAcc = 0; }
     mk.zT -= dt; if (mk.zT <= 0) { mk.zT = 1.15; fx.spawn('z', mk.x + 14, headTop() + 8, { vx: rnd(7, 12), vy: -15, life: 2.3, wob: 3, fadeIn: 0.2 }); }
     mk.snoreT -= dt; if (mk.snoreT <= 0) { mk.snoreT = 3.4; AUDIO.play('snore'); }
     if (s.st.energy >= 99.5) wakeUp(true);

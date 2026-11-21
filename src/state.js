@@ -132,12 +132,12 @@ const GAME = (() => {
   function reset() { S = DEF(); try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '_album'); } catch (e) { } save(true); emit('reset'); }
   const on = (fn) => listeners.push(fn); function emit(ev, a) { for (const fn of listeners) try { fn(ev, a); } catch (e) { console.error(e); } }
   const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
-  // decay per hour while awake
-  const RATE = { food: 20, fun: 16, energy: 9, clean: 11 };
+  // decay per hour while awake (energy decay increased to 18 per hour)
+  const RATE = { food: 20, fun: 16, energy: 18, clean: 11 };
   function simulate(dtSec, offline) {
     const h = dtSec / 3600;
     for (const k in RATE) {
-      let r = RATE[k]; if (k === 'energy' && S.sleeping) r = offline ? -45 : 0; if (k === 'fun' && S.sleeping) r *= 0.3; if (k === 'food' && S.sleeping) r *= 0.5;
+      let r = RATE[k]; if (k === 'energy' && S.sleeping) r = offline ? -26 : 0; if (k === 'fun' && S.sleeping) r *= 0.3; if (k === 'food' && S.sleeping) r *= 0.5;
       let v = S.st[k] - r * h; if (offline) v = Math.max(Math.min(S.st[k], 12), v); S.st[k] = clamp(v);
     }
     // slow natural weight loss
@@ -220,7 +220,7 @@ const GAME = (() => {
     S.inv[id]--; if (!S.inv[id]) delete S.inv[id]; fr.eat.push(n);
     fr.fat = Math.max(0, Math.min(1, (fr.fat || 0) + F.kg * 0.12)); fr.fed = (fr.fed || 0) + 1; S.stats.friendFed = (S.stats.friendFed || 0) + 1;
     fr.known[id] = kind; const cr = crave(fid), wish = !cr.done && cr.id === id;
-    const fp = fgain(fid, { fav: 8, like: 4, meh: 2 }[kind] + (wish ? 6 : 0)); moodAdd(fid, { fav: 25, like: 12, meh: 4 }[kind] + (wish ? 20 : 0));
+    const fp = fgain(fid, { fav: 4, like: 2, meh: 1 }[kind] + (wish ? 3 : 0)); moodAdd(fid, { fav: 25, like: 12, meh: 4 }[kind] + (wish ? 20 : 0));
     if (wish) { cr.done = 1; addCoins(5, 'crave'); }
     stat('fun', 4); care(2, 'friend'); emit('inv'); checkAch(); save(); return { kind, fat: fr.fat, food: F, crave: wish, fp };
   }
@@ -239,7 +239,7 @@ const GAME = (() => {
   // ---- games ----
   function gameReward(gid, levelsDone, coins, lastLevel) {
     S.best[gid] = Math.max(S.best[gid] || 0, lastLevel); S.stats.games++; S.stats.levels += levelsDone;
-    stat('fun', 4 * levelsDone + 3); stat('energy', -3 * levelsDone - 2); stat('food', -1.5 * levelsDone); stat('clean', -2 * levelsDone);
+    stat('fun', 4 * levelsDone + 3); stat('energy', -5 * levelsDone - 3); stat('food', -1.5 * levelsDone); stat('clean', -2 * levelsDone);
     if (gid === 'gym') setKg(S.kg - 0.15 * levelsDone);
     addXP(3 * levelsDone); if (levelsDone > 0) fulfill('play'); S.stats.gameCoins = (S.stats.gameCoins || 0) + Math.max(0, coins); care(2 * levelsDone, 'game'); addCoins(coins, 'game'); checkAch(); save(true);
   }
@@ -277,21 +277,21 @@ const GAME = (() => {
   function giftToday(fid) { const f = FCD(fid), d = dayStr(new Date()); if (f.gday !== d) { f.gday = d; f.gn = 0; } return f.gn; }
   function friendChat(id) {
     const f = FCD(id), d = dayStr(new Date()); f.chat++; if (f.cday !== d) { f.cday = d; f.cn = 0; } f.cn++; S.stats.chats = (S.stats.chats || 0) + 1; stat('fun', 4); care(1, 'friend');
-    if (f.cn <= 6) { fgain(id, 2); moodAdd(id, 3); } checkAch(); save();
+    if (f.cn <= 6) { fgain(id, 1); moodAdd(id, 3); } checkAch(); save();
   }
   function friendSpecial(id) {
     const F = DATA.FRIENDS[id], f = FCD(id); if (!F || spLeft(id) > 0) return false; f.cd = Date.now() + F.sp.cd * 1000 * (f.lv >= 4 ? 0.5 : f.lv >= 2 ? 0.75 : 1); S.stats.specials = (S.stats.specials || 0) + 1;
     if (id === 'pusya') { stat('energy', 12); stat('fun', 10); } else if (id === 'monty') stat('fun', 14); else if (id === 'mosq') stat('energy', 35); else if (id === 'zhuk') stat('clean', 25);
-    care(2, 'friend'); fgain(id, 4); moodAdd(id, 6); checkAch(); save(true); return true;
+    care(2, 'friend'); fgain(id, 2); moodAdd(id, 6); checkAch(); save(true); return true;
   }
   function duelReward(fid, win, coins) {
     const f = FCD(fid); if (win) f.w++; else f.l++; S.stats.duels = (S.stats.duels || 0) + 1; S.stats.games++;
-    stat('fun', 6); stat('energy', -4); stat('food', -1.5); stat('clean', -2); addXP(win ? 4 : 2); fulfill('play'); care(3, 'game'); fgain(fid, 3); moodAdd(fid, 3); addCoins(coins, 'duel'); checkAch(); save(true);
+    stat('fun', 6); stat('energy', -6); stat('food', -1.5); stat('clean', -2); addXP(win ? 4 : 2); fulfill('play'); care(3, 'game'); fgain(fid, 2); moodAdd(fid, 3); addCoins(coins, 'duel'); checkAch(); save(true);
   }
   // «Все вместе»: a party with all three friends
   function partyReward() {
     S.stats.parties = (S.stats.parties || 0) + 1; stat('fun', 20); care(5, 'friend'); addXP(5);
-    for (const id of DATA.FIDS) { fgain(id, 6); moodAdd(id, 15); } addCoins(10, 'party'); checkAch(); save(true);
+    for (const id of DATA.FIDS) { fgain(id, 3); moodAdd(id, 15); } addCoins(10, 'party'); checkAch(); save(true);
   }
   // ---- wants (Tamagotchi-like wishes) ----
   const WANT_TYPES = ['food', 'food', 'play', 'pet', 'wash', 'harvest', 'tickle'];

@@ -235,17 +235,17 @@ const DATA = (() => {
   // ---- growth: the monkey grows up from care over many days (pts = care points, days = days with 30+ care) ----
   // Round 8: 10 smaller stages — the newborn keeps its size (44 px), every stage only a little taller (adult 70 px, was 108); Кроха, Малыш, Карапуз only babble («Э-э-э»), the adult can become a skuf
   const AGES = [
-    // Round 9 #6 + the 2026-11-05 note: he grows only a little — the legend (stage 10) is as tall as the Round 8 5th stage (58 px)
+    // 10 stages: slow growth up to 90 days for the final Legend stage, proportional milestones
     { id: 'newborn', name: 'Кроха', pts: 0, days: 0, age: 0, s: 0.42, voice: 1.03, kg: 0.2, babble: 1, lines: 'baby' },
-    { id: 'baby', name: 'Малыш', pts: 80, days: 1, age: 0.1, s: 0.443, voice: 1.02, kg: 0.3, babble: 1, lines: 'baby' },
-    { id: 'toddler', name: 'Карапуз', pts: 150, days: 2, age: 0.2, s: 0.459, voice: 1.005, kg: 0.38, babble: 1, lines: 'baby' },
-    { id: 'kid', name: 'Детёныш', pts: 220, days: 3, age: 0.3, s: 0.486, voice: 0.99, kg: 0.45, lines: 'kid' },
-    { id: 'school', name: 'Школьник', pts: 330, days: 4, age: 0.45, s: 0.514, voice: 0.98, kg: 0.53, lines: 'kid' },
-    { id: 'teen', name: 'Подросток', pts: 450, days: 5, age: 0.6, s: 0.544, voice: 0.965, kg: 0.62, lines: 'teen' },
-    { id: 'young', name: 'Юнец', pts: 600, days: 6, age: 0.75, s: 0.565, voice: 0.955, kg: 0.7, lines: 'teen' },
-    { id: 'grown', name: 'Молодой', pts: 750, days: 8, age: 0.88, s: 0.596, voice: 0.95, kg: 0.8, lines: 'teen' },
-    { id: 'adult', name: 'Взрослый', pts: 1100, days: 12, age: 1, s: 0.621, voice: 0.94, kg: 1, perk: 'вырос совсем большим' },
-    { id: 'legend', name: 'Легенда', pts: 2000, days: 20, age: 1, s: 0.623, voice: 0.93, kg: 1, legend: 1, perk: 'ежедневный подарок ×2' },
+    { id: 'baby', name: 'Малыш', pts: 350, days: 5, age: 0.1, s: 0.443, voice: 1.02, kg: 0.3, babble: 1, lines: 'baby' },
+    { id: 'toddler', name: 'Карапуз', pts: 700, days: 9, age: 0.2, s: 0.459, voice: 1.005, kg: 0.38, babble: 1, lines: 'baby' },
+    { id: 'kid', name: 'Детёныш', pts: 1100, days: 14, age: 0.3, s: 0.486, voice: 0.99, kg: 0.45, lines: 'kid' },
+    { id: 'school', name: 'Школьник', pts: 1500, days: 18, age: 0.45, s: 0.514, voice: 0.98, kg: 0.53, lines: 'kid' },
+    { id: 'teen', name: 'Подросток', pts: 2000, days: 23, age: 0.6, s: 0.544, voice: 0.965, kg: 0.62, lines: 'teen' },
+    { id: 'young', name: 'Юнец', pts: 2600, days: 28, age: 0.75, s: 0.565, voice: 0.955, kg: 0.7, lines: 'teen' },
+    { id: 'grown', name: 'Молодой', pts: 3600, days: 38, age: 0.88, s: 0.596, voice: 0.95, kg: 0.8, lines: 'teen' },
+    { id: 'adult', name: 'Взрослый', pts: 5200, days: 56, age: 1, s: 0.621, voice: 0.94, kg: 1, perk: 'вырос совсем большим' },
+    { id: 'legend', name: 'Легенда', pts: 8000, days: 90, age: 1, s: 0.623, voice: 0.93, kg: 1, legend: 1, perk: 'ежедневный подарок ×2' },
   ];
   // the Round 6/7 table (7 stages) — v4 saves keep their stage by id, the weight follows the new factor
   const AGES_V4 = [
@@ -406,7 +406,7 @@ const DATA = (() => {
     eat: { fav: 'Жу-у-у! Блинчик! Самый вкусный!', like: ['Жу! Вкусно!', 'Жу-жу! Ещё крошечку?', 'Жу, спасибо!'], meh: ['Жу… Съедобно.', 'Ну… Спасибо, жу.'], bad: ['Жу-жу! Не буду!', 'Жу! Фу-фу!'],
       badOf: { coffee: 'Жу! От кофе я зажужжу на всю ночь!', energy: 'Жу-у! Я и так шустрый!' }, full: 'Жу… Я крошечный, больше не влезет!', crave: 'Жу-жу! Как раз этого хотел!', gift: 'Жу! Нашёл тебе гостинец в кармане!', sulk: 'Жу… Не хочу. Я обиделся.' } });
   // friendship: points to reach each level, coins for it, what it gives; names by gender
-  const FSHIP = { at: [0, 15, 45, 100, 200], coins: [0, 15, 30, 50, 100], m: ['Знакомый', 'Приятель', 'Друг', 'Лучший друг', 'Друг навек'], f: ['Знакомая', 'Приятельница', 'Подруга', 'Лучшая подруга', 'Подруга навек'],
+  const FSHIP = { at: [0, 50, 150, 350, 750], coins: [0, 15, 30, 50, 100], m: ['Знакомый', 'Приятель', 'Друг', 'Лучший друг', 'Друг навек'], f: ['Знакомая', 'Приятельница', 'Подруга', 'Лучшая подруга', 'Подруга навек'],
     perk: ['', 'приносит гостинцы, когда приходит в гости', 'особый приём чаще (перезарядка −25%)', 'приходит в гости чаще и с гостинцами', 'особый приём вдвое чаще'],
     mood: { happy: ['счастлив', 'счастлива'], ok: ['доволен', 'довольна'], meh: ['скучает', 'скучает'], sulky: ['обиделся', 'обиделась'] } };
   // «Все вместе»: what the friends say at a party (creature sounds — not voiced)

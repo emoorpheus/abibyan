@@ -148,9 +148,46 @@ const FRIENDS = (() => {
       if (Math.hypot(f.x - a[0], f.y - a[1]) > 5) walkTo(f, a[0], a[1], FLY[id] ? 70 : 60, 0);
     };
     if (id === 'pusya') {
-      run(id, [...Fd.spGo, () => { const tx = f.x < HOME.mk.x ? HOME.mk.x - 30 : HOME.mk.x + 30; walkTo(f, tx, GY + 3, 70, Math.abs(f.y - GY) > 20 ? 18 : 0); return (f.path ? f.path.dur : 0.5) + 0.15; },
-        () => { f.pose = 'knead'; f.poseUntil = t + 2.6; AUDIO.play('purr'); HOME.face('happy', 'smile', 2.8, { blush: 1 }); for (let k = 0; k < 6; k++) HOME.fx.spawn('heart', HOME.mk.x + rnd(-18, 18), HOME.mk.y - rnd(30, 70), { vy: -18, life: 1.3, wob: 5, fadeIn: k * 0.2 }); later(0.9, () => AUDIO.play('purr')); return 2.6; },
-        () => { GAME.friendSpecial(id); gain('+12', 'energy'); return 0.3; }, ...Fd.spDone, back], ensureBack);
+      run(id, [
+        ...Fd.spGo,
+        () => {
+          const tx = f.x < HOME.mk.x ? HOME.mk.x - 18 : HOME.mk.x + 18;
+          walkTo(f, tx, GY + 2, 70, Math.abs(f.y - GY) > 20 ? 18 : 0);
+          return (f.path ? f.path.dur : 0.5) + 0.15;
+        },
+        () => {
+          f.onFur = true;
+          AUDIO.play('pop');
+          moveTo(f, HOME.mk.x + (f.x < HOME.mk.x ? 2 : -2), HOME.mk.y - 12, 80, 16);
+          return (f.path ? f.path.dur : 0.4) + 0.1;
+        },
+        () => {
+          f.pose = 'knead';
+          f.poseUntil = t + 3.2;
+          AUDIO.play('purr');
+          HOME.face('happy', 'smile', 3.6, { blush: 1 });
+          for (let k = 0; k < 8; k++) {
+            later(k * 0.38, () => {
+              if (!f.onFur) return;
+              HOME.fx.spawn('heart', HOME.mk.x + rnd(-16, 16), HOME.mk.y - rnd(25, 60), { vy: -18, life: 1.2, wob: 5 });
+              if (k === 3 || k === 6) AUDIO.play('purr');
+            });
+          }
+          return 3.2;
+        },
+        () => {
+          GAME.friendSpecial(id);
+          gain('+12', 'energy');
+          AUDIO.play('happy');
+          f.pose = 'happy';
+          f.poseUntil = t + 1.2;
+          const landX = HOME.mk.x + (f.x <= HOME.mk.x ? -24 : 24);
+          moveTo(f, landX, GY + 2, 85, 12, () => { f.onFur = false; });
+          return (f.path ? f.path.dur : 0.4) + 0.2;
+        },
+        ...Fd.spDone,
+        back
+      ], () => { f.onFur = false; ensureBack(); });
     } else if (id === 'zhuk') {
       // «Щёточка»: hops off the hook onto his shoulder, scurries over the fur (shoulder → tummy → other side → head), sparkles; he laughs (ticklish)
       const fur = () => { const mk = HOME.mk, ht = HOME.headTop(), h = mk.y - ht; return [[-0.3, 0.42], [-0.12, 0.7], [0.2, 0.62], [0.3, 0.4], [0.05, 0.12]].map(([dx, dy]) => [mk.x + dx * h * 0.62, ht + dy * h + 9]); };
