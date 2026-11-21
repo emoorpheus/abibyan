@@ -67,6 +67,18 @@ const DUCKS = (() => {
         }
       }
     }
+    if (room === 'balcony' && x < 98) {
+      const by = 293;
+      const w = x <= 80 ? 1 : Math.cos(((x - 80) / 18) * (Math.PI / 2));
+      const bdy = (by - LANE) * w;
+      if (bdy > dy) dy = bdy;
+    }
+    if (room === 'zal' && x < 92) {
+      const by = 290;
+      const w = x <= 74 ? 1 : Math.cos(((x - 74) / 18) * (Math.PI / 2));
+      const bdy = (by - LANE) * w;
+      if (bdy > dy) dy = bdy;
+    }
     return Math.round(LANE + dy);
   }
   function st() { const s = S(); if (!s.ducks || !ROUTE.includes(s.ducks.room)) s.ducks = { room: 'hall', x: 30, dir: 1 }; return s.ducks; }

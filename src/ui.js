@@ -37,7 +37,7 @@ const UI = (() => {
     magnets: () => SPX(28, 20, (a) => { a.ell(7, 9, 5, 5, IT, a.mat('magR', '#ef4d6a')); a.rbox(13, 2, 26, 18, 1, IT, a.mat('photo', '#ffffff')); }, (d) => { for (let y = 4; y <= 15; y++) d.hline(15, 24, y, y < 10 ? '#8fd3ff' : '#7cc25a'); }),
     clock: () => ROOMS.FUR.clock(), cactus: () => ROOMS.FUR.cactus(),
     duck: () => SPX(18, 15, (a) => { const dk = a.mat('duck', '#ffd23a'); a.ell(10, 10, 7, 4.4, IT, dk); a.ell(6, 5, 4, 3.8, IT, dk); a.ell(1.8, 6.2, 2, 1.2, IT, a.mat('beak', '#ff8a2a')); }, (d) => { d.px(5, 4, '#2a1a10'); d.px(11, 9, '#e8b020'); d.px(12, 9, '#e8b020'); }),
-    bathmat: () => ROOMS.FUR.mat(), fern: () => ROOMS.FUR.fern(), nightlight: () => ROOMS.FUR.nightlight(), poster: () => ROOMS.FUR.poster(),
+    bathmat: () => ROOMS.upThumb('bathmat') || ROOMS.FUR.mat(), fern: () => ROOMS.FUR.fern(), nightlight: () => ROOMS.FUR.nightlight(), poster: () => ROOMS.FUR.poster(),
     hammock: () => ROOMS.upThumb('hammock'), gnome: () => ROOMS.FUR.gnome(), flamingo: () => ROOMS.FUR.flamingo(),
     feeder: () => ROOMS.upThumb('feeder'), flowers: () => ROOMS.upThumb('flowers'), telescope: () => ROOMS.upThumb('telescope'), lava: () => ROOMS.upThumb('lava'), radio: () => ROOMS.upThumb('radio'), soundbar: () => ROOMS.upThumb('soundbar'),
     ...Object.fromEntries(DATA.BOUGHT9.map((id) => [id, () => trim(ROOMS.upThumb(id))])), // Round 9 #2: drawn by their rooms, cut to their pixels
@@ -205,7 +205,7 @@ const UI = (() => {
       if (t === 'clothes') { closeSheet(); openWardrobe(); return; }
       if (t === 'tech') {
         const P = DATA.PHONE, can = s.coins >= P.price, tp = typeof TUT !== 'undefined' && TUT.step === 'phone' && !s.phone;
-        const techDecor = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].tech).sort((a, b) => (DATA.DECOR[a].price || 0) - (DATA.DECOR[b].price || 0));
+        const techDecor = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].tech && !DATA.DECOR[id].noShop).sort((a, b) => (DATA.DECOR[a].price || 0) - (DATA.DECOR[b].price || 0));
         body.innerHTML = `<div class="grid"><div class="card notch ${s.phone ? 'wearing' : ''} ${tp ? 'tut-hi' : ''}" data-phone="1">${im(I('phone'), 'px ic')}<div class="nm">${P.name}</div><div class="stp">${P.desc}</div>${s.phone ? '<button class="btn sm w" data-buy="1">Есть</button>' : priceBtn(P.price, can)}</div>${upCard('pc')}${upCard('tv')}${techDecor.map(techCard).join('')}</div>
           <div class="hint">Телефон: «Банановый ливень» и «Бонго». Компьютер на балконе: «Лианы» и «Шарик» — старый, «Качалка» — ноутбук, «Банановая башня» — мощный.</div>`;
         body.querySelector('[data-phone]').onclick = (e) => { if (!e.target.closest('[data-buy]') || s.phone) { click(); return; }
@@ -221,7 +221,7 @@ const UI = (() => {
       } else if (t === 'home') {
         const subs = DATA.ROOMS.map((r) => [r.id, r.name]);
         if (!subs.some(([id]) => id === sheetSub)) sheetSub = HOME.room;
-        const ids = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].room === sheetSub && !DATA.DECOR[id].tech).sort((a, b) => (DATA.DECOR[a].price || 0) - (DATA.DECOR[b].price || 0)); // TV gear lives in «Техника»
+        const ids = Object.keys(DATA.DECOR).filter((id) => DATA.DECOR[id].room === sheetSub && !DATA.DECOR[id].tech && !DATA.DECOR[id].noShop).sort((a, b) => (DATA.DECOR[a].price || 0) - (DATA.DECOR[b].price || 0)); // TV gear lives in «Техника»
         // step-by-step upgrades of this room (TV, computer): current step n/N + the next one with its price
         const ups = Object.keys(DATA.UPGRADES).filter((k) => DATA.UPGRADES[k].room === sheetSub).map(upCard).join('');
         body.innerHTML = `<div class="tabs subs">${subs.map(([id, n]) => `<button class="tab notch ${id === sheetSub ? 'on' : ''}" data-s="${id}">${n}</button>`).join('')}</div>

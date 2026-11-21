@@ -59,6 +59,14 @@ const BATH = (() => {
         for (const s of [-1, 1]) for (const [dx, dy] of [[13, 17], [14, 17], [15, 17], [13, 20], [14, 20], [15, 19]]) d.px(25 + s * dx - (s > 0 ? 1 : 0), dy, W);
         for (const [x, y] of [[10, 4], [10, 5], [11, 5], [39, 4], [39, 5], [38, 5]]) d.px(x, y, PK); for (const x of [12, 13, 36, 37]) d.px(x, 19, '#f4ccd0'); }),
     wcrug: () => SP(44, 16, (a) => { a.rbox(0, 0, 44, 16, 6, IT, a.mat('bRug', '#8f97a3', 3), { flat: 0.75 }); a.ell(22, 0, 9, 6, IT, a.mat('bRugCut', '#e9dfcc'), { flat: 1 }); }, null),
+    bathmat: () => SP(52, 18, (a) => {
+      const c1 = a.mat('bMat1', '#6d869e', 2), c2 = a.mat('bMat2', '#587088', 2), cL = a.mat('bMatL', '#8aa4bc', 2);
+      a.rbox(0, 0, 52, 18, 4, IT, c1, { flat: 0.75, bulge: 0.1 });
+      a.rbox(2, 2, 50, 16, 3, IT, c2, { flat: 0.8 });
+      for (let x = 6; x < 46; x += 4) a.box(x, 4, x + 2, 14, IT, cL);
+    }, (d) => {
+      for (let x = 3; x < 49; x++) { d.px(x, 1, '#a0bcd6'); d.px(x, 16, '#3a4e62'); }
+    }),
   };
   const spr = (k, ...a) => fur('bath_' + k + a.join('_'), () => S[k](...a));
   // ---------- painted parts ----------
@@ -102,7 +110,7 @@ const BATH = (() => {
     for (const [x, c] of [[140, '#f29ab0'], [145, '#7cc87a'], [171, '#59a8ef']]) { P.r(x, 163, 3, 6, c); P.p(x + 1, 162, '#ffffff'); }
     P.shadow(20, WC[1] + 46, 18, 3, 0.25); R.wallAt(ctx, spr('wc'), WC[0], WC[1], 2);
     R.sprAt(ctx, spr('catrug'), CATRUG[0], CATRUG[1]);
-    if (it.bathmat) R.sprAt(ctx, spr('wcrug'), 0, GROUND - 22);
+    if (it.bathmat) R.sprAt(ctx, spr('bathmat'), 64, 236);
   }
   function siphon(P) {
     const C = '#b8bec6', D = '#8a929c', L = '#e6eaf0';
@@ -160,10 +168,10 @@ const BATH = (() => {
   }
   function spots(it) {
     return { catrug: CATRUG.slice(), shower: [CAB[0], CAB[1], CAB[2], 150], head: HEAD.slice(), mirror: MIR.slice(), sink: VAN.slice(), toilet: WC.slice(), duck: [CAB[0] + 8, CAB[1] + 150, 18, 15],
-      washer: it.washer ? WASH.slice() : null, porthole: it.washer ? PORT.slice() : null, faucet: [148, 158, 16, 16], rail: RAIL.slice(), aid: [8, 44, 20, 18], fern: it.fern ? [146, 240, 34, 50] : null, fresco: [0, 0, 180, 27], bathmat: it.bathmat ? [0, 248, 44, 16] : null,
+      washer: it.washer ? WASH.slice() : null, porthole: it.washer ? PORT.slice() : null, faucet: [148, 158, 16, 16], rail: RAIL.slice(), aid: [8, 44, 20, 18], fern: it.fern ? [146, 240, 34, 50] : null, fresco: [0, 0, 180, 27], bathmat: it.bathmat ? [64, 236, 52, 18] : null,
       sconceL: [SCX[0], MIR[1] + 8, 8, 16], sconceR: [SCX[1], MIR[1] + 8, 8, 16],
       kit: [8, 44], mosq: [30, 168, 254], visit: [150, 278], visitFly: [146, 276, 70], party: { pusya: [150, 252], monty: [52, 282], zhuk: [130, 290] } };
   }
-  R.register('bath', { bg, floor, dyn, front, spots, thumbs: { washer: () => spr('washer') } });
+  R.register('bath', { bg, floor, dyn, front, spots, thumbs: { washer: () => spr('washer'), bathmat: () => spr('bathmat') } });
   return { spots };
 })();

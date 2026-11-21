@@ -104,11 +104,11 @@ const ZAL = (() => {
       for (const [x, y] of [[21, 31], [23, 37], [21, 42], [22, 47], [21, 11], [21, 17], [10, 35], [34, 35], [17, 32], [27, 32]]) if (d.on(x, y)) d.px(x, y, '#ffffff');
       for (const [cx, y] of [[14, 14], [30, 14], [5, 19], [39, 19], [22, 21]]) { d.pxk(cx - 1, y + 3, on ? '#efe6d2' : '#c4bcae', 1 << ITC); d.pxk(cx + 2, y + 5, on ? '#efe6d2' : '#c4bcae', 1 << ITC); if (on) d.pxk(cx - 2, y + 1, '#ffffff', 1 << ITC); }
     }),
-    // Round 7 #7: the soundbar — a long charcoal bar, a fabric grille, a little orange logo in the middle, an LED at the right end (dyn)
-    bar: () => SP(SB_W, SB_H, (a) => { const bd = a.mat('zSbB', '#2a2a30'); a.rbox(0, 0, SB_W, SB_H, 2, IT, bd, { flat: 0.55 }); }, (d) => {
-      const W = SB_W, c = W / 2; d.hline(2, W - 3, 0, '#55555e'); d.hline(2, W - 3, 6, '#101014');
-      for (let y = 2; y <= 4; y++) for (let x = 3 + (y % 2); x < W - 3; x += 2) if (x < c - 3 || x > c + 2) d.px(x, y, '#3c3c44');
-      d.px(c - 2, 3, '#ff7a1a'); d.px(c - 1, 3, '#ff7a1a'); d.px(c, 3, '#ffffff'); d.px(c + 1, 3, '#ff7a1a'); d.px(c - 1, 2, '#ff9a4a'); d.px(c, 4, '#c85a10');
+    // Round 7 #7: Sony BRAVIA Theater Bar 8 — a sleek charcoal bar with a fabric grille, subtle silver logo and an LED at the right end (dyn)
+    bar: () => SP(SB_W, SB_H, (a) => { const bd = a.mat('zSbB', '#222228'); a.rbox(0, 0, SB_W, SB_H, 2, IT, bd, { flat: 0.55 }); }, (d) => {
+      const W = SB_W, c = Math.floor(W / 2); d.hline(2, W - 3, 0, '#4e4e58'); d.hline(2, W - 3, 6, '#101014');
+      for (let y = 2; y <= 4; y++) for (let x = 3 + (y % 2); x < W - 3; x += 2) if (x < c - 4 || x > c + 3) d.px(x, y, '#34343c');
+      d.px(c - 2, 3, '#9a9aa4'); d.px(c - 1, 3, '#e0e0e8'); d.px(c, 3, '#ffffff'); d.px(c + 1, 3, '#e0e0e8'); d.px(c + 2, 3, '#9a9aa4');
     }),
     // Round 7 #6: Nintendo Switch 2 in its black dock (the red / blue Joy-Con stick out on both sides) and an upright PS5 Pro (white side panel,
     // the black core edge-on at the front, three black stripes across the middle, a round stand)

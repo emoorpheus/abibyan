@@ -95,7 +95,20 @@ const FRIENDS = (() => {
 
   // ---------- scenes: queue of ['f'|'a', text, mood] lines, ['w', sec] waits and step functions (return seconds to wait) ----------
   function run(id, lines, onEnd) { scene = { id, q: lines.slice(), wait: 0.2, onEnd }; }
-  function cancelScene() { if (!scene) return; if (F[scene.id]) F[scene.id].onFur = false; scene = null; UI.fhideBubble(); bub = null; if (heist) endHeist(); }
+  function cancelScene() {
+    if (!scene) return;
+    const sid = scene.id;
+    if (F[sid]) {
+      F[sid].onFur = false;
+      if (F[sid].mode === 'home' && F[sid].room === HOMES[sid].room) {
+        const a = anchor(F[sid]);
+        if (Math.hypot(F[sid].x - a[0], F[sid].y - a[1]) > 6) {
+          walkTo(F[sid], a[0], a[1], FLY[sid] ? 70 : 60, 0);
+        }
+      }
+    }
+    scene = null; UI.fhideBubble(); bub = null; if (heist) endHeist();
+  }
   function sceneTick(dt) {
     if (!scene || UI.hasModal()) return; scene.wait -= dt; if (scene.wait > 0) return;
     const l = scene.q.shift();
@@ -124,26 +137,35 @@ const FRIENDS = (() => {
     if (GAME.spLeft(id) > 0) { run(id, [['f', Fd.spCd]]); return 'cd'; }
     if (id === 'mosq' && s.st.energy > 85) { run(id, [['f', Fd.spFull]]); return 'full'; }
     if (id === 'zhuk' && s.st.clean > 85) { run(id, [['f', Fd.spFull]]); return 'full'; }
-    extend(f); const back = () => { const a = anchor(f); walkTo(f, a[0], a[1], FLY[id] ? 70 : 60, FLY[id] ? 0 : (Math.abs(a[1] - f.y) > 20 ? 18 : 0)); return 0.1; };
+    extend(f);
+    const back = () => {
+      const a = anchor(f);
+      walkTo(f, a[0], a[1], FLY[id] ? 70 : 60, FLY[id] ? 0 : (Math.abs(a[1] - f.y) > 20 ? 18 : 0));
+      return (f.path ? f.path.dur : 1.2) + 0.15;
+    };
+    const ensureBack = () => {
+      const a = anchor(f);
+      if (Math.hypot(f.x - a[0], f.y - a[1]) > 5) walkTo(f, a[0], a[1], FLY[id] ? 70 : 60, 0);
+    };
     if (id === 'pusya') {
       run(id, [...Fd.spGo, () => { const tx = f.x < HOME.mk.x ? HOME.mk.x - 30 : HOME.mk.x + 30; walkTo(f, tx, GY + 3, 70, Math.abs(f.y - GY) > 20 ? 18 : 0); return (f.path ? f.path.dur : 0.5) + 0.15; },
         () => { f.pose = 'knead'; f.poseUntil = t + 2.6; AUDIO.play('purr'); HOME.face('happy', 'smile', 2.8, { blush: 1 }); for (let k = 0; k < 6; k++) HOME.fx.spawn('heart', HOME.mk.x + rnd(-18, 18), HOME.mk.y - rnd(30, 70), { vy: -18, life: 1.3, wob: 5, fadeIn: k * 0.2 }); later(0.9, () => AUDIO.play('purr')); return 2.6; },
-        () => { GAME.friendSpecial(id); gain('+12', 'energy'); return 0.3; }, ...Fd.spDone, back]);
+        () => { GAME.friendSpecial(id); gain('+12', 'energy'); return 0.3; }, ...Fd.spDone, back], ensureBack);
     } else if (id === 'zhuk') {
       // «Щёточка»: hops off the hook onto his shoulder, scurries over the fur (shoulder → tummy → other side → head), sparkles; he laughs (ticklish)
       const fur = () => { const mk = HOME.mk, ht = HOME.headTop(), h = mk.y - ht; return [[-0.3, 0.42], [-0.12, 0.7], [0.2, 0.62], [0.3, 0.4], [0.05, 0.12]].map(([dx, dy]) => [mk.x + dx * h * 0.62, ht + dy * h + 9]); };
       const step = (i) => () => { const q = fur()[i]; f.onFur = true; f.pose = 'brush'; f.poseUntil = t + 9; moveTo(f, q[0], q[1], 70, i ? 4 : 26); AUDIO.play('brush'); for (let k = 0; k < 4; k++) HOME.fx.spawn('spark', q[0] + rnd(-8, 8), q[1] - rnd(0, 10), { vy: -18, life: 0.6 }); if (i === 1) HOME.face('happy', 'smile', 3, { blush: 1 }); return f.path.dur + 0.12; };
       run(id, [...Fd.spGo, () => { AUDIO.play('jingle'); hop(f, 80); return 0.2; }, step(0), step(1), step(2), step(3), step(4),
         () => { GAME.friendSpecial(id); gain('+25', 'clean'); HOME.act('hop'); AUDIO.play('chirr'); for (let k = 0; k < 10; k++) HOME.fx.spawn('spark', HOME.mk.x + rnd(-24, 24), HOME.mk.y - rnd(10, 80), { vy: -26, life: 0.8 }); return 0.4; },
-        ...Fd.spDone, () => { f.poseUntil = 0; f.onFur = false; return back(); }]);
+        ...Fd.spDone, () => { f.poseUntil = 0; f.onFur = false; return back(); }], ensureBack);
     } else if (id === 'monty') {
-      run(id, [...pick(Fd.stories), () => { GAME.friendSpecial(id); gain('+14', 'fun'); HOME.act('hop'); return 0.2; }, ...Fd.spDone]);
+      run(id, [...pick(Fd.stories), () => { GAME.friendSpecial(id); gain('+14', 'fun'); HOME.act('hop'); return 0.2; }, ...Fd.spDone], ensureBack);
     } else {
       run(id, [...Fd.spGo, () => { const [sx, sy] = shoulder(); moveTo(f, sx - 7, sy + 23, 80, 0); return f.path.dur + 0.1; },
         () => { f.pose = 'bite'; f.poseUntil = t + 0.9; AUDIO.play('bite'); HOME.face('wide', 'o', 0.6); const [sx, sy] = shoulder(); HOME.fx.spawn('ring', sx, sy, { r0: 2, r1: 10, life: 0.35, c: '#ffffff' });
           later(0.18, () => { if (f.room !== HOME.room) return; AUDIO.play('puk'); UI.hideBubble(); const q = speakerPos(id); if (q) { bub = { who: id }; UI.fbubble(Fd.spPuk, q.x, q.y, 1500); } }); return 0.9; }, // Round 7 #1: «Пук!» in a text bubble, not only the sound
         () => { GAME.friendSpecial(id); gain('+35', 'energy'); HOME.hop(130); for (let k = 0; k < 10; k++) HOME.fx.spawn('spark', HOME.mk.x + rnd(-24, 24), HOME.mk.y - rnd(10, 80), { vy: -30, life: 0.8 }); return 0.5; },
-        ...Fd.spDone, back]);
+        ...Fd.spDone, back], ensureBack);
     }
     return 'ok';
   }
@@ -599,6 +621,12 @@ const FRIENDS = (() => {
     if (f.jy < 0 || f.vy) { f.vy += 700 * dt; f.jy += f.vy * dt; if (f.jy >= 0) { f.jy = 0; f.vy = 0; } }
     f.blinkT -= dt; if (f.blinkT < -0.13) f.blinkT = rnd(2.5, 5.5);
     if (!scene || scene.id !== f.id) { f.idleT -= dt; if (f.idleT <= 0 && !f.path && t > f.poseUntil) { f.idleT = rnd(6, 12); const P = { pusya: ['wash', 'happy', 'idle'], monty: ['think', 'happy', 'idle'], mosq: ['happy', 'idle'], zhuk: ['happy', 'idle', 'idle'] }[f.id] || ['idle']; f.pose = pick(P); f.poseUntil = t + rnd(1.4, 2.4); if (f.id !== 'monty' && Math.random() < 0.5) { f.look = [pick([-1, 0, 1]), pick([-1, 0, 0])]; f.lookUntil = t + 2; } } }
+    if (f.mode === 'home' && !f.path && (!scene || scene.id !== f.id) && !party && !f.onFur && !f.ride && f.room === HOMES[f.id].room) {
+      const hx = HOMES[f.id].x, hy = HOMES[f.id].y;
+      if (Math.hypot(f.x - hx, f.y - hy) > 8) {
+        walkTo(f, hx, hy, FLY[f.id] ? 70 : 60, FLY[f.id] ? 0 : (Math.abs(hy - f.y) > 20 ? 18 : 0));
+      }
+    }
   }
   function tickPillow(p, dt) {
     if (p.anim) { p.anim.t += dt; if (p.anim.t >= p.anim.seq.length * 0.06) p.anim = null; }
@@ -708,7 +736,6 @@ const FRIENDS = (() => {
         if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P, (d) => d.y <= f.y);
         drawFriend(c, P, f); drawMood(P, f);
       }
-      if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P);
     } else if (layer === 'hug' && asleep) { drawPillow(c, P, PIL.carrot, true); hugPaws(P); }
     else if (layer === 'top') drawParty(c, P);
   }

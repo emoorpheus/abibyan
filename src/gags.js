@@ -111,7 +111,8 @@ const GAGS = (() => {
         if (r === 'balcony' && !w.plane && w.cold > 6) { w.plane = true; planeIn(); }
       }
       const ssn = winSeason();
-      const coldMax = ssn === 'winter' ? 2.5 : ssn === 'autumn' ? 14 : 40;
+      if (ssn !== 'winter') continue; // only winter cold breeze triggers window closing
+      const coldMax = 2.5;
       if (w.cold >= coldMax && !w.said) {
         w.said = true;
         if (here(r) && !zzz()) {
@@ -135,36 +136,32 @@ const GAGS = (() => {
             }
           } catch (e) {}
 
-          const friendCloses = friendInRoom && Math.random() < 0.65;
-          if (friendCloses) {
+          if (friendInRoom) {
             friendInRoom.pose = 'talk';
             friendInRoom.poseUntil = t + 2.0;
             const frLines = {
-              monty: ['Брр! Холодно, закрою!', 'Ой, сквозняк! Закрываю.'],
-              pusya: ['Мяу, дует же! Закрою.', 'Брр! Холодно, лапки мёрзнут!'],
-              zhuk: ['Ж-ж-холодно! Закрою окно!', 'Брр! Мороз! Закрываю.'],
-              mosq: ['З-з-закрою окно! Холодно!', 'Брр, крылышки мерзнут!']
+              monty: ['Брр! Ну и сквозняк…', 'Бу-бу… прохладно старику стало…', 'Бу-бу… зябко! Закрыть бы окошко…'],
+              pusya: ['Мяу… прохладно, лапки мёрзнут…', 'Брр… дует же!'],
+              zhuk: ['Ж-ж-холодно…', 'Брр! Мороз!'],
+              mosq: ['З-з-з… крылышки мерзнут!', 'З-з… сквозняк!']
             };
-            const fLine = pick(frLines[friendInRoom.id] || ['Брр! Закрою окно!']);
+            const fLine = pick(frLines[friendInRoom.id] || ['Брр! Холодно…']);
             UI.fbubble(fLine, friendInRoom.x, friendInRoom.headY || (friendInRoom.y - 30), 2.2);
             sfx(friendInRoom.id === 'monty' ? 'monty' : friendInRoom.id === 'pusya' ? 'cat' : 'pop');
-            later(1.8, () => {
-              winClose(r);
-              UI.fhideBubble();
-            });
-          } else {
-            line('g_cold');
-            later(0.6, () => {
-              if (w.want) {
-                if (typeof HOME !== 'undefined' && HOME.closeWindow && (r === 'balcony' || r === 'zal')) {
-                  const ok = HOME.closeWindow(r);
-                  if (!ok && w.want) winClose(r);
-                } else if (w.want) {
-                  winClose(r);
-                }
-              }
-            });
           }
+
+          // Monkey always closes the window herself!
+          line('g_cold');
+          later(friendInRoom ? 1.0 : 0.6, () => {
+            if (w.want) {
+              if (typeof HOME !== 'undefined' && HOME.closeWindow && (r === 'balcony' || r === 'zal')) {
+                const ok = HOME.closeWindow(r);
+                if (!ok && w.want) winClose(r);
+              } else if (w.want) {
+                winClose(r);
+              }
+            }
+          });
         } else {
           w.want = 0;
           if (r === 'zal' && pig) pig = null;

@@ -92,25 +92,25 @@ const DATA = (() => {
   // decor: kind 'wall' | 'floor' | 'item'; for items: key in home.items and value
   const DECOR = {
     // kitchen:
-    cactus: { kind: 'item', room: 'kitchen', key: 'cactus', v: 1, name: 'Кактус', desc: 'Колючий! Лучше не трогать', price: 35, lvl: 1 },
+    cactus: { kind: 'item', room: 'kitchen', key: 'cactus', v: 1, name: 'Кактус', desc: 'Колючий! Лучше не трогать', price: 35, lvl: 1, noShop: 1 },
     candles: { kind: 'item', room: 'kitchen', key: 'candles', v: 1, name: 'Свечи на стол', desc: 'Зажги, а потом задуй и загадай желание', price: 35, lvl: 1 },
     magnets: { kind: 'item', room: 'kitchen', key: 'magnets', v: 1, name: 'Магнитики', desc: 'На дверцу холодильника', price: 40, lvl: 1 },
     kettle: { kind: 'item', room: 'kitchen', key: 'kettle', v: 1, name: 'Чайник Polaris', desc: 'Стеклянный, с подсветкой. Тапни — закипит', price: 40, lvl: 1 },
-    clock: { kind: 'item', room: 'kitchen', key: 'clock', v: 1, name: 'Часы (идут!)', desc: 'Настоящее время и кукушка', price: 70, lvl: 2 },
+    clock: { kind: 'item', room: 'kitchen', key: 'clock', v: 1, name: 'Часы (идут!)', desc: 'Настоящее время и кукушка', price: 70, lvl: 2, noShop: 1 },
     lamp: { kind: 'item', room: 'kitchen', key: 'lamp', v: 1, name: 'Торшер', desc: 'Тёплый свет на кухне', price: 90, lvl: 2 },
     micro: { kind: 'item', room: 'kitchen', key: 'micro', v: 1, name: 'Микроволновка', desc: 'Гудит, крутит тарелку и звенит «дзынь!»', price: 90, lvl: 2 },
-    disco: { kind: 'item', room: 'kitchen', key: 'disco', v: 1, name: 'Диско-шар', desc: 'Цветные зайчики по стенам', price: 250, lvl: 5 },
+    disco: { kind: 'item', room: 'kitchen', key: 'disco', v: 1, name: 'Диско-шар', desc: 'Цветные зайчики по стенам', price: 250, lvl: 5, noShop: 1 },
 
     // zal:
-    poster: { kind: 'item', room: 'zal', key: 'poster', v: 1, name: 'Постер', desc: 'У него отклеивается уголок', price: 50, lvl: 1 },
-    nightlight: { kind: 'item', room: 'zal', key: 'nightlight', v: 1, name: 'Ночник-звёздочка', desc: 'Звёзды на потолке ночью', price: 60, lvl: 1 },
-    garland: { kind: 'item', room: 'zal', key: 'garland', v: 1, name: 'Гирлянда', desc: 'Тапни — сменит огоньки', price: 120, lvl: 3 },
+    poster: { kind: 'item', room: 'zal', key: 'poster', v: 1, name: 'Постер', desc: 'У него отклеивается уголок', price: 50, lvl: 1, noShop: 1 },
+    nightlight: { kind: 'item', room: 'zal', key: 'nightlight', v: 1, name: 'Ночник-звёздочка', desc: 'Звёзды на потолке ночью', price: 60, lvl: 1, noShop: 1 },
+    garland: { kind: 'item', room: 'zal', key: 'garland', v: 1, name: 'Гирлянда', desc: 'Тапни — сменит огоньки', price: 120, lvl: 3, noShop: 1 },
     guitar: { kind: 'item', room: 'zal', key: 'guitar', v: 1, name: 'Гитара в чехле', desc: 'Сыграет, как умеет. Открыть чехол — с «Детёныша»', price: 150, lvl: 2 },
 
     // bath:
     duck: { kind: 'item', room: 'bath', key: 'duck', v: 1, name: 'Резиновая уточка', desc: 'Плавает в ванне', price: 30, lvl: 1 },
-    bathmat: { kind: 'item', room: 'bath', key: 'bathmat', v: 1, name: 'Коврик', desc: 'Мягко лапкам после душа', price: 45, lvl: 1 },
-    fern: { kind: 'item', room: 'bath', key: 'fern', v: 1, name: 'Папоротник', desc: 'В нём кто-то живёт…', price: 55, lvl: 2 },
+    bathmat: { kind: 'item', room: 'bath', key: 'bathmat', v: 1, name: 'Коврик для ванны', desc: 'Мягко лапкам перед душем', price: 45, lvl: 1 },
+    fern: { kind: 'item', room: 'bath', key: 'fern', v: 1, name: 'Папоротник', desc: 'В нём кто-то живёт…', price: 55, lvl: 2, noShop: 1 },
     washer: { kind: 'item', room: 'bath', key: 'washer', v: 1, name: 'Стиральная машина', desc: 'Стирает, полощет и отжимает под раковиной', price: 180, lvl: 3 },
 
     // hall:
@@ -133,7 +133,7 @@ const DATA = (() => {
     telescope: { kind: 'item', room: 'balcony', key: 'telescope', v: 1, name: 'Телескоп', desc: 'Смотреть на звёзды', price: 240, lvl: 5 },
 
     // tech:
-    soundbar: { kind: 'item', room: 'zal', key: 'soundbar', v: 1, name: 'Саундбар JBL Bar 1000', desc: 'Мощный звук для телевизора', price: 800, lvl: 6, need: 'tv', tech: 1, fixed: 1 },
+    soundbar: { kind: 'item', room: 'zal', key: 'soundbar', v: 1, name: 'Sony BRAVIA Theater Bar 8', desc: 'Премиальный объёмный звук для ТВ', price: 800, lvl: 6, need: 'tv', tech: 1, fixed: 1 },
     switch2: { kind: 'item', room: 'zal', key: 'switch2', v: 1, name: 'Nintendo Switch 2', desc: 'Приставка к телевизору. Игра «Супер Абибян»', price: 1600, lvl: 7, need: 'tv', tech: 1, fixed: 1 },
     ps5: { kind: 'item', room: 'zal', key: 'ps5', v: 1, name: 'PS5 Pro', desc: 'Мощная приставка к телевизору. Игра «Банановые гонки»', price: 2400, lvl: 8, need: 'tv', tech: 1, fixed: 1 },
   };
