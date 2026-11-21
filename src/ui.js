@@ -4,6 +4,8 @@ const UI = (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
   const U = (n) => `calc(var(--u)*${n})`;
+  const UX = (n) => `calc(var(--ux,var(--u))*${n})`;
+  const UY = (n) => `calc(var(--uy,var(--u))*${n})`;
   const I = (id) => ART.url('i', id), F = (id) => ART.url('f', id);
   const im = (src, cls = 'px') => `<img class="${cls}" src="${src}" draggable="false" alt="">`;
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -138,11 +140,11 @@ const UI = (() => {
   function homeVisible(v) { hud.classList.toggle('hidden', !v); bar.classList.toggle('hidden', !v); }
   // ---- fx ----
   function toast(text, icon, cls = '', ms = 3000) { const t = el('div', 'toast notch ' + cls, (icon ? im(icon) : '') + `<span>${esc(text)}</span>`); toasts.appendChild(t); while (toasts.children.length > 3) toasts.firstChild.remove(); setTimeout(() => t.remove(), ms); }
-  function float(x, y, text, icon) { const f = el('div', 'float', (icon ? im(icon) : '') + `<span>${esc(text)}</span>`); f.style.left = U(x); f.style.top = U(y); fx.appendChild(f); setTimeout(() => f.remove(), 1150); }
+  function float(x, y, text, icon) { const f = el('div', 'float', (icon ? im(icon) : '') + `<span>${esc(text)}</span>`); f.style.left = UX(x); f.style.top = UY(y); fx.appendChild(f); setTimeout(() => f.remove(), 1150); }
   // speech bubbles: the monkey's (.bubble) + one for friends/pillows (.bubble.fb), each follows its speaker
   function mkBubble(cls) {
     let b = null, until = 0;
-    function pos(x, y) { const u = APP.lay.u || 2, half = (b._w || 0) / 2 / u, cx = Math.max(half + 2, Math.min(180 - half - 2, x)); b.style.left = U(cx); b.style.top = U(y); b.style.setProperty('--tx', U(Math.max(-(half - 5), Math.min(half - 5, x - cx)))); }
+    function pos(x, y) { const u = APP.lay.ux || APP.lay.u || 2, half = (b._w || 0) / 2 / u, cx = Math.max(half + 2, Math.min(180 - half - 2, x)); b.style.left = UX(cx); b.style.top = UY(y); b.style.setProperty('--tx', UX(Math.max(-(half - 5), Math.min(half - 5, x - cx)))); }
     return {
       show(text, x, y, dur = 2600) { if (!b) { b = el('div', cls, '<div class="bi notch"></div>'); fx.appendChild(b); } b.firstChild.textContent = text; b.classList.remove('hidden'); b.style.animation = 'none'; b._w = b.offsetWidth; pos(x, y); b.style.animation = ''; until = performance.now() + dur; },
       tick(x, y) { if (!b) return false; if (performance.now() > until) { b.classList.add('hidden'); return false; } pos(x, y); return !b.classList.contains('hidden'); },
@@ -158,7 +160,7 @@ const UI = (() => {
     if (!w) { if (wantEl) wantEl.classList.add('hidden'); return; }
     if (!wantEl) { wantEl = el('div', 'want'); view.insertBefore(wantEl, fx); /* Round 6: under #fx — speech bubbles stay on top */ wantEl.onclick = () => { click(); const w2 = S().want; if (w2) toast(wantText(w2) + ' Награда: 3 монеты', wantIcon(w2)); }; }
     const icon = wantIcon(w), key = w.type + (w.id || '') + (w.prog || 0); if (wantEl._k !== key) { wantEl._k = key; wantEl.innerHTML = '<div class="wi notch">' + im(icon) + ((w.type === 'pet' || w.type === 'tickle') ? `<span class="pr">${w.prog || 0}/${w.type === 'pet' ? 5 : 3}</span>` : '') + '</div>'; }
-    wantEl.classList.remove('hidden'); wantEl.classList.toggle('l', side === 1); wantEl.classList.toggle('c', side === 2); wantEl.style.left = U(x); wantEl.style.top = U(y);
+    wantEl.classList.remove('hidden'); wantEl.classList.toggle('l', side === 1); wantEl.classList.toggle('c', side === 2); wantEl.style.left = UX(x); wantEl.style.top = UY(y);
   }
   const wantIcon = (w) => w.type === 'food' ? F(w.id) : I({ play: 'game', pet: 'heart', wash: 'soap', harvest: 'tree', tickle: 'fun' }[w.type] || 'star');
   const wantText = (w) => w.type === 'food' ? `${S().name} хочет: ${DATA.FOODS[w.id].name.toLowerCase()}!` : { play: 'Хочет поиграть в мини-игру!', pet: 'Хочет, чтобы его погладили по голове (5 раз).', wash: 'Хочет помыться с мылом!', harvest: 'Хочет банан прямо с дерева во дворе!', tickle: 'Хочет, чтобы его пощекотали за пузико (3 раза).' }[w.type];
@@ -369,9 +371,11 @@ const UI = (() => {
     let sa = false; try { sa = n.standalone === true || (!!window.matchMedia && matchMedia('(display-mode: standalone)').matches); } catch (e) { }
     return (platC = { ios, standalone: sa, web: /^https?:$/.test(location.protocol) }); }
   function openSettings() {
-    const s = S(); const w = modal(`<h2>Настройки</h2>
+    const s = S(); const isFill = s.settings.screenMode === 'fill';
+    const w = modal(`<h2>Настройки</h2>
       <div class="toggle"><span>Звуки</span><button class="btn sm ${s.settings.sfx ? 'g' : 'w'}" id="t-sfx">${s.settings.sfx ? 'Вкл' : 'Выкл'}</button></div>
       <div class="toggle"><span>Музыка</span><button class="btn sm ${s.settings.music ? 'g' : 'w'}" id="t-mus">${s.settings.music ? 'Вкл' : 'Выкл'}</button></div>
+      <div class="toggle"><span>Режим экрана</span><button class="btn sm ${isFill ? 'b' : 'g'}" id="t-screen">${isFill ? 'Заполнить' : 'Растянуть'}</button></div>
       <div class="bt"><button class="btn" id="t-name">Переименовать</button><button class="btn" id="t-help">Как играть</button></div>
       <div class="bt"><button class="btn g" id="t-album">Альбом</button><button class="btn b" id="t-prof">Профиль</button></div>
       <p style="font-size:${U(6.5)};opacity:.75;margin-bottom:0">Перенос прогресса на другое устройство:</p><div class="bt"><button class="btn" id="t-exp">Получить код</button><button class="btn" id="t-imp">Ввести код</button></div>
@@ -382,6 +386,15 @@ const UI = (() => {
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { $('#' + id, w).onclick = () => { s.settings[key] = !s.settings[key]; AUDIO.set(key, s.settings[key]); AUDIO.play('click'); GAME.save(true); closeModal(w); openSettings(); }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
+    const ts = $('#t-screen', w);
+    if (ts) ts.onclick = () => {
+      s.settings.screenMode = isFill ? 'stretch' : 'fill';
+      AUDIO.play('click');
+      GAME.save(true);
+      if (typeof APP !== 'undefined' && APP.setScreenMode) APP.setScreenMode(s.settings.screenMode);
+      closeModal(w);
+      openSettings();
+    };
     $('#t-name', w).onclick = () => { click(); closeModal(w); askName(); };
     $('#t-help', w).onclick = () => { click(); closeModal(w); help(); };
     $('#t-album', w).onclick = () => { click(); closeModal(w); openAlbum(); };

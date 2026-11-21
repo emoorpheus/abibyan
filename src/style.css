@@ -339,17 +339,35 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .hs .hn{position:absolute;top:1u;left:1.5u;font-size:5u;opacity:.7}
 .hs .hq{font-style:normal;font-size:10u;line-height:12u;height:12u;display:flex;align-items:center;justify-content:center;color:#e0407a}
 .hs .hq img{width:9u;height:9u;opacity:.6}
-/* Round 25: the whole phone screen — #ext (FILL) draws the room's surroundings behind the stage; no frame, no backdrop */
+/* Round 25 & Round 41: Screen Modes (Stretch vs Proportional Fill) */
 #ext{position:absolute;left:0;top:0;display:none;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
-.fill #ext{display:block;will-change:transform} /* its own layer: the room's every frame does not repaint it (r20 perf) */
-.fill #app{padding:0;background:none}
-.fill #app:before{display:none}
-.fill #stage{background:none;box-shadow:none;height:100%}
-.fill #cv{box-shadow:none}
-.fill #hud{top:max(2u,env(safe-area-inset-top,0px))}
-.fill #bar{bottom:max(3u,env(safe-area-inset-bottom,0px))}
-.fill.tall #hud .name{text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433}
-.fill.tall #ghint{color:#fff4e2;text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433}
+
+/* Common Safe-Area Positioning for both Fullscreen variations */
+.mode-stretch #hud,.mode-fill #hud,.fill #hud{top:max(2u,calc(env(safe-area-inset-top,0px) + 6px))!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
+.mode-stretch #bar,.mode-fill #bar,.fill #bar{bottom:max(3u,calc(env(safe-area-inset-bottom,0px) + 6px))!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
+.mode-stretch #ghud,.mode-fill #ghud,.fill #ghud{top:max(2u,calc(env(safe-area-inset-top,0px) + 6px))!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
+.mode-stretch .gbtns,.mode-fill .gbtns,.fill .gbtns{bottom:max(6u,calc(env(safe-area-inset-bottom,0px) + 8px))!important}
+.mode-stretch #sheet,.mode-fill #sheet,.fill #sheet{padding-bottom:max(env(safe-area-inset-bottom,0px),8px)!important}
+.mode-stretch #toasts,.mode-stretch #roomt,.mode-fill #toasts,.mode-fill #roomt{top:max(44u,calc(env(safe-area-inset-top,0px) + 48px))!important}
+
+/* Variation 1: Full Stretch (Растянуть во весь экран) */
+.mode-stretch #app{padding:0!important;background:#2a1a27!important}
+.mode-stretch #app:before{display:none!important}
+.mode-stretch #stage{position:absolute!important;inset:0!important;width:100vw!important;height:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;background:none!important;margin:0!important}
+.mode-stretch #cv{position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;box-shadow:none!important;object-fit:fill!important}
+.mode-stretch #view{position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important}
+.mode-stretch #ext{display:none!important}
+.mode-stretch #ui #gift{top:0!important;height:100%!important}
+
+/* Variation 2: Proportional Smart Fill (Заполнить с пропорциями 1:1) */
+.mode-fill #app,.fill #app{padding:0!important;background:none!important}
+.mode-fill #app:before,.fill #app:before{display:none!important}
+.mode-fill #stage,.fill #stage{position:relative!important;width:100vw!important;height:100%!important;max-width:none!important;box-shadow:none!important;background:none!important}
+.mode-fill #cv,.fill #cv{position:absolute!important;left:calc((100vw - 180 * var(--u)) / 2)!important;top:var(--ct,0px)!important;width:calc(180 * var(--u))!important;height:calc(320 * var(--u))!important;box-shadow:none!important}
+.mode-fill #view,.fill #view{position:absolute!important;left:calc((100vw - 180 * var(--u)) / 2)!important;top:var(--ct,0px)!important;width:calc(180 * var(--u))!important;height:calc(320 * var(--u))!important}
+.mode-fill #ext,.fill #ext{display:block!important;will-change:transform}
+.fill.tall #hud .name,.mode-fill.tall #hud .name{text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433}
+.fill.tall #ghint,.mode-fill.tall #ghint{color:#fff4e2;text-shadow:0 1u 0 #3b2433,1u 0 0 #3b2433,-1u 0 0 #3b2433,0 -1u 0 #3b2433}
 
 /* Restaurant ticket modal */
 .ticket-view-modal{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,sans-serif;width:100%;text-align:center;padding:2u 1u}

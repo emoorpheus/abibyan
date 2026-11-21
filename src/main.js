@@ -12,23 +12,69 @@ const APP = (() => {
     if (!saProbe) { saProbe = document.createElement('div'); saProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'; document.body.appendChild(saProbe); }
     const c = getComputedStyle(saProbe); return { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 };
   }
+  function isStandalone() {
+    try { return navigator.standalone === true || (!!window.matchMedia && matchMedia('(display-mode: standalone)').matches); } catch (e) { return false; }
+  }
+  function isMobileView() {
+    return isStandalone() || window.innerHeight >= window.innerWidth * 1.05;
+  }
+  function getScreenMode() {
+    const s = (typeof GAME !== 'undefined' && GAME.S) ? GAME.S : null;
+    if (s && s.settings && s.settings.screenMode) return s.settings.screenMode;
+    return isStandalone() ? 'stretch' : 'fill';
+  }
+  function setScreenMode(m) {
+    if (typeof GAME !== 'undefined' && GAME.S && GAME.S.settings) {
+      GAME.S.settings.screenMode = m;
+    }
+    fit();
+  }
   function fit() {
-    const sa = safeArea(); const vw = window.innerWidth - sa.l - sa.r, vh = window.innerHeight - sa.t - sa.b, dpr = window.devicePixelRatio || 1;
-    // integer device pixels per art pixel when it costs little size (skill pixel-art: non-integer scale = uneven pixels)
+    const sa = safeArea(); const vw = window.innerWidth, vh = window.innerHeight, dpr = window.devicePixelRatio || 1;
     const snap = (u) => { const k = u * dpr, f = Math.floor(k); if (f >= 1 && f / k >= (k < 4 ? 0.8 : 0.94)) return f / dpr; return u; };
-    let u = snap(Math.min(vw / 180, vh / 320));
-    const uX = snap(Math.min(vw / 180, vh / (320 + HUD_H + BAR_H)));
-    if (vh / u - 320 < HUD_H * 0.7 && uX >= u * 0.88) u = uX;   // prefer moving the HUD out if it costs <12% size
-    u = Math.max(0.5, u);
-    const sat = sa.t > 0 ? Math.ceil(sa.t / u) : 0;
-    const extra = Math.max(0, Math.min(vh / u - 320, HUD_H + BAR_H));
-    const ct = sat > 0 ? Math.min(HUD_H, sat) : (extra >= HUD_H * 0.7 ? Math.min(HUD_H, extra) : 0);
-    const cb = sat > 0 ? Math.max(0, Math.min(BAR_H, Math.floor(window.innerHeight / u - 320 - ct))) : Math.max(0, Math.min(BAR_H, extra - ct));
-    lay = { ct, cb, u };
-    const st = document.documentElement.style;
-    st.setProperty('--u', u + 'px'); st.setProperty('--ct', (ct * u) + 'px'); st.setProperty('--sh', ((320 + ct + cb) * u) + 'px');
-    document.documentElement.classList.toggle('tall', ct > 0);
-    if (typeof FILL !== 'undefined') FILL.layout(u); // Round 25: the room's surroundings over the rest of the phone's screen
+    const st = document.documentElement.style; const cl = document.documentElement.classList;
+
+    if (!isMobileView()) {
+      cl.remove('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill');
+      let u = snap(Math.min(vw / 180, vh / 320));
+      const uX = snap(Math.min(vw / 180, vh / (320 + HUD_H + BAR_H)));
+      if (vh / u - 320 < HUD_H * 0.7 && uX >= u * 0.88) u = uX;
+      u = Math.max(0.5, u);
+      const extra = Math.max(0, Math.min(vh / u - 320, HUD_H + BAR_H));
+      const ct = extra >= HUD_H * 0.7 ? Math.min(HUD_H, extra) : 0;
+      const cb = Math.max(0, Math.min(BAR_H, extra - ct));
+      st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
+      st.setProperty('--ct', (ct * u) + 'px'); st.setProperty('--sh', ((320 + ct + cb) * u) + 'px');
+      lay = { ct, cb, u, ux: u, uy: u, mode: 'desk' };
+      cl.toggle('tall', ct > 0);
+      if (typeof FILL !== 'undefined') FILL.layout(u);
+      return;
+    }
+
+    const mode = getScreenMode();
+    if (mode === 'stretch') {
+      cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
+      let u = snap(Math.min(vw / 180, vh / 320)); u = Math.max(0.5, u);
+      const ux = vw / 180, uy = vh / 320;
+      st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
+      st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
+      lay = { ct: 0, cb: 0, u, ux, uy, mode: 'stretch' };
+      if (typeof FILL !== 'undefined') FILL.layout(u);
+    } else {
+      cl.add('mode-fill'); cl.remove('mode-stretch');
+      const sat = sa.t > 0 ? sa.t : 0;
+      let u = snap(Math.min(vw / 180, vh / 320));
+      const uX = snap(Math.min(vw / 180, vh / (320 + HUD_H + BAR_H)));
+      if (vh / u - 320 < HUD_H * 0.7 && uX >= u * 0.88) u = uX;
+      u = Math.max(0.5, u);
+      const ctU = sat > 0 ? Math.ceil(sat / u) : (vh / u - 320 >= HUD_H * 0.7 ? Math.min(HUD_H, Math.floor((vh / u - 320) * 0.45)) : 0);
+      const cbU = sat > 0 ? Math.max(0, Math.floor((vh - sat - 320 * u) / u)) : Math.max(0, Math.floor((vh - 320 * u) / u - ctU));
+      st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
+      st.setProperty('--ct', (ctU * u) + 'px'); st.setProperty('--sh', vh + 'px');
+      lay = { ct: ctU, cb: cbU, u, ux: u, uy: u, mode: 'fill' };
+      cl.toggle('tall', ctU > 0);
+      if (typeof FILL !== 'undefined') FILL.layout(u);
+    }
   }
   function toLogical(cx, cy) { const r = cv.getBoundingClientRect(); return { x: (cx - r.left) / r.width * 180, y: (cy - r.top) / r.height * 320 }; }
   function setScene(s) { scene = s; }
@@ -151,7 +197,7 @@ const APP = (() => {
   function boot() {
     fit(); window.addEventListener('resize', fit); if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
     cv = document.getElementById('cv'); cv.width = 180; cv.height = 320; ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
-    GAME.load(); away = GAME.catchUp(); const s = GAME.S;
+    GAME.load(); away = GAME.catchUp(); const s = GAME.S; fit();
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then((p) => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
     AUDIO.set('sfx', s.settings.sfx); AUDIO.set('music', s.settings.music);
     UI.init(); HOME.init(); HOME.fontsReady(); bindInput(); if (window.ABI_TEST) setTimeout(() => { const T = window.ABI_TEST, rich = !!(T.coins || T.top); const msg = T.shifted ? (rich ? 'Тестовая версия: сегодня 21.11, 100 000 монет, своё сохранение. Заново — в настройках' : 'Репетиция 21.11: чистый запуск без бонусов. Заново — в настройках') : (rich ? 'Тестовая версия: 100 000 монет, макс. уровень, своё сохранение' : 'Тестовая версия: своё сохранение'); UI.toast(msg, UI.I(rich ? 'coin' : 'star'), 'gold', 4200); }, 1200); GAME.on(onGame); SEASONS.check(); lastWantK = s.want ? s.want.type + (s.want.id || '') + s.want.until : '';
@@ -176,7 +222,7 @@ const APP = (() => {
     if (scene === 'home' && typeof GAGS !== 'undefined') o.gags = GAGS.info();
     return JSON.stringify(o);
   }
-  return { fps: () => ({ target: fpsT, renders }), boot, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
+  return { fps: () => ({ target: fpsT, renders }), boot, fit, setScreenMode, get screenMode() { return getScreenMode(); }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
 })();
 window.__game = { GAME, HOME, MINI, UI, AUDIO, APP, SPR, DATA, ROOMS, FILL, FART: typeof FART !== 'undefined' ? FART : null, FRIENDS: typeof FRIENDS !== 'undefined' ? FRIENDS : null, GAGS: typeof GAGS !== 'undefined' ? GAGS : null, ALBUM: typeof ALBUM !== 'undefined' ? ALBUM : null, TUT: typeof TUT !== 'undefined' ? TUT : null, ZAL: typeof ZAL !== 'undefined' ? ZAL : null, HALL: typeof HALL !== 'undefined' ? HALL : null, DUCKS: typeof DUCKS !== 'undefined' ? DUCKS : null, ROUTINE: typeof ROUTINE !== 'undefined' ? ROUTINE : null, ART, TOUR: typeof TOUR !== 'undefined' ? TOUR : null, DASHA };
 window.advanceTime = (ms) => APP.advance(ms); window.render_game_to_text = () => APP.textState();

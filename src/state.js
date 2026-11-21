@@ -21,7 +21,7 @@ const GAME = (() => {
     grow: { pts: 0, stage: 0, seen: 0, day: '', today: 0, src: {}, capped: 0, days: 0, born: Date.now(), party: 0 }, // party: Round 17 — the growth party still to come (stage)
     tasks: { day: '', list: [], base: {}, bonus: 0 },
     ach: {}, daily: { last: '', streak: 0, best: 0 }, tree: { n: 2, t: Date.now(), water: 0 },
-    want: null, nextWant: Date.now() + 90e3, settings: { sfx: true, music: true }, hint: { ios: 0 }, tut: 0,
+    want: null, nextWant: Date.now() + 90e3, settings: { sfx: true, music: true, screenMode: 'stretch' }, hint: { ios: 0 }, tut: 0,
     // friends: chats, duel wins/losses, special cooldown (ms timestamp); visitAt = last visit start
     friends: { pusya: FDEF(), monty: FDEF(), mosq: FDEF(), zhuk: FDEF(), visitAt: 0, partyAt: 0, partyDay: '' },
     // Round 5 D: once-a-day gags (day strings): the coin in the sofa, the parcel at the door, the first (burnt) pancake, the desk stash
@@ -66,6 +66,8 @@ const GAME = (() => {
     if (S.v === 6) S.v = 7;
     // v7 → v8 (Round 13): the tutorial got a tour after the phone — a save that had finished the old 4 steps is done, no tour
     if (S.v === 7) { if (S.tut >= 4) S.tut = DATA.TUT.length; S.v = 8; }
+    if (!S.settings) S.settings = { sfx: true, music: true, screenMode: 'stretch' };
+    if (!S.settings.screenMode) S.settings.screenMode = 'stretch';
     flat();
   }
   const HALL10 = { art_painting: 70, art_carpet: 160, plant: 60 };
