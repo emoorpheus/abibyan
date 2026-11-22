@@ -111,12 +111,19 @@ html = f'''<!doctype html>
 function pwa() {{
   var l = document.createElement('link'); l.rel = 'manifest'; l.href = 'manifest.webmanifest'; document.head.appendChild(l);
   var i = document.createElement('link'); i.rel = 'icon'; i.href = 'icon-192.png'; document.head.appendChild(i);
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) {{ try {{ reg.update(); }} catch (e) {{}} }}).catch(function () {{}});
+  if ('serviceWorker' in navigator) {{
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {{
+      if (!refreshing) {{ refreshing = true; window.location.reload(); }}
+    }});
+    navigator.serviceWorker.register('sw.js?v=49').then(function (reg) {{
+      try {{ reg.update(); }} catch (e) {{}}
+    }}).catch(function () {{}});
+  }}
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {{}});
 }}
 if (/^https?:$/.test(location.protocol)) {{
-  if (navigator.serviceWorker && navigator.serviceWorker.controller) pwa();
-  else fetch('manifest.webmanifest', {{ method: 'HEAD', cache: 'no-store' }}).then(function (r) {{ if (r.ok) pwa(); }}).catch(function () {{}});
+  pwa();
 }}
 </script></body></html>'''
 ver = hashlib.sha1((html + vblocks).encode()).hexdigest()[:10]
@@ -195,7 +202,7 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v48-fullscreen-%s';
+sw = '''const CACHE = 'abibyan-v49-fullscreen-%s';
 const CORE = ['./', './index.html', './manifest.webmanifest', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -213,7 +220,9 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  e.respondWith(fetch(r).then((res) => {
+  const isHtml = r.mode === 'navigate' || r.url.endsWith('index.html') || r.url.endsWith('/') || (r.headers.get('accept') && r.headers.get('accept').includes('text/html'));
+  const req = isHtml ? new Request(r.url, { cache: 'no-cache' }) : r;
+  e.respondWith(fetch(req).then((res) => {
     if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
     return res;
   }).catch(() => caches.match(r, { ignoreSearch: true })));

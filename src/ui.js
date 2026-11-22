@@ -376,17 +376,39 @@ const UI = (() => {
       <div class="toggle"><span>Звуки</span><button class="btn sm ${s.settings.sfx ? 'g' : 'w'}" id="t-sfx">${s.settings.sfx ? 'Вкл' : 'Выкл'}</button></div>
       <div class="toggle"><span>Музыка</span><button class="btn sm ${s.settings.music ? 'g' : 'w'}" id="t-mus">${s.settings.music ? 'Вкл' : 'Выкл'}</button></div>
       <div class="bt"><button class="btn" id="t-name">Переименовать</button><button class="btn" id="t-help">Как играть</button></div>
+      <div class="bt"><button class="btn g" id="t-update">🔄 Обновить приложение</button></div>
       <div class="bt"><button class="btn g" id="t-album">Альбом</button><button class="btn b" id="t-prof">Профиль</button></div>
       <p style="font-size:${U(6.5)};opacity:.75;margin-bottom:0">Перенос прогресса на другое устройство:</p><div class="bt"><button class="btn" id="t-exp">Получить код</button><button class="btn" id="t-imp">Ввести код</button></div>
       <div class="bt"><button class="btn r" id="t-reset">Сброс</button></div>
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 49 · 100% экран</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { $('#' + id, w).onclick = () => { s.settings[key] = !s.settings[key]; AUDIO.set(key, s.settings[key]); AUDIO.play('click'); GAME.save(true); closeModal(w); openSettings(); }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
     $('#t-name', w).onclick = () => { click(); closeModal(w); askName(); };
     $('#t-help', w).onclick = () => { click(); closeModal(w); help(); };
+    const upBtn = $('#t-update', w);
+    if (upBtn) upBtn.onclick = () => {
+      click();
+      toast('Обновляем...');
+      try { localStorage.removeItem('abi_pwa_ver'); } catch (e) {}
+      const doReload = () => { window.location.href = window.location.pathname + '?_t=' + Date.now(); };
+      if ('caches' in window) {
+        caches.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k)))).then(() => {
+          if (navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations().then((regs) => {
+              Promise.all(regs.map((r) => r.unregister())).then(doReload).catch(doReload);
+            }).catch(doReload);
+          } else {
+            doReload();
+          }
+        }).catch(doReload);
+      } else {
+        doReload();
+      }
+    };
     $('#t-album', w).onclick = () => { click(); closeModal(w); openAlbum(); };
     $('#t-prof', w).onclick = () => { click(); closeModal(w); openProfile(); };
     $('#t-exp', w).onclick = () => { click(); closeModal(w); exportSave(); };

@@ -1,4 +1,4 @@
-const CACHE = 'abibyan-v48-fullscreen-a218f359f0';
+const CACHE = 'abibyan-v49-fullscreen-cd57f58610';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -16,7 +16,9 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  e.respondWith(fetch(r).then((res) => {
+  const isHtml = r.mode === 'navigate' || r.url.endsWith('index.html') || r.url.endsWith('/') || (r.headers.get('accept') && r.headers.get('accept').includes('text/html'));
+  const req = isHtml ? new Request(r.url, { cache: 'no-cache' }) : r;
+  e.respondWith(fetch(req).then((res) => {
     if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
     return res;
   }).catch(() => caches.match(r, { ignoreSearch: true })));

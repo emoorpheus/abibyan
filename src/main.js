@@ -27,7 +27,7 @@ const APP = (() => {
     const st = document.documentElement.style; const cl = document.documentElement.classList;
 
     if (!isMobileView()) {
-      cl.remove('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill');
+      cl.add('is-desktop'); cl.remove('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill');
       let u = snap(Math.min(vw / 180, vh / 320));
       const uX = snap(Math.min(vw / 180, vh / (320 + HUD_H + BAR_H)));
       if (vh / u - 320 < HUD_H * 0.7 && uX >= u * 0.88) u = uX;
@@ -44,7 +44,7 @@ const APP = (() => {
     }
 
     // Phone / Standalone App (iPhone 17 WebClip): 100% adaptive fullscreen stretch. Zero fields, zero fake surroundings.
-    cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
+    cl.remove('is-desktop'); cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
     let u = snap(Math.min(vw / 180, vh / 320)); u = Math.max(0.5, u);
     const ux = vw / 180, uy = vh / 320;
     st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
