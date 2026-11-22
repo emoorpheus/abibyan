@@ -138,11 +138,28 @@ const HOME = (() => {
   function hop(v) { if (mk.jy >= 0) mk.vy = -v * (1 - 0.25 * GAME.fat()); }
 
   // ---------- room management ----------
+  const CEIL_COLS = {
+    zal: '#eee6d8',
+    kitchen: '#ece7e0',
+    hall: '#42281a',
+    bath: '#e8e4de',
+    balcony: () => {
+      const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
+      return ph === 'night' ? '#181828' : ph === 'evening' ? '#e89078' : '#9ed2ea';
+    }
+  };
+  function updateCeilColor(r) {
+    const c = CEIL_COLS[r || room];
+    const col = typeof c === 'function' ? c() : (c || '#ece7e0');
+    document.documentElement.style.setProperty('--ceil-bg', col);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', col);
+  }
   function init() {
     const s = S(); room = IDS.includes(s.room) ? s.room : 'zal';
     if (s.sleeping && room !== 'zal') { s.sleeping = false; s.light = true; }
     if (room === 'zal' && !s.light) s.sleeping = true;
-    syncTree(true); UI.setBar(room);
+    syncTree(true); UI.setBar(room); updateCeilColor(room);
   }
   function setRoom(r, instant) {
     if (r === room) return; const s = S(); GAGS.leave(room); rest.x = MX; rest.y = GY; if (trip && trip.kind === 'walk') trip = null;
@@ -154,7 +171,7 @@ const HOME = (() => {
     cancelTool(); trip = null; chairDx = 0; chairMv = false; room = r; s.room = r; press = null; falling = []; watering = null;
     if (r === 'zal' && !s.light) { s.light = true; }
     if (r === 'balcony') syncTree(true);
-    UI.setBar(r); if (!instant) UI.showRoomTitle(DATA.ROOMS.find((x) => x.id === r).name); GAME.save();
+    UI.setBar(r); updateCeilColor(r); if (!instant) UI.showRoomTitle(DATA.ROOMS.find((x) => x.id === r).name); GAME.save();
     mk.nextIdle = Math.min(mk.nextIdle, rnd(1, 3));
     DUCKS.moved(); // Round 9 #12: the duck parade shuffles on while he changes rooms
   }
@@ -1087,7 +1104,8 @@ const HOME = (() => {
     if (room === 'hall') {
       const sc = (sp.sconces || []).find((r) => inR(x, y, r[0] - 2, r[1] - 2, r[2] + 4, r[3] + 4));
       if (sc) return { fn: () => { AUDIO.play('switch'); th.sconces = !th.sconces; } };
-      return H(sp.wardrobe, () => { if (trip && trip.kind === 'wardrobe') tripOpen(); else tripStart('wardrobe'); })
+      return H(sp.plafond, () => { AUDIO.play('switch'); th.sconces = !th.sconces; })
+        || H(sp.wardrobe, () => { if (trip && trip.kind === 'wardrobe') tripOpen(); else tripStart('wardrobe'); })
         || H(sp.mirror, () => tripStart('mirror'));
     }
     if (room === 'kitchen') {
@@ -1095,7 +1113,9 @@ const HOME = (() => {
         || H(sp.micro, () => microTap(sp.micro))
         || H(sp.fridge, () => { if (trip && trip.kind === 'fridge') tripOpen(); else tripStart('fridge'); })
         || (it.disco ? H(sp.disco, () => { AUDIO.play('star'); act('dance'); }) : null)
-        || (it.lamp ? H(sp.lamp, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; }) : null);
+        || (it.lamp ? H(sp.lamp, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; }) : null)
+        || H(sp.ceilingLight, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; })
+        || H(sp.light, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; });
     }
     if (room === 'bath') {
       return (it.duck ? H(sp.duck, () => { AUDIO.play('boop'); const [dx, dy] = sp.duck; fx.spawn('ring', dx + 9, dy + 9, { r0: 2, r1: 8, life: 0.3 }); fx.spawn('note', dx + 9, dy - 2, { vy: -14, life: 1, c: 1 }); }) : null)

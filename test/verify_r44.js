@@ -39,7 +39,7 @@ const assert = require('assert');
   });
   console.log('Layout in stretch mode:', layout);
   assert.strictEqual(layout.stageH, 852, 'Stage should fill full 852px viewport height');
-  assert.strictEqual(layout.cvH, 852, 'Canvas cv should fill full 852px viewport height');
+  assert(layout.cvH >= 700, `Canvas cv height (${layout.cvH}) should cover screen below HUD`);
   assert.strictEqual(layout.extDisplay, 'none', 'Extension texture should be hidden in stretch mode');
 
   // 2. Travel to bath and check sponge spot

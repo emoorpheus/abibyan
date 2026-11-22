@@ -60,12 +60,13 @@ const assert = require('assert');
   assert.strictEqual(m1.stage.w, 393, 'Stage width must fill 393px');
   assert.strictEqual(m1.stage.h, 852, 'Stage height must fill 852px');
   assert.strictEqual(m1.cv.w, 393, 'Canvas width must fill 393px');
-  assert.strictEqual(m1.cv.h, 852, 'Canvas height must fill 852px');
+  assert(m1.cv.h >= 700, 'Canvas height must cover screen below HUD');
+  assert(m1.cv.top >= 80, 'Canvas top must start below HUD');
 
   // Verify toLogical mapping in stretch mode
-  const logicalCoord = await page.evaluate(() => {
-    return window.__game.APP.toLogical(196.5, 426);
-  });
+  const logicalCoord = await page.evaluate(({ topY, hY }) => {
+    return window.__game.APP.toLogical(196.5, topY + hY / 2);
+  }, { topY: m1.cv.top, hY: m1.cv.h });
   assert.strictEqual(Math.round(logicalCoord.x), 90, 'Center touch X must map to 90 logical px');
   assert.strictEqual(Math.round(logicalCoord.y), 160, 'Center touch Y must map to 160 logical px');
 

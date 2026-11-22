@@ -69,6 +69,7 @@ const FILL = (() => {
   function updateThemeColor(c) {
     if (!metaTheme) metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme && c) metaTheme.setAttribute('content', rgb(c));
+    if (c) document.documentElement.style.setProperty('--ceil-bg', rgb(c));
   }
   function topBand(e, dim) { // the ceiling going on up: its natural colour (or its dither)
     if (e && e.a) updateThemeColor(e.a);

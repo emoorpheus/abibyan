@@ -306,6 +306,14 @@ const KITCHEN = (() => {
     R.sprAt(ctx, spr('chair'), CHAIR2[0] + Math.round((g.chair || 0) * 1.6), CHAIR2[1]); R.sprAt(ctx, spr('table'), TABLE[0], TABLE[1]); if (it.candles) { candles(P); candlesLive(ctx, P, t, !!g.candles); }
     { const cx = CHAIR[0] + Math.round(st.chairDx || 0); P.shadow(cx + 11, CHAIR[1] + 52, 12, 2, 0.25); R.sprAt(ctx, spr('chair'), cx, CHAIR[1]); }
     if (it.clock) clockLive(ctx, P, t, g.clock === undefined ? -1 : g.clock);
+    if (st.lamp === false) {
+      for (const x of [30, 90, 150]) { P.r(x - 2, 9, 5, 2, '#7a746c'); P.p(x, 8, '#5a544c'); }
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#b8b4c8'; ctx.fillRect(0, 0, RW, RH); ctx.restore();
+    } else {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.08;
+      for (const x of [30, 90, 150]) for (const r of [16, 10, 6]) P.circ(x, 10, r, '#fff4cc');
+      ctx.restore();
+    }
     if (it.lamp && st.lamp !== false) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.07; for (const r of [26, 18, 11]) P.circ(62, FLOOR - 78, r, '#ffe9a0'); ctx.restore(); }
     if (it.disco) { P.vl(100, CEIL + 7, 10, '#6b6b78'); R.sprAt(ctx, fur('disco', R.FUR.disco), 91, CEIL + 16);
       for (let k = 0; k < 14; k++) { const ph = (t * 0.6 + k * 0.37) % 1, cyc = Math.floor(t * 0.6 + k * 0.37); const x = (hash(k, 1, cyc) * RW) | 0, y = 50 + ((hash(k, 2, cyc) * 170) | 0); ctx.globalAlpha = Math.sin(ph * Math.PI) * 0.6; P.r(x, y, 2, 2, ['#ff5c6c', '#ffd23a', '#3fdc7a', '#59c1ff', '#b48cff'][k % 5]); } ctx.globalAlpha = 1; }
@@ -314,7 +322,7 @@ const KITCHEN = (() => {
     return { fridge: FRIDGE.slice(), sofa: SOFA.slice(), table: [TABLE[0], TABLE[1], 46, 44], chair: [CHAIR[0], CHAIR[1], 22, 52], kettle: it && it.kettle ? KET.slice() : null, micro: it && it.micro ? MW.slice() : null,
       counter: [CAB[0], CTR, CAB[1] - CAB[0], FLOOR - CTR], stool: STOOL.slice(), stoolAt: [PAN[0] - 14, FLOOR + 8], // Round 14b #8: the step stool (its home on the floor; where it stands at the counter)
       stove: [PAN[0], PAN[1] - 2, PAN[2], OVEN[1] + OVEN[3] - PAN[1] + 2], pan: PAN.slice(), oven: OVEN.slice(), cactus: [MW[0] + 6, cactusY(it), 14, 22], cabs: CABS.map((r) => r.slice()), cabL: CABS[0].slice(), cabR: CABS[2].slice(),
-      drawers: DRAWERS.map((r) => r.slice()), drawer: DRAWERS[1].slice(), candles: it && it.candles ? CANDLES.slice() : null, clock: [146, 56, 22, 22], mural: [0, CEIL + 7, MURAL, 140], sofaGap: [4, 198, 16, 16], chair2: [CHAIR2[0], CHAIR2[1], 22, 52], disco: [91, CEIL + 16, 18, 18], lamp: [50, FLOOR - 92, 24, 98], pusya: [34, 207], visit: [148, 280], visitFly: [128, 276, 90], party: { monty: [146, 282], mosq: [124, 276, 96], zhuk: [30, 290] } };
+      drawers: DRAWERS.map((r) => r.slice()), drawer: DRAWERS[1].slice(), candles: it && it.candles ? CANDLES.slice() : null, clock: [146, 56, 22, 22], mural: [0, CEIL + 7, MURAL, 140], sofaGap: [4, 198, 16, 16], chair2: [CHAIR2[0], CHAIR2[1], 22, 52], disco: [91, CEIL + 16, 18, 18], lamp: [44, FLOOR - 96, 36, 104], ceilingLight: [15, 0, 150, 32], light: [15, 0, 150, 32], pusya: [34, 207], visit: [148, 280], visitFly: [128, 276, 90], party: { monty: [146, 282], mosq: [124, 276, 96], zhuk: [30, 290] } };
   }
   // when he walks behind the table to the fridge, the table and chairs are drawn again over him
   function front(ctx, P, H, t, st) { if (st.behind) { R.sprAt(ctx, spr('chair'), CHAIR2[0], CHAIR2[1]); R.sprAt(ctx, spr('table'), TABLE[0], TABLE[1]); if (H.items.candles) { candles(P); candlesLive(ctx, P, t, !!(st.g && st.g.candles)); } R.sprAt(ctx, spr('chair'), CHAIR[0] + Math.round(st.chairDx || 0), CHAIR[1]); } }
