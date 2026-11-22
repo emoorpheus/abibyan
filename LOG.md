@@ -1265,3 +1265,29 @@
     5. Проверка настроек: отображается «Версия 49» и кнопка «🔄 Обновить приложение».
   - `tools/compat.js`: 28 файлов, 0 проблем.
   - `python3 build.py` собран успешно.
+
+## 2026-11-22 — Раунд 50: устранение iOS WebKit Chin Gap (срезания нижней части экрана из-за статус-бара)
+- Проблема:
+  - В приложении, запущенном через ярлык (WebClip) на iPhone 17, снизу оставалась полоса ровно 61pt (~72px на скриншоте пользователя).
+  - Глубинная причина (баг WebKit iOS Standalone):
+    - При наличии `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">` движок WebKit растягивает верх контента под Dynamic Island, но `window.innerHeight` и высота `html/body: 100%` рассчитываются БЕЗ учёта высоты статус-бара (`window.innerHeight` = 791px вместо 852px).
+    - В результате элементы с `height: 100%` (`#app`, `#stage`, `#cv`, `#modal`) физически заканчивались на высоте 791px, обнажая за собой нижние 61px фона страницы (`#1d1622`).
+- Решение:
+  - `src/main.js`:
+    - В функции `fit()`: для мобильных устройств и iOS standalone добавлен расчёт истинной аппаратной высоты экрана через `window.screen.height` (852px для iPhone 17).
+    - Переменная `--vh` устанавливается в точную аппаратную высоту экрана (`852px`), устраняя искусственное занижение от WebKit.
+    - Пересчитан `uy = vh / 320` под полный физический размер экрана.
+  - `src/style.css`:
+    - Все контейнеры (`html`, `body`, `#app`, `#stage`, `#cv`, `#view`, `#modalw`, `#modal`) зафиксированы на растяжение `height: var(--vh, 100%) !important; min-height: var(--vh, 100%) !important; top: 0 !important; bottom: 0 !important;`.
+    - Холст гарантированно перекрывает нижнюю кромку в 61pt вплоть до `y = 852px`.
+  - `src/ui.js` & `build.py`:
+    - Версия поднята до 50 (`Версия 50 · 100% экран`).
+    - Service Worker кэш обновлен на `abibyan-v50-fullscreen-%s`, регистрация `sw.js?v=50`.
+- Верификация:
+  - `test/verify_r50_chin_gap.js`:
+    - Симуляция условий WebKit на iPhone 17: `window.innerHeight = 791px`, `screen.height = 852px`, `navigator.standalone = true`.
+    - Проверка: `--vh` устанавливается в `852px`, `cv.getBoundingClientRect().height === 852`, `cv.getBoundingClientRect().bottom === 852`, `modal.height === 852`.
+    - Результат: ALL PASS.
+  - `test/verify_r49_iphone17_fullscreen.js`, `test/verify_r48_standalone_iphone17.js` — ALL PASS.
+  - `tools/compat.js`: 28 файлов, 0 проблем.
+  - Сборка `python3 build.py` прошла успешно.

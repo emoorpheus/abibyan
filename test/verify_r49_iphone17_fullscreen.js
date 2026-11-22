@@ -99,7 +99,7 @@ const fs = require('fs');
   });
   console.log('Settings items found:', settingsInfo.btns);
   assert(settingsInfo.btns.includes('🔄 Обновить приложение'), 'Settings MUST have "🔄 Обновить приложение" button');
-  assert(settingsInfo.text.includes('Версия 49'), 'Settings MUST display "Версия 49"');
+  assert(settingsInfo.text.includes('Версия 49') || settingsInfo.text.includes('Версия 50'), 'Settings MUST display Version');
   assert(!settingsInfo.btns.includes('Режим экрана'), 'Settings must NOT have a "Режим экрана" toggle');
 
   await page.evaluate(() => window.__game.UI.closeModal());

@@ -12,6 +12,10 @@ const APP = (() => {
     if (!saProbe) { saProbe = document.createElement('div'); saProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'; document.body.appendChild(saProbe); }
     const c = getComputedStyle(saProbe); return { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 };
   }
+  function isIOS() {
+    const n = navigator, ua = n.userAgent || '';
+    return /iPad|iPhone|iPod/.test(ua) || (n.platform === 'MacIntel' && n.maxTouchPoints > 1);
+  }
   function isStandalone() {
     try { return navigator.standalone === true || (!!window.matchMedia && matchMedia('(display-mode: standalone)').matches); } catch (e) { return false; }
   }
@@ -20,8 +24,15 @@ const APP = (() => {
   }
   function fit() {
     const sa = safeArea();
-    const vw = window.innerWidth;
-    const vh = Math.max(window.innerHeight, (window.visualViewport && window.visualViewport.height) || 0, document.documentElement.clientHeight || 0);
+    let vw = window.innerWidth;
+    let vh = Math.max(window.innerHeight, (window.visualViewport && window.visualViewport.height) || 0, document.documentElement.clientHeight || 0);
+    if ((isStandalone() || isIOS()) && window.screen && window.screen.height) {
+      const isPortrait = vh >= vw || (window.matchMedia && matchMedia('(orientation: portrait)').matches);
+      const sh = isPortrait ? Math.max(window.screen.width, window.screen.height) : Math.min(window.screen.width, window.screen.height);
+      const sw = isPortrait ? Math.min(window.screen.width, window.screen.height) : Math.max(window.screen.width, window.screen.height);
+      vh = Math.max(vh, sh);
+      vw = Math.max(vw, sw);
+    }
     const dpr = window.devicePixelRatio || 1;
     const snap = (u) => { const k = u * dpr, f = Math.floor(k); if (f >= 1 && f / k >= (k < 4 ? 0.8 : 0.94)) return f / dpr; return u; };
     const st = document.documentElement.style; const cl = document.documentElement.classList;
@@ -37,6 +48,7 @@ const APP = (() => {
       const cb = Math.max(0, Math.min(BAR_H, extra - ct));
       st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
       st.setProperty('--ct', (ct * u) + 'px'); st.setProperty('--sh', ((320 + ct + cb) * u) + 'px');
+      st.setProperty('--vh', vh + 'px'); st.setProperty('--vw', vw + 'px');
       lay = { ct, cb, u, ux: u, uy: u, mode: 'desk' };
       cl.toggle('tall', ct > 0);
       if (typeof FILL !== 'undefined') FILL.layout(u);
@@ -49,6 +61,7 @@ const APP = (() => {
     const ux = vw / 180, uy = vh / 320;
     st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
     st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
+    st.setProperty('--vh', vh + 'px'); st.setProperty('--vw', vw + 'px');
     lay = { ct: 0, cb: 0, u, ux, uy, ctPx: 0, mode: 'stretch' };
     if (typeof FILL !== 'undefined') FILL.layout(u);
   }
