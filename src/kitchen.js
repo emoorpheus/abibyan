@@ -149,9 +149,10 @@ const KITCHEN = (() => {
     for (let x = bx + 2; x < bx + bw - 2; x += 4) { P.p(x, by + 1, '#e8d0a0'); P.p(x + 2, by + bh - 2, '#e8d0a0'); }
     for (const [cx, cy] of [[54, by + 33], [126, by + 33]]) { P.ell(cx, cy, 15, 9, '#d8c49c'); P.ell(cx, cy, 11, 6.5, '#efe2c8'); for (let k = 0; k < 12; k++) { const an = k / 12 * Math.PI * 2; P.p(Math.round(cx + Math.cos(an) * 9), Math.round(cy + Math.sin(an) * 5.4), '#a8784a'); } P.ell(cx, cy, 3, 2, '#b98a52'); }
     for (let j = 0; j < 14; j++) { ctx.globalAlpha = 0.18 * (1 - j / 14); P.r(0, FLOOR + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
+    for (let j = 0; j < 30; j++) { ctx.globalAlpha = 0.12 * (j / 30); P.r(0, H - 30 + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
   }
   // ---------- builders ----------
-  function bg(ctx, P, H, ph) {
+  function bg(ctx, P, H, ph, curH = RH) {
     const it = H.items;
     P.r(0, 0, RW, CEIL, '#ece7e0'); R.dither(P, 0, 0, RW, 10, '#e0dad2', '#ece7e0', 0.5); for (const x of [30, 90, 150]) { P.r(x - 2, 9, 5, 2, '#f8f6f2'); P.p(x, 8, '#c8c0b4'); }
     R.cornice(P, CEIL);
@@ -167,7 +168,7 @@ const KITCHEN = (() => {
     if (it.cactus) R.sprAt(ctx, fur('cactus', R.FUR.cactus), MW[0] + 6, cactusY(it)); // on the microwave, or on the counter without it
     if (it.clock) R.wallAt(ctx, fur('clock', R.FUR.clock), 146, 56, 2);
     P.shadow(157, FLOOR + 2, 20, 3, 0.28); R.wallAt(ctx, spr('fridge', it.magnets ? 1 : 0), FRIDGE[0], FRIDGE[1], 3);
-    floor(ctx, P);
+    floor(ctx, P, curH);
     if (it.lamp) R.wallAt(ctx, fur('lamp', R.FUR.lamp), 50, FLOOR - 92, 3);
     P.shadow(32, SOFA[1] + SOFA[3] - 1, 36, 4, 0.3); R.sprAt(ctx, spr('sofa'), SOFA[0], SOFA[1]);
     P.shadow(TABLE[0] + 23, TABLE[1] + 44, 28, 3, 0.25); // (the chairs and the table are live: the right chair slides aside for the fridge trip, the left one creaks, the candles light)

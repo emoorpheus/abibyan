@@ -38,8 +38,7 @@ const ROOMS = (() => {
     fillPattern(ctx, floorTile(floor), 0, y0, RW, H - y0, 0, y0);
     // depth shading toward the wall + vignette at the front
     for (let j = 0; j < 14; j++) { ctx.globalAlpha = 0.22 * (1 - j / 14); P.r(0, y0 + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
-    for (let j = 0; j < 30; j++) { ctx.globalAlpha = 0.12 * (j / 30); P.r(0, RH - 30 + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
-    if (H > RH) { ctx.globalAlpha = 0.12 * 29 / 30; P.r(0, RH, RW, H - RH, '#2a1620'); ctx.globalAlpha = 1; } // the vignette's last row, on
+    for (let j = 0; j < 30; j++) { ctx.globalAlpha = 0.12 * (j / 30); P.r(0, H - 30 + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
   }
   // ---------- sky ----------
   const SKY = { day: ['#69b9ee', '#8fcdf3', '#bfe6f8', '#e6f6fb'], morning: ['#7d9fdc', '#c3b6dc', '#f4c4c0', '#ffe0b4'], evening: ['#3e4a8f', '#8a6aa8', '#e8848a', '#ffbe7a'], night: ['#0e1430', '#172250', '#223066', '#33437c'] };
@@ -182,13 +181,14 @@ const ROOMS = (() => {
     ctx.globalAlpha = 1;
   }
 
-  function build(room, H) {
+  function build(room, H, curH) {
+    const H_total = curH || (typeof cv !== 'undefined' && cv && cv.height) || RH;
     const ph = phase();
-    const key = room + '|' + JSON.stringify(H.items) + '|' + ph + (EXT[room].key ? '|' + EXT[room].key(H) : ''); // a room may add its own state (zal: curtains shut)
+    const key = room + '|' + JSON.stringify(H.items) + '|' + ph + (EXT[room].key ? '|' + EXT[room].key(H) : '') + '|' + H_total;
     if (cache.bgKey && cache.bgKey[room] === key) return cache.bg[room];
     cache.bgKey = cache.bgKey || {}; cache.bg = cache.bg || {};
-    const c = PX.canvas(RW, RH), ctx = c.getContext('2d'), P = Painter(ctx);
-    EXT[room].bg(ctx, P, H, ph);
+    const c = PX.canvas(RW, H_total), ctx = c.getContext('2d'), P = Painter(ctx);
+    EXT[room].bg(ctx, P, H, ph, H_total);
     cache.bgKey[room] = key; cache.bg[room] = c; return c;
   }
 
@@ -225,13 +225,13 @@ const ROOMS = (() => {
   function steam(ctx, P, x, y, t, col = '#ffffff') { for (let k = 0; k < 3; k++) { const ph = (t * 0.5 + k / 3) % 1; ctx.globalAlpha = 0.55 * (1 - ph); P.circ(x + Math.sin(ph * 6 + k) * 3, y - ph * 22, 1.5 + ph * 2.5, col); } ctx.globalAlpha = 1; }
   // time-of-day ambience over the whole scene (room + monkey): warm evening, dimmer lamp-lit night
   const AMB = { evening: '#fff0dc', night: '#dcd8ee' };
-  function ambient(ctx, room, lightOn) {
+  function ambient(ctx, room, lightOn, H = RH) {
     if (room === 'zal' && !lightOn) return; const c = AMB[phase()]; if (!c) return;
-    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = c; ctx.fillRect(0, 0, RW, RH); ctx.restore();
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = c; ctx.fillRect(0, 0, RW, H); ctx.restore();
   }
-  function night(ctx, H, t) { // bedroom light off
-    const P = Painter(ctx); ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#3b4078'; ctx.fillRect(0, 0, RW, RH); ctx.restore();
-    if (EXT.zal && EXT.zal.night) EXT.zal.night(ctx, P, H, t);
+  function night(ctx, H_state, t, H = RH) { // bedroom light off
+    const P = Painter(ctx); ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#3b4078'; ctx.fillRect(0, 0, RW, H); ctx.restore();
+    if (EXT.zal && EXT.zal.night) EXT.zal.night(ctx, P, H_state, t, H);
   }
   // named hotspot rects of a hand-drawn room (one place for the layout: art, taps and tests read the same numbers)
   const spots = (room, items) => (EXT[room] && EXT[room].spots ? EXT[room].spots(items || {}) : null);

@@ -147,15 +147,16 @@ const BALCONY = (() => {
     const VX = 90, VY = 110; let y = FLOOR, dy = 6;
     while (y < H) { P.r(0, y, RW, 1, '#c2b398'); P.r(0, y + 1, RW, 1, '#e2d7c2'); y += dy; dy = Math.round(dy * 1.45); }
     for (let i = -4; i <= 10; i++) { const xb = -60 + i * 34, xt = VX + (xb - VX) * (FLOOR - VY) / (RH - VY); P.line(xt, FLOOR, xb, RH, '#c2b398'); if (H > RH) P.line(xb, RH, xb + (xb - xt) * (H - RH) / (RH - FLOOR), H, '#c2b398'); }
-    for (let k = 0; k < 60; k++) P.p(Math.floor(hash(k, 1, 44) * RW), FLOOR + 4 + Math.floor(hash(k, 2, 44) * (RH - FLOOR - 4)), k % 2 ? '#cfc1a6' : '#e4dac6');
+    for (let k = 0; k < 60; k++) P.p(Math.floor(hash(k, 1, 44) * RW), FLOOR + 4 + Math.floor(hash(k, 2, 44) * (H - FLOOR - 4)), k % 2 ? '#cfc1a6' : '#e4dac6');
     for (let j = 0; j < 12; j++) { ctx.globalAlpha = 0.2 * (1 - j / 12); P.r(0, FLOOR + j, RW, 1, '#2a1408'); } ctx.globalAlpha = 1;
+    for (let j = 0; j < 30; j++) { ctx.globalAlpha = 0.12 * (j / 30); P.r(0, H - 30 + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
   }
   function soil(P) { // top of the planter box: dark soil + Монти's burrow
     const [x, y, w] = BOX; P.r(x, y, w, 10, '#4a3020'); P.r(x, y, w, 1, '#6a4a32');
     for (let k = 0; k < 40; k++) P.p(x + Math.floor(hash(k, 1, 12) * w), y + 1 + Math.floor(hash(k, 2, 12) * 9), k % 3 ? '#5a3c28' : '#3a2416');
     P.ell(MONTY[0], y + 7, 16, 4, '#2a1a10'); P.ell(MONTY[0] - 11, y + 3, 4, 2, '#5e4030'); P.ell(MONTY[0] + 12, y + 4, 4, 2, '#5e4030');
   }
-  function drawRoom(ctx, P, H, ph) {
+  function drawRoom(ctx, P, H, ph, curH = RH) {
     const it = H.items, lvl = pcLvl(it);
     boards(P, 0, 0, RW, CEIL, '#5a3422', 3); for (let j = 0; j < 8; j++) { ctx.globalAlpha = 0.3 * (1 - j / 8); P.r(0, j, RW, 1, '#1a0c06'); } ctx.globalAlpha = 1;
     P.r(0, CEIL, RW, 1, '#3a2014'); boards(P, 0, CEIL + 1, RW, 5, '#7b4a2e', 4); P.r(0, 27, RW, 1, '#4e2a18');
@@ -168,7 +169,7 @@ const BALCONY = (() => {
     boards(P, 0, SILL + 6, RW, FLOOR - SILL - 6, '#7b4a2e', 7);
     ctx.globalAlpha = 0.3; P.r(0, SILL + 6, RW, 4, '#2a1408'); ctx.globalAlpha = 1;
     P.r(0, FLOOR - 5, RW, 5, '#4e2a18'); P.r(0, FLOOR - 5, RW, 1, '#6e4428');
-    floor(ctx, P);
+    floor(ctx, P, curH);
     // palm in the planter box (Монти lives in the soil) - scales with growth stage
     const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
     R.sprAt(ctx, fur('tree_' + stg, () => R.FUR.tree(stg)), TREE[0], TREE[1]);
@@ -183,9 +184,11 @@ const BALCONY = (() => {
   }
   let layer = null, layerKey = '';
   function roomLayer(H, ph) {
+    const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
+    const H_total = (curCv && curCv.height) || RH;
     const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
-    const key = JSON.stringify(H.items) + '|' + ph + '|t' + stg; if (layer && key === layerKey) return layer;
-    const c = PX.canvas(RW, RH), x = c.getContext('2d'); drawRoom(x, Painter(x), H, ph); layer = c; layerKey = key; return c;
+    const key = JSON.stringify(H.items) + '|' + ph + '|t' + stg + '|' + H_total; if (layer && key === layerKey) return layer;
+    const c = PX.canvas(RW, H_total), x = c.getContext('2d'); drawRoom(x, Painter(x), H, ph, H_total); layer = c; layerKey = key; return c;
   }
   // ---------- builders ----------
   function bg(ctx, P, H, ph) { // what is behind the glass (the room itself is drawn by dyn on top of the drifting clouds)

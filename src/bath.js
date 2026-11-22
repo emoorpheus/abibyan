@@ -114,11 +114,12 @@ const BATH = (() => {
     for (let y = FLOOR; y < H; y++) for (let x = 0; x < RW; x++) { const n = hash(x >> 1, y >> 1, 33); if (n > 0.93) P.p(x, y, '#e8d8bc'); else if (n < 0.04) P.p(x, y, '#c8b28c'); }
     for (let y = FLOOR + 22; y < H; y += 30) P.r(0, y, RW, 1, '#bba684'); for (let x = 10; x < RW; x += 40) P.r(x, FLOOR, 1, H - FLOOR, '#bba684');
     for (let j = 0; j < 14; j++) { ctx.globalAlpha = 0.2 * (1 - j / 14); P.r(0, FLOOR + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
+    for (let j = 0; j < 30; j++) { ctx.globalAlpha = 0.12 * (j / 30); P.r(0, H - 30 + j, RW, 1, '#2a1620'); } ctx.globalAlpha = 1;
   }
   // ---------- builders ----------
-  function bg(ctx, P, H) {
+  function bg(ctx, P, H, ph, curH = RH) {
     const it = H.items;
-    ceiling(P); tiles(P); floor(ctx, P);
+    ceiling(P); tiles(P); floor(ctx, P, curH);
     R.wallAt(ctx, spr('rail'), RAIL[0], RAIL[1], 2);
     R.wallAt(ctx, spr('sponge'), SPONGE[0], SPONGE[1], 2);
     R.wallAt(ctx, spr('mirror'), MIR[0], MIR[1], 2); R.wallAt(ctx, spr('sconce'), MIR[0] - 7, MIR[1] + 8, 1); R.wallAt(ctx, spr('sconce'), MIR[0] + MIR[2] - 1, MIR[1] + 8, 1);

@@ -155,7 +155,7 @@ const HALL = (() => {
     R.plaster(P, 0, CEIL + 7, RW, FLOOR - CEIL - 7, '#e6d1b4', '#dcc5a6', '#efdcc2', 77);
     P.r(0, FLOOR - 6, RW, 6, '#5a2f17'); P.r(0, FLOOR - 6, RW, 1, '#7a4527'); P.r(0, FLOOR - 1, RW, 1, '#2e1a10');
   }
-  function floor(ctx, P, H) { // Round 25: H — further down (FILL)
+  function floor(ctx, P, H = R.RH) { // Round 25: H — further down (FILL)
     R.drawFloor(ctx, P, 'cork', FLOOR, H);
     // grey stone tiles at the entrance (in front of the front door) — Round 11 #5: greyer (was a light beige marble)
     for (let y = FLOOR; y < FLOOR + 22; y++) { const w = 26 + (y - FLOOR) * 0.9; P.r(Math.round(90 - w), y, Math.round(w * 2), 1, (y - FLOOR) % 11 === 10 ? '#8f8e8c' : '#a9a8a5'); }
@@ -229,9 +229,9 @@ const HALL = (() => {
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 * Math.min(1, lk * 6); P.r(lx + 2, ly - 1, 15, 4, '#e8782a'); ctx.restore(); }
   }
   // ---------- builders ----------
-  function bg(ctx, P, H, ph) {
+  function bg(ctx, P, H, ph, curH = R.RH) {
     const it = H.items;
-    ceiling(P); walls(P); floor(ctx, P);
+    ceiling(P); walls(P); floor(ctx, P, curH);
     for (const [x, y, soft] of SCONCES) R.wallAt(ctx, spr('sconce', soft), x, y, 2);
     P.shadow(17, FLOOR + 2, 20, 3, 0.25); R.wallAt(ctx, spr('ward'), WARD[0], WARD[1], 3);
     P.shadow(MIRROR[0] + MIRROR[2] / 2, FLOOR + 1, MIRROR[2] / 2 + 1, 2, 0.25); R.wallAt(ctx, spr('mirror'), MIRROR[0], MIRROR[1], 3);

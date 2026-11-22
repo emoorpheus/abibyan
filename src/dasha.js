@@ -222,7 +222,15 @@ const DASHA = (() => {
     // the gold number balloons over the fireplace
     A.digits.forEach((d, i) => { const x = 138 + i * 16 - (A.digits.length - 2) * 8, y = 104 + (i % 2) * 4 + Math.round(Math.sin(t * 1.4 + i * 1.7) * 1.5); P.line(x + 6, y + 20, 151 + i * 2, 163, '#c9b27a'); c.drawImage(d, x, y); });
     // confetti on the floor (fixed)
-    for (let i = 0; i < 26; i++) { const x = (i * 53 + 17) % 172 + 4, y = 236 + ((i * 37) % 64); if (y > 300) continue; P.r(x, y, i % 3 ? 2 : 1, i % 3 ? 1 : 2, FLAGS[i % FLAGS.length]); }
+    const curH = (typeof cv !== 'undefined' && cv && cv.height) || (c.canvas && c.canvas.height) || 320;
+    const maxConfettiY = curH - 16;
+    const rangeY = Math.max(64, maxConfettiY - 236);
+    const count = Math.round(26 * (rangeY / 64));
+    for (let i = 0; i < count; i++) {
+      const x = (i * 53 + 17) % 172 + 4, y = 236 + ((i * 37) % rangeY);
+      if (y > maxConfettiY) continue;
+      P.r(x, y, i % 3 ? 2 : 1, i % 3 ? 1 : 2, FLAGS[i % FLAGS.length]);
+    }
   }
 
   // the cake: two tiers (pink and cream), «24» in icing, the candles in two rows on top
@@ -493,7 +501,7 @@ const DASHA = (() => {
     if (layer === 'back') { if (room === 'zal' && decor()) drawDecor(c, P); drawHearts(c, P, room); return; }
     if (layer === 'top') {
       if (dbg.plain && !busy()) { const h = current(), A = art().mini; if (h && h.room === room) c.drawImage(A, h.x - (A.width >> 1), h.y - (A.height >> 1)); }
-      if (gift) { const k = gift.open ? Math.max(0, 1 - (t - gift.open) / 0.5) : 1; c.save(); c.globalAlpha = 0.5 * k; c.fillStyle = '#140a24'; c.fillRect(0, 0, 180, 320); c.restore();
+      if (gift) { const k = gift.open ? Math.max(0, 1 - (t - gift.open) / 0.5) : 1; c.save(); c.globalAlpha = 0.5 * k; c.fillStyle = '#140a24'; c.fillRect(0, 0, 180, (c.canvas && c.canvas.height) || 320); c.restore();
         if (k > 0) { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(90, 248, 4, 90, 248, 70); g.addColorStop(0, `rgba(255,210,150,${0.42 * k})`); g.addColorStop(1, 'rgba(255,180,120,0)'); c.fillStyle = g; c.fillRect(0, 160, 180, 160); c.restore(); }
         drawGift(c, P); }
       if (cake && room === 'zal') { drawLight(c, P); drawCake(c, P); }

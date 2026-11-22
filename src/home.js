@@ -86,6 +86,14 @@ const HOME = (() => {
   const pick = (a) => a[Math.floor(Math.random() * a.length)], rnd = (a, b) => a + Math.random() * (b - a), q3 = (v) => Math.round(Math.max(0, Math.min(1, v)) * 3) / 3;
   const off = PX.canvas(RW, RH), oc = off.getContext('2d'), P = Painter(oc);
   const snapC = PX.canvas(RW, RH), snapX = snapC.getContext('2d');
+  function ensureOffH(h) {
+    if (off.height !== h) {
+      off.height = h;
+      snapC.height = h;
+      oc.imageSmoothingEnabled = false;
+      snapX.imageSmoothingEnabled = false;
+    }
+  }
   const fx = FX.make();
   let t = 0, room = 'zal', trans = null, camY = 0, camT = 0, preview = false, tvOn = true, tryCloth = null, flash = 0, tailPh = 0;
   let tool = null, press = null, taps = [], timers = [], foam = [], falling = [], showerSt = null, watering = null, lastSay = 0, hoverPt = null, bubbleOn = false, portraitC = { k: '', url: '' };
@@ -177,9 +185,9 @@ const HOME = (() => {
   }
   function go(d) {
     if (trans || APP.scene !== 'home' || DASHA.busy()) return; const i = IDS.indexOf(room); const r = IDS[(i + d + IDS.length) % IDS.length];
-    snapX.clearRect(0, 0, RW, RH); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; AUDIO.play('whoosh'); setRoom(r);
+    snapX.clearRect(0, 0, RW, off.height); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; AUDIO.play('whoosh'); setRoom(r);
   }
-  function goTo(r, instant) { if (r === room || !IDS.includes(r)) return; if (instant) setRoom(r, true); else { const d = (IDS.indexOf(r) > IDS.indexOf(room)) ? 1 : -1; snapX.clearRect(0, 0, RW, RH); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; setRoom(r); } }
+  function goTo(r, instant) { if (r === room || !IDS.includes(r)) return; if (instant) setRoom(r, true); else { const d = (IDS.indexOf(r) > IDS.indexOf(room)) ? 1 : -1; snapX.clearRect(0, 0, RW, off.height); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; setRoom(r); } }
 
   // ---------- compose params ----------
   function clothes() {
@@ -339,31 +347,25 @@ const HOME = (() => {
     ctx.imageSmoothingEnabled = false;
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
-    const extraH = Math.max(0, curH - RH);
-    if (extraH > 0) {
-      const f = ROOMS.floorExt(room, extraH);
-      if (f && f.cv) {
-        ctx.drawImage(f.cv, 0, RH, RW, extraH, 0, RH, RW, extraH);
-        if (room === 'zal' && !S().light) {
-          ctx.fillStyle = 'rgba(29, 22, 34, 0.72)';
-          ctx.fillRect(0, RH, RW, extraH);
-        }
+    if (trans) {
+      const k = trans.t / trans.dur, e = 1 - Math.pow(1 - Math.min(1, k), 3), d = trans.dir;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, RW, curH);
+      ctx.drawImage(snapC, Math.round(-d * e * RW), 0);
+      ctx.drawImage(off, Math.round(d * (1 - e) * RW), 0);
+    } else {
+      const cy = Math.round(camY);
+      if (cy) {
+        ctx.fillStyle = '#1d1622';
+        ctx.fillRect(0, curH - cy, RW, cy);
       }
+      ctx.drawImage(off, 0, -cy);
     }
-    if (trans) { const k = trans.t / trans.dur, e = 1 - Math.pow(1 - Math.min(1, k), 3), d = trans.dir; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, RW, RH); ctx.drawImage(snapC, Math.round(-d * e * RW), 0); ctx.drawImage(off, Math.round(d * (1 - e) * RW), 0); }
-    else { const cy = Math.round(camY); if (cy) { ctx.fillStyle = '#1d1622'; ctx.fillRect(0, RH - cy, RW, cy); } ctx.drawImage(off, 0, -cy); }
-    if (flash > 0) { ctx.globalAlpha = Math.min(1, flash); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, RW, curH); ctx.globalAlpha = 1; }
-    if (extraH > 0 && mk && mk.y > RH - 24 && mk.sp && mk.sp.cv) {
-      const s = S(), f = GAME.fat(), sp = mk.sp, sk = Math.max(0.45, 1 + mk.jy / 90);
-      const inBed = s.sleeping && room === 'zal';
-      if (!inBed && !DASHA.hideMk()) {
-        const ks = sp.s / 1.2, rx = (20 + 13 * f) * sk * ks, ry = 4.2 * sk * Math.sqrt(ks);
-        const P = Painter(ctx);
-        P.shadow(mk.x, mk.y + 1, rx, ry, 0.2);
-        P.shadow(mk.x, mk.y + 1, rx * 0.66, ry * 0.7, 0.2);
-        const x0 = Math.round(mk.x - sp.ox), y0 = Math.round(mk.y + mk.jy - sp.oy);
-        ctx.drawImage(sp.cv, x0, y0);
-      }
+    if (flash > 0) {
+      ctx.globalAlpha = Math.min(1, flash);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, RW, curH);
+      ctx.globalAlpha = 1;
     }
   }
   // Round 6 D: what the hall mirror catches of him — his pose composed at 0.6 size; he shows up once he is left of the middle
@@ -374,8 +376,11 @@ const HOME = (() => {
   }
   function renderScene() {
     if (typeof DUCKS !== 'undefined' && DUCKS.startFrame) DUCKS.startFrame();
+    const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
+    const curH = (curCv && curCv.height) || RH;
+    ensureOffH(curH);
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
-    c.drawImage(ROOMS.build(room, H), 0, 0);
+    c.drawImage(ROOMS.build(room, H, curH), 0, 0);
     const pp = params(), sp = mk.sp = SPR.get(pp);
     ROOMS.dyn(c, room, H, t, { me: room === 'hall' ? mirrorMe(pp, sp) : null, tvOn, light: s.light, treeSlots: tree, front: GAGS.front(), g: GAGS.view(), lamp: kitchenLamp, sleeping: s.sleeping, th, balLamp: balLampOn(), radio: !!th.radio, guitar: guitarCase(), bagDx: bagDx(), sbOn: sbOn(), tvGame: tvGame(), con: trip && trip.con, sconces: th.sconces, fridge: trip && trip.kind === 'fridge' ? trip.door : 0, chairDx });
     if (room === 'balcony') drawYardBack(c);
@@ -404,8 +409,8 @@ const HOME = (() => {
     if (s.st.clean < 20 && !showerSt) drawStink(c);
     ROOMS.front(c, room, H, t, { behind: !!((trip && trip.kind === 'fridge' && !trip.climb && trip.my < 250) || (room === 'kitchen' && FRIENDS.behindTable && FRIENDS.behindTable())), seat: trip && trip.kind === 'pc' ? trip.seat : 0, chairDx, g: GAGS.view() });
     if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P);
-    ROOMS.ambient(c, room, s.light);
-    if (room === 'zal' && !s.light) ROOMS.night(c, H, t);
+    ROOMS.ambient(c, room, s.light, curH);
+    if (room === 'zal' && !s.light) ROOMS.night(c, H, t, curH);
     FRIENDS.render(c, P, 'top'); GAGS.draw(c, P, 'top');
     DASHA.draw(c, P, 'top'); // Round 22: the gift box, her cake and its candlelight
     if (s.st.clean < 30 && !showerSt) drawFlies(c);
@@ -529,7 +534,7 @@ const HOME = (() => {
     const d = IDS.indexOf(r) > IDS.indexOf(room) ? 1 : -1, y0 = clampW(mk.x, mk.y)[1];
     if (trip) trip = null;
     walkTrip(mk.x, mk.y, [[d > 0 ? RW + 30 : -30, y0]], () => {
-      snapX.clearRect(0, 0, RW, RH); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.4 }; AUDIO.play('whoosh'); setRoom(r);
+      snapX.clearRect(0, 0, RW, off.height); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.4 }; AUDIO.play('whoosh'); setRoom(r);
       const sx = d > 0 ? -30 : RW + 30; rest.x = sx; rest.y = y0; mk.x = sx; mk.y = y0; walkTrip(sx, y0, [[x, y]], then);
     });
     return true;

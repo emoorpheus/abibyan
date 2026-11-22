@@ -325,10 +325,10 @@ const ZAL = (() => {
     else { candles(128); owl(176); }
   }
   // ---------- builders ----------
-  function bg(ctx, P, H, ph) {
+  function bg(ctx, P, H, ph, curH = R.RH) {
     const it = H.items, lvl = tvLvl(it);
     ceiling(P); wall(P); panels(P);
-    R.drawFloor(ctx, P, 'cork', FLOOR);
+    R.drawFloor(ctx, P, 'cork', FLOOR, curH);
     const shut = closedK() >= 1;
     windowArt(ctx, P, ph);
     if (!shut) R.wallAt(ctx, spr('radiator'), GLASS[0] - 1, 158, 2);
