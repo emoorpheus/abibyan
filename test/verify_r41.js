@@ -82,7 +82,7 @@ const assert = require('assert');
     return b ? b.textContent.trim() : null;
   });
   console.log('Settings button in stretch mode:', btnTextStretch);
-  assert.strictEqual(btnTextStretch, 'Растянуть', 'Button text must say Растянуть');
+  assert.strictEqual(btnTextStretch, 'Во весь экран', 'Button text must say Во весь экран');
 
   await page.screenshot({ path: path.resolve(__dirname, '../dist/r41_settings_toggle.png') });
 
@@ -97,7 +97,7 @@ const assert = require('assert');
     return b ? b.textContent.trim() : null;
   });
   console.log('Settings button in fill mode:', btnTextFill);
-  assert.strictEqual(btnTextFill, 'Заполнить', 'Button text must say Заполнить');
+  assert.strictEqual(btnTextFill, 'С полями', 'Button text must say С полями');
 
   // Close Settings modal
   await page.evaluate(() => {

@@ -371,11 +371,11 @@ const UI = (() => {
     let sa = false; try { sa = n.standalone === true || (!!window.matchMedia && matchMedia('(display-mode: standalone)').matches); } catch (e) { }
     return (platC = { ios, standalone: sa, web: /^https?:$/.test(location.protocol) }); }
   function openSettings() {
-    const s = S(); const isFill = s.settings.screenMode === 'fill';
+    const s = S(); const isStretch = s.settings.screenMode !== 'fill';
     const w = modal(`<h2>Настройки</h2>
       <div class="toggle"><span>Звуки</span><button class="btn sm ${s.settings.sfx ? 'g' : 'w'}" id="t-sfx">${s.settings.sfx ? 'Вкл' : 'Выкл'}</button></div>
       <div class="toggle"><span>Музыка</span><button class="btn sm ${s.settings.music ? 'g' : 'w'}" id="t-mus">${s.settings.music ? 'Вкл' : 'Выкл'}</button></div>
-      <div class="toggle"><span>Режим экрана</span><button class="btn sm ${isFill ? 'b' : 'g'}" id="t-screen">${isFill ? 'Заполнить' : 'Растянуть'}</button></div>
+      <div class="toggle"><span>Режим экрана</span><button class="btn sm ${isStretch ? 'g' : 'b'}" id="t-screen">${isStretch ? 'Во весь экран' : 'С полями'}</button></div>
       <div class="bt"><button class="btn" id="t-name">Переименовать</button><button class="btn" id="t-help">Как играть</button></div>
       <div class="bt"><button class="btn g" id="t-album">Альбом</button><button class="btn b" id="t-prof">Профиль</button></div>
       <p style="font-size:${U(6.5)};opacity:.75;margin-bottom:0">Перенос прогресса на другое устройство:</p><div class="bt"><button class="btn" id="t-exp">Получить код</button><button class="btn" id="t-imp">Ввести код</button></div>
@@ -388,7 +388,7 @@ const UI = (() => {
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
     const ts = $('#t-screen', w);
     if (ts) ts.onclick = () => {
-      s.settings.screenMode = isFill ? 'stretch' : 'fill';
+      s.settings.screenMode = isStretch ? 'fill' : 'stretch';
       AUDIO.play('click');
       GAME.save(true);
       if (typeof APP !== 'undefined' && APP.setScreenMode) APP.setScreenMode(s.settings.screenMode);

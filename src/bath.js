@@ -5,7 +5,7 @@
 // machine under it (Round 5), mirror between two sconces (= зеркало); floor: big beige tiles, the cat rug.
 const BATH = (() => {
   const SP = MONKEY.sprite, K = MONKEY.K, IT = K.IT, ITC = K.ITC, R = ROOMS, RW = R.RW, RH = R.RH, FLOOR = R.FLOOR, GROUND = R.GROUND, fur = R.fur, hash = PX.hash;
-  const CEIL = 27, CAB = [48, 34, 84, 200], HEAD = [90, 58], VAN = [136, 168, 44, 60], WASH = [136, 176, 44, 52], PORT = [158, 204], SINK = [135, 158], SCX = [133, 175], CATRUG = [127, 232, 50, 28], MIR = [140, 82, 36, 54], WC = [0, 192, 42, 50], RAIL = [6, 76, 22, 62], BORDER = 122;
+  const CEIL = 27, CAB = [48, 34, 84, 200], HEAD = [90, 58], VAN = [136, 168, 44, 60], WASH = [136, 176, 44, 52], PORT = [158, 204], SINK = [135, 158], SCX = [133, 175], CATRUG = [127, 232, 50, 28], MIR = [140, 82, 36, 54], WC = [0, 192, 42, 50], RAIL = [6, 76, 22, 62], BORDER = 122, SPONGE = [31, 95, 16, 20];
   const S = {
     cabin: () => SP(CAB[2], CAB[3], (a) => { // shower cabin: chrome frame, dark smoky glass, inner panel with jets, white tray with a rounded apron
       const ch = a.mat('chrome', '#c2c8d0'), gl = a.mat('bGlass', '#2f3742', 3), gi = a.mat('bGlassIn', '#3c4654', 3), wh = a.mat('bTray', '#f4f4f2');
@@ -51,6 +51,24 @@ const BATH = (() => {
     }, (d) => { d.hline(6, 34, 13, '#3a1c0c'); for (let x = 8; x < 32; x += 5) d.px(x, 7, '#a06a40'); }),
     rail: () => SP(RAIL[2], RAIL[3], (a) => { const ch = a.mat('chrome', '#c2c8d0'); a.box(0, 0, 3, 62, IT, ch); a.box(19, 0, 22, 62, IT, ch); for (let y = 6; y < 60; y += 9) a.box(2, y, 20, y + 2, IT, ch);
       a.rbox(4, 20, 16, 50, 2, IT, a.mat('bTowel', '#eadac4', 3), { bulge: 0.3 }); }, (d) => { for (let y = 24; y < 48; y += 3) d.hline(5, 14, y, '#d6c4aa'); }),
+    sponge: () => SP(SPONGE[2], SPONGE[3], (a) => { // fluffy bath loofah / washcloth with a hanging loop and chrome wall peg
+      const ch = a.mat('chrome', '#c2c8d0'), cord = a.mat('bCord', '#f4ebd8');
+      const turq = a.mat('bSp1', '#3ec8a0', 3), turqD = a.mat('bSpD', '#1d8f78', 3), turqL = a.mat('bSpL', '#76f2cc', 3);
+      a.box(6, 1, 10, 3.5, IT, ch);
+      a.tube([[8, 2, 0.7], [6.5, 4.5, 0.6], [8, 7, 0.6]], IT, cord);
+      a.ellU([[8, 13, 6.5, 6], [8, 12, 5.8, 5.2]], IT, turq, { bulge: 0.35 });
+      a.ell(5.5, 11.5, 3.5, 3.5, IT, turqL, { flat: 0.6 });
+      a.ell(10.5, 12.5, 3.8, 3.8, IT, turq, { flat: 0.5 });
+      a.ell(8, 15, 4.5, 3.2, IT, turqD, { flat: 0.7 });
+    }, (d) => {
+      d.px(7, 1, '#ffffff'); d.px(8, 3, '#7a828e');
+      d.px(8, 7, '#e2d4bc');
+      d.px(6, 10, '#ffffff'); d.px(7, 10, '#ffffff');
+      d.px(10, 11, '#ffffff');
+      d.px(5, 13, '#1a7664'); d.px(9, 14, '#1a7664'); d.px(11, 13, '#1a7664');
+      d.px(7, 12, '#8affde'); d.px(8, 11, '#8affde'); d.px(9, 13, '#8affde');
+      d.px(6, 15, '#76f2cc'); d.px(10, 15, '#76f2cc');
+    }),
     // the cat-face bath rug (photo): bigger now and right in front of the sink (user)
     catrug: () => SP(CATRUG[2], CATRUG[3], (a) => { const g = a.mat('bCat', '#e8e6e2', 3); a.ell(25, 17, 24, 10.5, IT, g, { flat: 0.8 }); a.poly([[5, 12], [10, 0], [17, 8]], IT, g); a.poly([[33, 8], [40, 0], [45, 12]], IT, g); },
       (d) => { const E = '#3a3a40', W = '#b8b4ae', PK = '#f2b8c0';
@@ -102,6 +120,7 @@ const BATH = (() => {
     const it = H.items;
     ceiling(P); tiles(P); floor(ctx, P);
     R.wallAt(ctx, spr('rail'), RAIL[0], RAIL[1], 2);
+    R.wallAt(ctx, spr('sponge'), SPONGE[0], SPONGE[1], 2);
     R.wallAt(ctx, spr('mirror'), MIR[0], MIR[1], 2); R.wallAt(ctx, spr('sconce'), MIR[0] - 7, MIR[1] + 8, 1); R.wallAt(ctx, spr('sconce'), MIR[0] + MIR[2] - 1, MIR[1] + 8, 1);
     P.shadow(CAB[0] + CAB[2] / 2, FLOOR + 6, 44, 4, 0.28); R.wallAt(ctx, spr('cabin'), CAB[0], CAB[1], 2, FLOOR + 6);
     if (it.duck) R.sprAt(ctx, fur('duck', () => UI_DUCK()), CAB[0] + 8, CAB[1] + 150);
@@ -167,7 +186,7 @@ const BATH = (() => {
     if (g.cat) for (const x of [141, 158]) { P.r(x, 246, 4, 3, '#8ac85a'); P.r(x + 1, 246, 2, 3, '#1e1e22'); P.p(x, 246, '#d8f4b8'); } // the cat rug opens its eyes
   }
   function spots(it) {
-    return { catrug: CATRUG.slice(), shower: [CAB[0], CAB[1], CAB[2], 150], head: HEAD.slice(), mirror: MIR.slice(), sink: VAN.slice(), toilet: WC.slice(), duck: [CAB[0] + 8, CAB[1] + 150, 18, 15],
+    return { catrug: CATRUG.slice(), shower: [CAB[0], CAB[1], CAB[2], 150], head: HEAD.slice(), mirror: MIR.slice(), sink: VAN.slice(), toilet: WC.slice(), sponge: SPONGE.slice(), duck: [CAB[0] + 8, CAB[1] + 150, 18, 15],
       washer: it.washer ? WASH.slice() : null, porthole: it.washer ? PORT.slice() : null, faucet: [148, 158, 16, 16], rail: RAIL.slice(), aid: [8, 44, 20, 18], fern: it.fern ? [146, 240, 34, 50] : null, fresco: [0, 0, 180, 27], bathmat: it.bathmat ? [64, 236, 52, 18] : null,
       sconceL: [SCX[0], MIR[1] + 8, 8, 16], sconceR: [SCX[1], MIR[1] + 8, 8, 16],
       kit: [8, 44], mosq: [30, 168, 254], visit: [150, 278], visitFly: [146, 276, 70], party: { pusya: [150, 252], monty: [52, 282], zhuk: [130, 290] } };

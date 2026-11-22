@@ -21,7 +21,7 @@ const APP = (() => {
   function getScreenMode() {
     const s = (typeof GAME !== 'undefined' && GAME.S) ? GAME.S : null;
     if (s && s.settings && s.settings.screenMode) return s.settings.screenMode;
-    return isStandalone() ? 'stretch' : 'fill';
+    return 'stretch';
   }
   function setScreenMode(m) {
     if (typeof GAME !== 'undefined' && GAME.S && GAME.S.settings) {

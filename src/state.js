@@ -7,7 +7,7 @@ const GAME = (() => {
   // a friend: chats, duel wins/losses, special cooldown (ms timestamp); friendship points/level, mood (60 = calm; drifts back), discovered tastes, today's whim, chats today, treats in the last minutes
   const FDEF = () => ({ chat: 0, w: 0, l: 0, cd: 0, fp: 0, lv: 0, md: 60, mdAt: 0, known: {}, crave: null, cday: '', cn: 0, eat: [], gday: '', gn: 0 });
   const DEF = () => ({
-    v: 8, name: 'Абибян', created: Date.now(), last: Date.now(), named: false, season: null /* Round 10 #8: { id, day } of the seasonal event going on */,
+    v: 9, name: 'Абибян', created: Date.now(), last: Date.now(), named: false, season: null /* Round 10 #8: { id, day } of the seasonal event going on */,
     coins: 60, xp: 0, lvl: 1, totalCoins: 0,
     st: { food: 70, fun: 75, energy: 85, clean: 80 }, kg: 1.28,
     inv: { milk: 3, puree: 1, banana: 2 }, tried: {},
@@ -66,6 +66,11 @@ const GAME = (() => {
     if (S.v === 6) S.v = 7;
     // v7 → v8 (Round 13): the tutorial got a tour after the phone — a save that had finished the old 4 steps is done, no tour
     if (S.v === 7) { if (S.tut >= 4) S.tut = DATA.TUT.length; S.v = 8; }
+    // v8 → v9 (Round 44): screenMode defaults to 'stretch' (fullscreen game area on iOS/mobile without borders/textures)
+    if (v0 < 9) {
+      if (S.settings && S.settings.screenMode === 'fill') S.settings.screenMode = 'stretch';
+      S.v = 9;
+    }
     if (!S.settings) S.settings = { sfx: true, music: true, screenMode: 'stretch' };
     if (!S.settings.screenMode) S.settings.screenMode = 'stretch';
     flat();

@@ -426,6 +426,12 @@ const HOME = (() => {
     if (typeof ROUTINE !== 'undefined') ROUTINE.poke(); // Round 14: a tap stops whatever he set off to do by himself
     if (DASHA.down(x, sceneY(y))) { press = null; AUDIO.init(); return; } // Round 22: the gift box, blowing out her candles with a finger, her party
     if (trans || tool) return; y = sceneY(y); AUDIO.init();
+    const spSpots = ROOMS.spots(room, S().home.items) || {};
+    if (room === 'bath' && spSpots.sponge && inR(x, y, ...spSpots.sponge) && !S().sleeping) {
+      press = null;
+      startTool('soap', e, 'sponge');
+      return;
+    }
     const ht = DASHA.hit(room, x, y); if (ht) { press = { x, y, x0: x, y0: y, ht, moved: 0, acc: 0, t }; return; } // Round 22: a hidden heart
     const dk = DUCKS.at(x, y), part = dk ? null : monkeyPart(x, y), sn = dk || part ? null : SEASONS.hit(room, x, y), fr = part || dk || sn ? null : FRIENDS.at(x, y); // Round 10 #2: the ducks walk in front of him — they win the tap; #8: the event's thing on the sill before the window
     press = { x, y, x0: x, y0: y, part, fr, dk, sn, moved: 0, acc: 0, t: t, hs: part || fr || dk || sn ? null : hotspot(x, y) };
@@ -438,6 +444,7 @@ const HOME = (() => {
     if (press.part === 'belly' && press.moved > 30) { press.acc += d; while (press.acc > 34) { press.acc -= 34; tickle(x, y); } }
   }
   function up(x, y, e) {
+    if (tool) { toolUp(e); return; }
     y = sceneY(y); if (DASHA.up(x, y)) { press = null; return; } const pr = press; press = null; if (!pr) return;
     if (pr.ht) { if (pr.moved < 12) pr.ht(); return; }
     const dx = x - pr.x0, dy = y - pr.y0;
@@ -1056,7 +1063,8 @@ const HOME = (() => {
   function soapTap() {
     if (room !== 'bath' || S().sleeping) return;
     AUDIO.play('pop');
-    for (let i = 0; i < 4; i++) {
+    if (!mk.scrubSnd || t - mk.scrubSnd > 0.13) { mk.scrubSnd = t; AUDIO.play('scrub'); }
+    for (let i = 0; i < 6; i++) {
       addFoam(mk.x + rnd(-14, 14), mk.y - rnd(25, 75));
     }
     if (showerSt) showerSt.soaped = true;
@@ -1091,6 +1099,7 @@ const HOME = (() => {
     }
     if (room === 'bath') {
       return (it.duck ? H(sp.duck, () => { AUDIO.play('boop'); const [dx, dy] = sp.duck; fx.spawn('ring', dx + 9, dy + 9, { r0: 2, r1: 8, life: 0.3 }); fx.spawn('note', dx + 9, dy - 2, { vy: -14, life: 1, c: 1 }); }) : null)
+        || H(sp.sponge, () => soapTap())
         || H(sp.mirror, () => { act('mirror'); say(pick(['Крашавчик!', 'Ну я и пушиштик!', GAME.isSkuf() ? 'Шолидный мужчина.' : GAME.ageDef().age < 0.4 ? 'Какой я милашка!' : 'Какой штройный!'])); })
         || H(sp.shower, () => shower())
         || H(sp.sink, () => soapTap())
@@ -1183,10 +1192,15 @@ const HOME = (() => {
   // ---------- tools: food & soap ----------
   function startTool(kind, e, id) {
     if (tool || trans || APP.scene !== 'home' || trip) return; AUDIO.init();
-    const p = APP.toLogical(e.clientX, e.clientY); const from = e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : null;
-    const home = from ? APP.toLogical(from.left + from.width / 2, from.top + from.height / 2) : { x: p.x, y: p.y };
+    const p = (e && e.clientX !== undefined) ? APP.toLogical(e.clientX, e.clientY) : (id && id.x ? id : { x: 90, y: 160 });
+    const from = e && e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : null;
+    let home = from ? APP.toLogical(from.left + from.width / 2, from.top + from.height / 2) : { x: p.x, y: p.y };
+    if (kind === 'soap') {
+      const sp = ROOMS.spots('bath', S().home.items) || {};
+      if (sp.sponge) home = { x: sp.sponge[0] + sp.sponge[2] / 2, y: sp.sponge[1] + sp.sponge[3] / 2 };
+    }
     if (kind === 'food' && S().sleeping) { sleepyPoke(); return; }
-    tool = { kind, id, x: p.x, y: p.y + camY, dy: e.pointerType === 'touch' ? -16 : -4, pid: e.pointerId, img: ART.food(kind === 'soap' ? 'soap' : id), home: { x: home.x, y: home.y + camY }, near: 0, back: null, acc: 0, lx: p.x, ly: p.y };
+    tool = { kind, id, x: p.x, y: p.y + camY, dy: (e && e.pointerType === 'touch') ? -16 : -4, pid: e ? e.pointerId : undefined, img: ART.food(kind === 'soap' ? 'soap' : id), home: { x: home.x, y: home.y + camY }, near: 0, back: null, acc: 0, lx: p.x, ly: p.y };
     AUDIO.play('pop');
     window.addEventListener('pointermove', toolMove); window.addEventListener('pointerup', toolUp); window.addEventListener('pointercancel', toolUp);
   }
@@ -1201,8 +1215,13 @@ const HOME = (() => {
     }
   }
   function toolUp(e) {
-    if (!tool || tool.back || (tool.pid !== undefined && e.pointerId !== tool.pid)) return; unbind();
+    if (!tool || tool.back || (tool.pid !== undefined && e && e.pointerId !== undefined && e.pointerId !== tool.pid)) return; unbind();
     if (tool.kind === 'food') { const m = mouthPos(); const d = Math.hypot(tool.x - m.x, tool.y + tool.dy - m.y); if (d < 24 && feed(tool.id)) { tool = null; return; } }
+    if (tool.kind === 'soap') {
+      if (tool.acc < 3.5) {
+        soapTap();
+      }
+    }
     tool.back = { t: 0, x0: tool.x, y0: tool.y };
   }
   function toolTick(dt) {
@@ -1381,6 +1400,6 @@ const HOME = (() => {
     sneak, get sneaking() { return sneaking; },     get camY() { return camY; }, get tvOn() { return tvOn && GAME.hasUp('tv'); }, get trip() { return trip ? Object.assign({ kind: trip.kind, ph: trip.ph }, trip.climb ? { climb: true } : {}, trip.kind === 'mirror' ? { pose: trip.pose || null } : {}, trip.kind === 'guitar' ? { gp: trip.gp || null } : {}) : null; },
     phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; }, ignoreTapUntil,
     _mirror: (id) => { if (trip && trip.kind === 'mirror' && trip.ph === 'do') { trip.t = 0; mirrorPose(trip, id); } },
-    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes,
+    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes, soapTap, get tool() { return tool; },
   };
 })();

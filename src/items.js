@@ -115,10 +115,21 @@ const ART = (() => {
       a.ellU([[8, 10, 5.6, 5.2], [8, 4.5, 3.6, 2.4]], IT, a.mat('sack', '#c08f55', 4));
       a.box(4.6, 5.4, 11.4, 6.6, IT, a.mat('rope', '#7a5230'));
     }, (d) => { [[7, 9], [8, 8], [9, 9], [8, 10], [8, 11], [7, 12], [9, 12], [6, 10], [10, 10]].forEach(([x, y], i) => d.px(x, y, i < 4 ? '#5fb043' : '#3f8a2c')); }),
-    soap: () => SP(16, 16, (a) => {
-      a.ellU([[8, 10, 6.4, 3.8], [8, 9, 5.8, 3.6]], IT, a.mat('soap', '#f59ac0'));
-      a.ell(4.6, 4.4, 2.2, 2.2, IT, a.mat('bub', '#d8f2ff')); a.ell(10.8, 3.2, 1.6, 1.6, IT, a.mat('bub', '#d8f2ff'));
-    }, (d) => { d.px(4, 3, '#ffffff'); d.px(10, 2, '#ffffff'); for (let x = 5; x <= 10; x++) d.pxk(x, 8, '#ffd3e6', 1 << 20); }),
+    soap: () => SP(16, 18, (a) => {
+      const sp = a.mat('soapSp', '#3ec8a0', 3), spL = a.mat('soapSpL', '#76f2cc', 3), spD = a.mat('soapSpD', '#1d8f78', 3);
+      const cord = a.mat('cord', '#f4ebd8'), bub = a.mat('bub', '#ffffff', 4);
+      a.tube([[8, 1.5, 0.7], [6.5, 4, 0.6], [8, 6.5, 0.6]], IT, cord);
+      a.ellU([[8, 11.5, 6.5, 5.8], [8, 10.5, 5.8, 5]], IT, sp, { bulge: 0.35 });
+      a.ell(5.5, 10, 3.5, 3.5, IT, spL, { flat: 0.6 });
+      a.ell(10.5, 11, 3.8, 3.8, IT, sp, { flat: 0.5 });
+      a.ell(8, 13.5, 4.5, 3.2, IT, spD, { flat: 0.7 });
+      a.ell(3.5, 5.5, 2.2, 2.2, IT, bub); a.ell(12.8, 5, 1.8, 1.8, IT, bub);
+    }, (d) => {
+      d.px(3, 4, '#ffffff'); d.px(12, 4, '#ffffff');
+      d.px(6, 9, '#8affde'); d.px(7, 8, '#8affde'); d.px(9, 10, '#8affde');
+      d.px(5, 12, '#1a7664'); d.px(9, 13, '#1a7664');
+      d.px(6, 14, '#76f2cc'); d.px(10, 14, '#76f2cc');
+    }),
     potion: () => SP(16, 16, (a) => {
       a.box(6.4, 1.2, 9.6, 3.6, IT, a.mat('cork', '#b0773c'));
       a.ellU([[8, 10.4, 5.2, 5], [8, 4.6, 1.9, 2.2]], IT, a.mat('glassG', '#bfe6ff'));
