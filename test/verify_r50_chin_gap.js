@@ -79,7 +79,7 @@ const assert = require('assert');
     return {
       modalHeight: mr.height,
       modalBottom: mr.bottom,
-      hasV50: text.includes('Версия 50')
+      hasV50: text.includes('Версия 50') || text.includes('Версия 51')
     };
   });
 

@@ -337,9 +337,34 @@ const HOME = (() => {
   function render(ctx) {
     renderScene();
     ctx.imageSmoothingEnabled = false;
+    const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
+    const curH = (curCv && curCv.height) || RH;
+    const extraH = Math.max(0, curH - RH);
+    if (extraH > 0) {
+      const f = ROOMS.floorExt(room, extraH);
+      if (f && f.cv) {
+        ctx.drawImage(f.cv, 0, RH, RW, extraH, 0, RH, RW, extraH);
+        if (room === 'zal' && !S().light) {
+          ctx.fillStyle = 'rgba(29, 22, 34, 0.72)';
+          ctx.fillRect(0, RH, RW, extraH);
+        }
+      }
+    }
     if (trans) { const k = trans.t / trans.dur, e = 1 - Math.pow(1 - Math.min(1, k), 3), d = trans.dir; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, RW, RH); ctx.drawImage(snapC, Math.round(-d * e * RW), 0); ctx.drawImage(off, Math.round(d * (1 - e) * RW), 0); }
     else { const cy = Math.round(camY); if (cy) { ctx.fillStyle = '#1d1622'; ctx.fillRect(0, RH - cy, RW, cy); } ctx.drawImage(off, 0, -cy); }
-    if (flash > 0) { ctx.globalAlpha = Math.min(1, flash); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, RW, RH); ctx.globalAlpha = 1; }
+    if (flash > 0) { ctx.globalAlpha = Math.min(1, flash); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, RW, curH); ctx.globalAlpha = 1; }
+    if (extraH > 0 && mk && mk.y > RH - 24 && mk.sp && mk.sp.cv) {
+      const s = S(), f = GAME.fat(), sp = mk.sp, sk = Math.max(0.45, 1 + mk.jy / 90);
+      const inBed = s.sleeping && room === 'zal';
+      if (!inBed && !DASHA.hideMk()) {
+        const ks = sp.s / 1.2, rx = (20 + 13 * f) * sk * ks, ry = 4.2 * sk * Math.sqrt(ks);
+        const P = Painter(ctx);
+        P.shadow(mk.x, mk.y + 1, rx, ry, 0.2);
+        P.shadow(mk.x, mk.y + 1, rx * 0.66, ry * 0.7, 0.2);
+        const x0 = Math.round(mk.x - sp.ox), y0 = Math.round(mk.y + mk.jy - sp.oy);
+        ctx.drawImage(sp.cv, x0, y0);
+      }
+    }
   }
   // Round 6 D: what the hall mirror catches of him — his pose composed at 0.6 size; he shows up once he is left of the middle
   function mirrorMe(pp, sp) {
@@ -477,10 +502,14 @@ const HOME = (() => {
     if (!pr.part && Math.abs(dx) > 22 && Math.abs(dx) > Math.abs(dy) * 1.15 && camY < 1) { go(dx < 0 ? 1 : -1); return; }
     if (pr.part === 'head' && pr.moved >= 10 && pr.moved < 22) pet(x, y);
   }
+  const maxWalkY = () => {
+    const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
+    return curCv && curCv.height > 320 ? Math.min(curCv.height - 18, 380) : WALK.y1;
+  };
   function walkTo(x, y, then) { // Round 10 #4: tap on the floor → he walks over there (in scene coords); Round 11 #6: then() when he is there
     const s = S(); if (s.sleeping || trans || tool || APP.scene !== 'home' || mk.eat) return false;
     if (trip && trip.kind !== 'walk') return false;
-    x = Math.max(WALK.x0, Math.min(WALK.x1, x)); y = Math.max(WALK.y0, Math.min(WALK.y1, y));
+    x = Math.max(WALK.x0, Math.min(WALK.x1, x)); y = Math.max(WALK.y0, Math.min(maxWalkY(), y));
     if (trip) { trip.path = [[x, y]]; trip.i = 0; trip.then = then || null; }
     else {
       if (Math.hypot(x - mk.x, y - mk.y) < 3) { if (then) then(); return true; } mk.act = null;
@@ -490,7 +519,7 @@ const HOME = (() => {
   }
   // Round 14 («Живёт сам»): he goes to another room by himself — walks out at the side towards it, the view slides after him (like a swipe),
   // he walks in from the other edge to (x, y), then(). A tap on the way (stopTravel) keeps him in the room he is in.
-  const clampW = (x, y) => [Math.max(WALK.x0, Math.min(WALK.x1, x)), Math.max(WALK.y0, Math.min(WALK.y1, y))];
+  const clampW = (x, y) => [Math.max(WALK.x0, Math.min(WALK.x1, x)), Math.max(WALK.y0, Math.min(maxWalkY(), y))];
   function walkTrip(x0, y0, path, then) { trip = { kind: 'walk', D: TRIPS.walk, ph: 'go', t: 0, i: 0, mx: x0, my: y0, path, dir: Math.sign(path[0][0] - x0) || 1, stepPh: 0, step: 0, door: 0, seat: 0, opened: false, shY: y0, fxT: 0.15, sndT: 0, left: false, travel: true }; trip.then = then || null; }
   function travel(r, x, y, then) {
     const s = S(); if (s.sleeping || trans || tool || mk.eat || APP.scene !== 'home' || !IDS.includes(r)) return false;

@@ -46,6 +46,7 @@ const APP = (() => {
       const extra = Math.max(0, Math.min(vh / u - 320, HUD_H + BAR_H));
       const ct = extra >= HUD_H * 0.7 ? Math.min(HUD_H, extra) : 0;
       const cb = Math.max(0, Math.min(BAR_H, extra - ct));
+      if (cv) { if (cv.width !== 180) cv.width = 180; if (cv.height !== 320) cv.height = 320; }
       st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
       st.setProperty('--ct', (ct * u) + 'px'); st.setProperty('--sh', ((320 + ct + cb) * u) + 'px');
       st.setProperty('--vh', vh + 'px'); st.setProperty('--vw', vw + 'px');
@@ -55,26 +56,35 @@ const APP = (() => {
       return;
     }
 
-    // Phone / Standalone App (iPhone 17 WebClip): 100% adaptive fullscreen stretch. Zero fields, zero fake surroundings.
+    // Phone / Standalone App (iPhone 17 WebClip): 100% adaptive fullscreen with 1:1 PROPORTIONAL pixels.
+    // Characters are NOT stretched: scale on X and Y is strictly identical.
     cl.remove('is-desktop'); cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
-    let u = snap(Math.min(vw / 180, vh / 320)); u = Math.max(0.5, u);
-    const ux = vw / 180, uy = vh / 320;
-    st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
+    let u = snap(vw / 180); u = Math.max(0.5, u);
+    const canvasH = Math.max(320, Math.round(vh / u));
+    if (cv) {
+      if (cv.width !== 180) cv.width = 180;
+      if (cv.height !== canvasH) cv.height = canvasH;
+    }
+    st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
     st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
     st.setProperty('--vh', vh + 'px'); st.setProperty('--vw', vw + 'px');
-    lay = { ct: 0, cb: 0, u, ux, uy, ctPx: 0, mode: 'stretch' };
+    lay = { ct: 0, cb: 0, u, ux: u, uy: u, ctPx: 0, h: canvasH, mode: 'stretch' };
     if (typeof FILL !== 'undefined') FILL.layout(u);
   }
-  function toLogical(cx, cy) { const r = cv.getBoundingClientRect(); return { x: (cx - r.left) / r.width * 180, y: (cy - r.top) / r.height * 320 }; }
+  function toLogical(cx, cy) {
+    const r = cv.getBoundingClientRect();
+    const ch = (cv && cv.height) || 320;
+    return { x: (cx - r.left) / r.width * 180, y: (cy - r.top) / r.height * ch };
+  }
   function setScene(s) { scene = s; }
   function bindInput() {
     const stage = document.getElementById('stage'); let capId = null;
     // the stage never scrolls (overflow:hidden still scrolls on focus / scrollIntoView, which shifted the whole picture up by the HUD strip)
     stage.addEventListener('scroll', () => { if (stage.scrollTop || stage.scrollLeft) { stage.scrollTop = 0; stage.scrollLeft = 0; } });
     const ok = (e) => e.target === cv || e.target === stage;
-    const inside = (p) => p.x >= 0 && p.x <= 180 && p.y >= 0 && p.y <= 320;
+    const inside = (p) => p.x >= 0 && p.x <= 180 && p.y >= 0 && p.y <= ((cv && cv.height) || 320);
     const homeIn = () => scene === 'home' || (scene === 'boot' && DASHA.giftOn()); // Round 22: the gift box is tapped before the game starts
-    const clampP = (p) => ({ x: Math.max(0, Math.min(180, p.x)), y: Math.max(0, Math.min(320, p.y)) });
+    const clampP = (p) => ({ x: Math.max(0, Math.min(180, p.x)), y: Math.max(0, Math.min((cv && cv.height) || 320, p.y)) });
     stage.addEventListener('pointerdown', (e) => {
       if (!ok(e)) return; e.preventDefault(); AUDIO.init(); const p = toLogical(e.clientX, e.clientY);
       if (homeIn()) { if (!inside(p)) return; HOME.down(p.x, p.y, e); } else if (scene === 'game') MINI.down(clampP(p).x, clampP(p).y); else return;
