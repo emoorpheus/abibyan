@@ -101,7 +101,7 @@ const assert = require('assert');
     return btn ? btn.textContent : '';
   });
   console.log('5. Settings screen mode button text:', btnText);
-  assert.strictEqual(btnText, 'Во весь экран', 'Settings toggle should show Во весь экран');
+  assert.strictEqual(btnText, '', 'Settings toggle should not exist (adaptive stretch only)');
 
   await page.screenshot({ path: '/tmp/r44_settings_mode.png' });
 

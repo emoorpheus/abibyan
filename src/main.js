@@ -16,21 +16,13 @@ const APP = (() => {
     try { return navigator.standalone === true || (!!window.matchMedia && matchMedia('(display-mode: standalone)').matches); } catch (e) { return false; }
   }
   function isMobileView() {
-    return isStandalone() || window.innerHeight >= window.innerWidth * 1.05;
-  }
-  function getScreenMode() {
-    const s = (typeof GAME !== 'undefined' && GAME.S) ? GAME.S : null;
-    if (s && s.settings && s.settings.screenMode) return s.settings.screenMode;
-    return 'stretch';
-  }
-  function setScreenMode(m) {
-    if (typeof GAME !== 'undefined' && GAME.S && GAME.S.settings) {
-      GAME.S.settings.screenMode = m;
-    }
-    fit();
+    return isStandalone() || window.innerHeight >= window.innerWidth * 1.05 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
   }
   function fit() {
-    const sa = safeArea(); const vw = window.innerWidth, vh = window.innerHeight, dpr = window.devicePixelRatio || 1;
+    const sa = safeArea();
+    const vw = window.innerWidth;
+    const vh = Math.max(window.innerHeight, (window.visualViewport && window.visualViewport.height) || 0, document.documentElement.clientHeight || 0);
+    const dpr = window.devicePixelRatio || 1;
     const snap = (u) => { const k = u * dpr, f = Math.floor(k); if (f >= 1 && f / k >= (k < 4 ? 0.8 : 0.94)) return f / dpr; return u; };
     const st = document.documentElement.style; const cl = document.documentElement.classList;
 
@@ -51,30 +43,14 @@ const APP = (() => {
       return;
     }
 
-    const mode = getScreenMode();
-    if (mode === 'stretch') {
-      cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
-      let u = snap(Math.min(vw / 180, vh / 320)); u = Math.max(0.5, u);
-      const ux = vw / 180, uy = vh / 320;
-      st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
-      st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
-      lay = { ct: 0, cb: 0, u, ux, uy, ctPx: 0, mode: 'stretch' };
-      if (typeof FILL !== 'undefined') FILL.layout(u);
-    } else {
-      cl.add('mode-fill'); cl.remove('mode-stretch');
-      const sat = sa.t > 0 ? sa.t : 0;
-      let u = snap(Math.min(vw / 180, vh / 320));
-      const uX = snap(Math.min(vw / 180, vh / (320 + HUD_H + BAR_H)));
-      if (vh / u - 320 < HUD_H * 0.7 && uX >= u * 0.88) u = uX;
-      u = Math.max(0.5, u);
-      const ctU = sat > 0 ? Math.ceil(sat / u) : (vh / u - 320 >= HUD_H * 0.7 ? Math.min(HUD_H, Math.floor((vh / u - 320) * 0.45)) : 0);
-      const cbU = sat > 0 ? Math.max(0, Math.floor((vh - sat - 320 * u) / u)) : Math.max(0, Math.floor((vh - 320 * u) / u - ctU));
-      st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
-      st.setProperty('--ct', (ctU * u) + 'px'); st.setProperty('--sh', vh + 'px');
-      lay = { ct: ctU, cb: cbU, u, ux: u, uy: u, mode: 'fill' };
-      cl.toggle('tall', ctU > 0);
-      if (typeof FILL !== 'undefined') FILL.layout(u);
-    }
+    // Phone / Standalone App (iPhone 17 WebClip): 100% adaptive fullscreen stretch. Zero fields, zero fake surroundings.
+    cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
+    let u = snap(Math.min(vw / 180, vh / 320)); u = Math.max(0.5, u);
+    const ux = vw / 180, uy = vh / 320;
+    st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
+    st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
+    lay = { ct: 0, cb: 0, u, ux, uy, ctPx: 0, mode: 'stretch' };
+    if (typeof FILL !== 'undefined') FILL.layout(u);
   }
   function toLogical(cx, cy) { const r = cv.getBoundingClientRect(); return { x: (cx - r.left) / r.width * 180, y: (cy - r.top) / r.height * 320 }; }
   function setScene(s) { scene = s; }
@@ -233,7 +209,7 @@ const APP = (() => {
     if (scene === 'home' && typeof GAGS !== 'undefined') o.gags = GAGS.info();
     return JSON.stringify(o);
   }
-  return { fps: () => ({ target: fpsT, renders }), boot, fit, setScreenMode, get screenMode() { return getScreenMode(); }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
+  return { fps: () => ({ target: fpsT, renders }), boot, fit, setScreenMode: () => {}, get screenMode() { return 'stretch'; }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
 })();
 window.__game = { GAME, HOME, MINI, UI, AUDIO, APP, SPR, DATA, ROOMS, FILL, FART: typeof FART !== 'undefined' ? FART : null, FRIENDS: typeof FRIENDS !== 'undefined' ? FRIENDS : null, GAGS: typeof GAGS !== 'undefined' ? GAGS : null, ALBUM: typeof ALBUM !== 'undefined' ? ALBUM : null, TUT: typeof TUT !== 'undefined' ? TUT : null, ZAL: typeof ZAL !== 'undefined' ? ZAL : null, HALL: typeof HALL !== 'undefined' ? HALL : null, DUCKS: typeof DUCKS !== 'undefined' ? DUCKS : null, ROUTINE: typeof ROUTINE !== 'undefined' ? ROUTINE : null, ART, TOUR: typeof TOUR !== 'undefined' ? TOUR : null, DASHA };
 window.advanceTime = (ms) => APP.advance(ms); window.render_game_to_text = () => APP.textState();

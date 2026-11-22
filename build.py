@@ -111,7 +111,7 @@ html = f'''<!doctype html>
 function pwa() {{
   var l = document.createElement('link'); l.rel = 'manifest'; l.href = 'manifest.webmanifest'; document.head.appendChild(l);
   var i = document.createElement('link'); i.rel = 'icon'; i.href = 'icon-192.png'; document.head.appendChild(i);
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {{}});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) {{ try {{ reg.update(); }} catch (e) {{}} }}).catch(function () {{}});
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {{}});
 }}
 if (/^https?:$/.test(location.protocol)) {{
@@ -195,7 +195,7 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v36-clean-neural-%s';
+sw = '''const CACHE = 'abibyan-v48-fullscreen-%s';
 const CORE = ['./', './index.html', './manifest.webmanifest', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
