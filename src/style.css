@@ -352,14 +352,14 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .mode-stretch .gbtns,.mode-fill .gbtns,.fill .gbtns{bottom:max(6u,calc(env(safe-area-inset-bottom,0px) + 8px))!important}
 .mode-stretch #sheet,.mode-fill #sheet,.fill #sheet{padding-bottom:max(env(safe-area-inset-bottom,0px),8px)!important}
 .mode-fill #toasts,.mode-fill #roomt{top:max(44u,calc(env(safe-area-inset-top,0px) + 48px))!important}
-.mode-stretch #toasts,.mode-stretch #roomt{top:calc(var(--ct,92px) + 8px)!important}
+.mode-stretch #toasts,.mode-stretch #roomt{top:max(44u,calc(env(safe-area-inset-top,0px) + 80px))!important}
 
 /* Variation 1: Full Stretch (Растянуть во весь экран) */
-.mode-stretch #app{padding:0!important;background:var(--ceil-bg,#ece7e0)!important}
+.mode-stretch #app{padding:0!important;background:#1d1622!important}
 .mode-stretch #app:before{display:none!important}
-.mode-stretch #stage{position:absolute!important;inset:0!important;width:100vw!important;height:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;background:var(--ceil-bg,#ece7e0)!important;margin:0!important}
-.mode-stretch #cv{position:absolute!important;left:0!important;top:var(--ct,max(88px,calc(env(safe-area-inset-top,0px) + 88px)))!important;width:100%!important;height:calc(100% - var(--ct,max(88px,calc(env(safe-area-inset-top,0px) + 88px))))!important;box-shadow:none!important;object-fit:fill!important}
-.mode-stretch #view{position:absolute!important;left:0!important;top:var(--ct,max(88px,calc(env(safe-area-inset-top,0px) + 88px)))!important;width:100%!important;height:calc(100% - var(--ct,max(88px,calc(env(safe-area-inset-top,0px) + 88px))))!important}
+.mode-stretch #stage{position:absolute!important;inset:0!important;width:100vw!important;height:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;background:#1d1622!important;margin:0!important}
+.mode-stretch #cv{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;box-shadow:none!important;object-fit:fill!important}
+.mode-stretch #view{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important}
 .mode-stretch #ext{display:none!important}
 .mode-stretch #ui #gift{top:0!important;height:100%!important}
 

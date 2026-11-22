@@ -8,7 +8,7 @@ const ZAL = (() => {
   const SP = MONKEY.sprite, K = MONKEY.K, IT = K.IT, ITC = K.ITC, R = ROOMS;
   const FLOOR = R.FLOOR, GROUND = R.GROUND, RW = R.RW, hash = PX.hash, bay = PX.bayer, fur = R.fur, curve = (p, n, rf) => ART.curve(p, n, rf);
   // ---- layout (canvas px) — art, hotspots and tests all read these ----
-  const CEIL = 27, PANEL = 126, GLASS = [86, 62, 28, 62], FIRE = [128, 176], FBOX = [141, 197, 26, 25], CH = [78, 14];
+  const CEIL = 27, PANEL = 126, GLASS = [86, 62, 28, 62], FIRE = [128, 176], FBOX = [141, 197, 26, 25], CH = [78, 28];
   const HEAD = [-6, 120], BED = [-6, 168], SLEEP = [44, 236];
   const TV = {
     // the 5 real models (user's list, cheap → expensive): width grows with the diagonal; brand name on the bottom bezel (user: no inches on the TVs, names only)
@@ -412,6 +412,8 @@ const ZAL = (() => {
   }
   function dyn(ctx, P, H, t, st) {
     const it = H.items, on = st.light !== false, lvl = tvLvl(it), tv = TV[lvl];
+    P.vl(CH[0] + 22, 0, CH[1] + 2, '#b08c48');
+    P.vl(CH[0] + 21, 0, CH[1] + 2, '#8a6a30');
     R.sprAt(ctx, spr('chand', on ? 1 : 0), CH[0], CH[1]);
     if (on) {
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.07;
@@ -450,7 +452,7 @@ const ZAL = (() => {
   function spots(it) {
     const kn = (() => { try { return GAGS.view().knob || { st: 'on' }; } catch (e) { return { st: 'on' }; } })(), open = curtainK() < 0.5; // (GAGS may still be in its TDZ at boot)
     const lvl = tvLvl(it), tv = TV[lvl], c = tv && sprTV(lvl), ch = spr('chand', 1), b = spr('bed');
-    return { light: [CH[0] - 6, CH[1] - 4, ch.width + 12, ch.height + 16], tv: tv ? [tv.at[0], tv.at[1], c.width, c.height] : null, tvLabel: tv && tv.lab ? tv.lab.slice() : null, fire: FBOX.slice(), window: [GLASS[0] - 4, GLASS[1] - 4, GLASS[2] + 8, GLASS[3] + 8], radiator: [GLASS[0] - 1, 158, 30, 30], knobL: open ? [KNOB.L[0] - 1, KNOB.L[1] - 1, 7, 9] : null, knobR: open && (kn.st === 'on' || kn.st === 'wobble') ? [KNOB.R[0] - 1, KNOB.R[1] - 1, 7, 9] : null, knobFloor: kn.st === 'floor' ? [Math.round(kn.x) - 3, Math.round(kn.y) - 5, 13, 10] : null, poster: it.poster ? [141, 48, 26, 36] : null, nightlight: it.nightlight ? [GLASS[0] + 2, GLASS[1] + GLASS[3] - 12, 16, 16] : null, rug: RUG.slice(), garland: it.garland ? [0, 32, RW, 16] : null, bed: [BED[0], BED[1], b.width, b.height], guitar: it.guitar ? [GTR[0], GTR[1], GW, GH] : null, switch2: hasCon(it, 'switch2') ? [SW2[0], SW2[1], 28, 14] : null, ps5: hasCon(it, 'ps5') ? [PS5[0], PS5[1], 12, 24] : null, cable: lvl && (hasCon(it, 'switch2') || hasCon(it, 'ps5')) ? [CAB_X, tvBottom(lvl), 1, CAB_Y1] /* x, top y, w, bottom y */ : null, soundbar: it.soundbar && sbAt(lvl) ? [...sbAt(lvl), SB_W, SB_H] : null,
+    return { light: [CH[0] - 8, CH[1], ch.width + 16, ch.height + 14], tv: tv ? [tv.at[0], tv.at[1], c.width, c.height] : null, tvLabel: tv && tv.lab ? tv.lab.slice() : null, fire: FBOX.slice(), window: [GLASS[0] - 4, GLASS[1] - 4, GLASS[2] + 8, GLASS[3] + 8], radiator: [GLASS[0] - 1, 158, 30, 30], knobL: open ? [KNOB.L[0] - 1, KNOB.L[1] - 1, 7, 9] : null, knobR: open && (kn.st === 'on' || kn.st === 'wobble') ? [KNOB.R[0] - 1, KNOB.R[1] - 1, 7, 9] : null, knobFloor: kn.st === 'floor' ? [Math.round(kn.x) - 3, Math.round(kn.y) - 5, 13, 10] : null, poster: it.poster ? [141, 48, 26, 36] : null, nightlight: it.nightlight ? [GLASS[0] + 2, GLASS[1] + GLASS[3] - 12, 16, 16] : null, rug: RUG.slice(), garland: it.garland ? [0, 32, RW, 16] : null, bed: [BED[0], BED[1], b.width, b.height], guitar: it.guitar ? [GTR[0], GTR[1], GW, GH] : null, switch2: hasCon(it, 'switch2') ? [SW2[0], SW2[1], 28, 14] : null, ps5: hasCon(it, 'ps5') ? [PS5[0], PS5[1], 12, 24] : null, cable: lvl && (hasCon(it, 'switch2') || hasCon(it, 'ps5')) ? [CAB_X, tvBottom(lvl), 1, CAB_Y1] /* x, top y, w, bottom y */ : null, soundbar: it.soundbar && sbAt(lvl) ? [...sbAt(lvl), SB_W, SB_H] : null,
       curtainL: curtainK() > 0.5 ? [GLASS[0] - 20, GLASS[1] - 14, 34, FLOOR - GLASS[1] + 14] : [GLASS[0] - 20, GLASS[1] - 14, 22, FLOOR - GLASS[1] + 14],
       curtainR: curtainK() > 0.5 ? [GLASS[0] + 14, GLASS[1] - 14, 34, FLOOR - GLASS[1] + 14] : [GLASS[0] + GLASS[2] - 2, GLASS[1] - 14, 22, FLOOR - GLASS[1] + 14], sleep: SLEEP.slice(), visit: [146, 273], party: { pusya: [32, 277], monty: [144, 275], mosq: [120, 274, 84], zhuk: [66, 283] } };
   }

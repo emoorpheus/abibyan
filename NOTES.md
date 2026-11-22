@@ -496,8 +496,10 @@
   - Room transitions now purely via horizontal swipe (`src/home.js`, swipe threshold lowered to 22 px for ultra-smooth gestures).
   - Direct object taps: tap fridge in kitchen -> food shop; tap bed in zal -> sleep/wake up; tap wardrobe in hall -> wardrobe; tap sink/faucet in bath -> wash with soap (`soapTap()`); tap palm on balcony -> water/fertilize.
   - In kitchen, only the food carousel (`#c-slot`, `#c-l`, `#c-r`) remains at the bottom for dragging food into the mouth.
-- **iPhone 17 Fullscreen & Dynamic Island Fix**:
-  - `src/fill.js`: `want = r.width > 0 && vh >= vw * 1.05` ensures full ambient canvas expansion on modern tall aspect ratios (iPhone 17, 19.5:9+).
+- **iPhone 17 Fullscreen & Screen Modes**:
+  - `mode-stretch` («Во весь экран»): честный 100% fullscreen без искусственных полей, плашек пола и полос. Игровой холст `#cv` растянут на весь экран (`inset: 0`, `top: 0`, `left: 0`, `width: 100%`, `height: 100%`, `object-fit: fill`), `#ext` отключён.
+  - Люстра в зале опущена (`CH = [78, 28]`) с латунными цепочками от потолка, потолочный свет на кухне расширен по кликабельности, бра в прихожей легко доступны — всё свободно управляется кликом под полосой HUD.
+  - `mode-fill` («С полями»): сохраняет пропорции 1:1 с фоновым заполнением краев.
   - Viewport extends to `screen.height` in PWA / standalone mode.
   - Dynamically updates `<meta name="theme-color">` to match ceiling color, removing the dark status bar blur under Dynamic Island.
 - **Gameplay Balance & Difficulty**:

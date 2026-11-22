@@ -17,8 +17,10 @@ const FILL = (() => {
   const rgb = (c) => `rgb(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])})`;
   function layout(u) {
     ec = ec || document.getElementById('ext'); if (!ec) return;
-    if (typeof APP !== 'undefined' && APP.screenMode === 'stretch') {
+    const mode = (typeof APP !== 'undefined' && APP.screenMode) ? APP.screenMode : 'stretch';
+    if (mode === 'stretch') {
       on = false; document.documentElement.classList.remove('fill');
+      if (ec) { ec.style.display = 'none'; ec.width = 1; ec.height = 1; }
       if (bgCss) { document.documentElement.style.backgroundColor = ''; if (document.body) document.body.style.backgroundColor = ''; bgCss = ''; }
       return;
     }
@@ -26,9 +28,9 @@ const FILL = (() => {
     const r = cv.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
     let fullH = Math.max(vh, (window.screen && window.screen.height) || 0, document.documentElement.clientHeight || 0);
     const gl = Math.max(0, r.left), gr = Math.max(0, vw - r.right);
-    const want = r.width > 0 && (vh >= vw * 1.05 || (typeof APP !== 'undefined' && APP.screenMode === 'fill'));
+    const want = r.width > 0 && mode === 'fill';
     on = want; document.documentElement.classList.toggle('fill', on);
-    if (!on) { if (bgCss) { document.documentElement.style.backgroundColor = ''; if (document.body) document.body.style.backgroundColor = ''; bgCss = ''; } return; }
+    if (!on) { if (ec) ec.style.display = 'none'; if (bgCss) { document.documentElement.style.backgroundColor = ''; if (document.body) document.body.style.backgroundColor = ''; bgCss = ''; } return; }
     const c = (v) => Math.max(0, Math.ceil(v / u - 0.01));
     Object.assign(g, { u, fullH, SX: c(gl), SXR: c(gr), R0: c(r.top), R1: c(fullH - r.bottom) + 2 });
     g.W = g.SX + RW + g.SXR; g.H = g.R0 + RH + g.R1; g.left = r.left - g.SX * u; g.top = r.top - g.R0 * u;
@@ -119,7 +121,7 @@ const FILL = (() => {
   }
   let sheetCol = null;
   function draw(dt, scene, cv) {
-    if (!on || !ex || !cv) return;
+    if (!on || !ex || !cv || (typeof APP !== 'undefined' && APP.screenMode === 'stretch')) return;
     const home = scene !== 'game', room = home ? HOME.room : null, sl = home && HOME.slide ? HOME.slide() : null;
     if (!sl) prev = room;
     acc += dt; if (acc >= (dt < 0.025 ? 0.2 : 0.6)) { acc = 0; sample(cv, scene); } // a light switched on shows below within a blink

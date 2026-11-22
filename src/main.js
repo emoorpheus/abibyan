@@ -54,15 +54,11 @@ const APP = (() => {
     const mode = getScreenMode();
     if (mode === 'stretch') {
       cl.add('mode-stretch'); cl.remove('mode-fill'); cl.remove('fill'); cl.remove('tall');
-      const sat = sa.t > 0 ? sa.t : 0;
       let u = snap(Math.min(vw / 180, vh / 320)); u = Math.max(0.5, u);
-      const hudH = Math.max(78, Math.round(38 * u));
-      const ctPx = Math.round(sat > 0 ? sat + 6 + hudH + 4 : hudH + 10);
-      const ctU = Math.ceil(ctPx / u);
-      const ux = vw / 180, uy = Math.max(0.5, (vh - ctPx) / 320);
+      const ux = vw / 180, uy = vh / 320;
       st.setProperty('--u', u + 'px'); st.setProperty('--ux', ux + 'px'); st.setProperty('--uy', uy + 'px');
-      st.setProperty('--ct', ctPx + 'px'); st.setProperty('--sh', '100%');
-      lay = { ct: ctU, cb: 0, u, ux, uy, ctPx, mode: 'stretch' };
+      st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
+      lay = { ct: 0, cb: 0, u, ux, uy, ctPx: 0, mode: 'stretch' };
       if (typeof FILL !== 'undefined') FILL.layout(u);
     } else {
       cl.add('mode-fill'); cl.remove('mode-stretch');
