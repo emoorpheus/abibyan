@@ -86,15 +86,15 @@ const FRIENDS = (() => {
     const p = PIL[who]; if (!p || HOME.room !== 'zal') return null; return { x: p.x, y: p.top - 3 - camY };
   }
   function fsay(who, text, kind) {
-    const cd = AUDIO.chat(kind || (F[who] ? FD[who].voice : who), text) || 0, dur = Math.max(cd, Math.min(3.4, 0.7 + text.length * 0.045));
+    const cd = AUDIO.chat(kind || (F[who] ? FD[who].voice : who), text) || 0, dur = Math.max(cd, Math.max(2.4, 0.9 + text.length * 0.05));
     if (F[who]) F[who].talkUntil = t + Math.max(0.35, cd);
-    UI.hideBubble(); const p = speakerPos(who); if (p) { bub = { who }; UI.fbubble(text, p.x, p.y, (dur + 1.1) * 1000); }
+    UI.hideBubble(); const p = speakerPos(who); if (p) { bub = { who }; UI.fbubble(text, p.x, p.y, (dur + 1.2) * 1000); }
     return dur;
   }
-  function monkeySay(text, mood) { if (S().sleeping || APP.scene !== 'home') return 0; UI.fhideBubble(); bub = null; return HOME.say(text, mood) || 1.2; }
+  function monkeySay(text, mood) { if (S().sleeping || (APP.scene !== 'home' && APP.scene !== 'boot')) return 0; UI.fhideBubble(); bub = null; const d = HOME.say(text, mood) || 1.8; return Math.max(2.2, d); }
 
   // ---------- scenes: queue of ['f'|'a', text, mood] lines, ['w', sec] waits and step functions (return seconds to wait) ----------
-  function run(id, lines, onEnd) { scene = { id, q: lines.slice(), wait: 0.2, onEnd }; }
+  function run(id, lines, onEnd) { scene = { id, q: lines.slice(), wait: 0.45, onEnd, lineT: t }; }
   function cancelScene() {
     if (!scene) return;
     const sid = scene.id;
@@ -109,17 +109,26 @@ const FRIENDS = (() => {
     }
     scene = null; UI.fhideBubble(); bub = null; if (heist) endHeist();
   }
+  function sceneActive() { return !!scene && !UI.hasModal(); }
+  function tapScene() {
+    if (!scene || UI.hasModal()) return false;
+    if (scene.lineT && (t - scene.lineT < 0.35)) return true;
+    scene.wait = 0;
+    sceneTick(0);
+    return true;
+  }
   function sceneTick(dt) {
     if (!scene || UI.hasModal()) return; scene.wait -= dt; if (scene.wait > 0) return;
     const l = scene.q.shift();
     if (!l) { const s = scene; scene = null; if (s.onEnd) s.onEnd(); return; }
-    if (typeof l === 'function') { const w = l(); scene.wait = typeof w === 'number' ? w : 0.3; return; }
+    scene.lineT = t;
+    if (typeof l === 'function') { const w = l(); scene.wait = typeof w === 'number' ? w : 0.35; return; }
     if (l[0] === 'w') { scene.wait = l[1]; return; }
     const f = F[(l[0] === 'f' && l[3]) || scene.id]; // party scenes: ['f', text, pose, who]
-    if (l[0] === 'f') { if (!f || f.room !== HOME.room) { scene.wait = 0.1; return; } const d = fsay(f.id, l[1]); if (l[2]) { f.pose = l[2]; f.poseUntil = t + d + 1.2; } HOME.lookAt(f.x, f.headY, d + 0.5); scene.wait = d + 0.4; return; }
+    if (l[0] === 'f') { if (!f || f.room !== HOME.room) { scene.wait = 0.1; return; } const d = fsay(f.id, l[1]); if (l[2]) { f.pose = l[2]; f.poseUntil = t + d + 1.2; } HOME.lookAt(f.x, f.headY, d + 0.5); scene.wait = Math.max(2.6, d + 0.5); return; }
     if (f) HOME.lookAt(f.x, f.headY, 3); const d = monkeySay(l[1], l[2]);
     for (const q of f ? [f] : IDS.map((k) => F[k]).filter((q) => q.room === HOME.room)) { q.look = [Math.sign(HOME.mk.x - q.x), 0]; q.lookUntil = t + 3; }
-    scene.wait = Math.max(d, 0.5 + l[1].length * 0.035) + 0.4;
+    scene.wait = Math.max(2.6, Math.max(d, 0.7 + l[1].length * 0.045) + 0.5);
   }
 
   // ---------- chat / specials ----------
@@ -837,7 +846,7 @@ const FRIENDS = (() => {
       ${id === 'zhuk' ? `<button class="btn" id="fr-heist" style="${hl > 0 ? 'filter:grayscale(.6)' : ''}">${UI.im(UI.F('icecream'))}Вылазка<small>· ${hl > 0 ? 'через ' + spLeftTxt(hl) : 'тайком к Пусе'}</small></button>` : ''}
       <button class="btn g" id="fr-party" style="${pl > 0 ? 'filter:grayscale(.6)' : ''}">${UI.im(UI.I('balloon'))}Все вместе!<small>· ${pl > 0 ? 'через ' + spLeftTxt(pl) : 'позвать всех друзей'}</small></button></div>
       <p class="fsc">Дуэли: побед ${st.w || 0} · поражений ${st.l || 0} · Пухлость: ${Math.round((st.fat || 0) * 100)}%</p>${fs.lv ? `<p class="fsc">Бонус: ${fs.perk}</p>` : ''}<button class="btn w sm" data-close>Пока!</button>`, { dismiss: true });
-    const b = (sel, fn) => { const el = w.querySelector(sel); if (el) el.onclick = () => { AUDIO.play('click'); UI.closeModal(w); fn(); }; };
+    const b = (sel, fn) => { const el = w.querySelector(sel); if (el) el.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } AUDIO.play('click'); UI.closeModal(w); if (typeof HOME !== 'undefined' && HOME.ignoreTapUntil) HOME.ignoreTapUntil(performance.now() + 350); fn(); }; };
     b('#fr-chat', () => chat(id)); b('#fr-sp', () => special(id)); b('#fr-duel', () => MINI.duelIntro(id)); b('#fr-feed', () => feedPick(id));
     b('#fr-heist', () => { if (!startHeist('card')) { AUDIO.play('nope'); const q = heistLeft(); UI.toast(q > 0 ? 'Вылазка — через ' + spLeftTxt(q) : F.pusya.mode !== 'home' ? 'Пуси нет дома — вылазка отменяется' : 'Сейчас не получится', UI.F('icecream')); } });
     b('#fr-party', () => { if (!startParty()) { AUDIO.play('nope'); const q = partyLeft(); UI.toast(q > 0 ? 'Все вместе — через ' + spLeftTxt(q) : 'Сейчас не получится', UI.I('balloon')); } });
@@ -888,6 +897,6 @@ const FRIENDS = (() => {
     return { fat, f: fr, party: party ? { kind: party.kind, act: party.act, auto: party.auto, lights: Math.round(party.lights * 100) / 100, bites: party.bites } : null, here: IDS.filter((id) => F[id].room === room).map((id) => ({ id, x: Math.round(F[id].x), y: Math.round(F[id].y), mode: F[id].mode })), visitor: visitorId(), scene: scene ? scene.id : null, bubble: UI.fbubbleText || null, speaker: bub ? bub.who : null, guest: guest ? { id: guest.id, host: guest.host, room: F[guest.id].room, ph: guest.ph, mode: F[guest.id].mode } : null, heist: heist ? { ph: heist.ph, src: heist.src } : null, offer: t < offerUntil, nap: !!F.pusya.nap,
       pillows: room === 'zal' ? { carrot: asleep ? 'hug' : pillowOpts(PIL.carrot).mood, pepper: asleep ? 'sleep' : pillowOpts(PIL.pepper).mood } : null };
   }
-  return { behindTable, levelUp, boxes, _gift: gift, party: (o) => startParty(o), _party: (o) => startParty(Object.assign({ force: true }, o)), _endParty: endParty, _tryParty: tryParty, partyOn: () => !!party, partyKind: () => (party ? party.kind : null), dashaParty: (b) => startParty({ kind: 'dasha', force: true, bday: b }), doorT: () => 0, update, render, at, tap, hold, release, card, chat, special, info, feed, feedPick, busy: () => !!scene, hosting: () => !!(party || visitorId() || heist), growParty: (st) => startParty({ kind: 'grow', stage: st, force: true }), _cake: () => (party && party.cake) || null, heist: (src) => startHeist(src || 'api'), heistOK, heistLeft, PAIR, _guest: startGuest, HOMES, VSPOT, IDS,
+  return { behindTable, levelUp, boxes, _gift: gift, party: (o) => startParty(o), _party: (o) => startParty(Object.assign({ force: true }, o)), _endParty: endParty, _tryParty: tryParty, partyOn: () => !!party, partyKind: () => (party ? party.kind : null), dashaParty: (b) => startParty({ kind: 'dasha', force: true, bday: b }), doorT: () => 0, update, render, at, tap, hold, release, card, chat, special, info, feed, feedPick, busy: () => !!scene, sceneActive, tapScene, hosting: () => !!(party || visitorId() || heist), growParty: (st) => startParty({ kind: 'grow', stage: st, force: true }), _cake: () => (party && party.cake) || null, heist: (src) => startHeist(src || 'api'), heistOK, heistLeft, PAIR, _guest: startGuest, HOMES, VSPOT, IDS,
     _joke: joke, _visit: startVisit, _greetNow: () => { greetNow = true; greetT = -1; }, CALL, _reset: () => { party = null; guest = null; heist = null; offerUntil = 0; offerT = 0; HOME.sneak(false); F.pusya.nap = false; F.zhuk.ride = false; AUDIO.stop('disco'); cancelScene(); timers = []; for (const id of IDS) goHome(F[id]); }, _skip: (s) => { t += s; }, _F: F, _PIL: PIL, get t() { return t; }, get drawn() { return drawn; } };
 })();

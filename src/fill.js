@@ -124,7 +124,7 @@ const FILL = (() => {
     acc += dt; if (acc >= (dt < 0.025 ? 0.2 : 0.6)) { acc = 0; sample(cv, scene); } // a light switched on shows below within a blink
     const modal = UI.hasModal(), sh = UI.sheetOpen ? document.getElementById('sheet') : null;
     if (sh && !sheetCol) { const m = getComputedStyle(sh).backgroundColor.match(/\d+/g); sheetCol = m ? m.slice(0, 3).map(Number) : [255, 244, 226]; }
-    const o = { dim: modal ? 'rgba(25,12,22,.6)' : null, sheet: sh ? rgb(sheetCol) : null, sheetC: sheetCol, sheetY: sh ? (sh.getBoundingClientRect().top - g.top) / g.u : 1e9 };
+    const o = { dim: null, sheet: sh ? rgb(sheetCol) : null, sheetC: sheetCol, sheetY: sh ? (sh.getBoundingClientRect().top - g.top) / g.u : 1e9 };
     const k = sig + '|' + scene + '|' + room + '|' + modal + '|' + (sh ? Math.round(o.sheetY) : '-'); // cheap: sig changes only when a sample does
     let all = false; if (k !== key || sl || slid) { key = k; slid = !!sl; topBand(smp.top, o.dim); botBand(scene, o); all = true; }
     // the sides follow the picture's edges: every frame when it moves (60 fps), 4 times a second when it just sits (battery: r20 perf)

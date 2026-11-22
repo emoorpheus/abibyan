@@ -416,7 +416,13 @@ const HOME = (() => {
     const bd = sp.body; if (((lx - bd.x) / (bd.rx + 2)) ** 2 + ((ly - bd.y) / (bd.ry + 2)) ** 2 < 1) return 'belly';
     return 'body';
   }
+  let ignoreUntil = 0;
+  function ignoreTapUntil(ts) { ignoreUntil = Math.max(ignoreUntil, ts); }
   function down(x, y, e) {
+    if (performance.now() < ignoreUntil) { press = null; return; }
+    if (typeof FRIENDS !== 'undefined' && FRIENDS.sceneActive && FRIENDS.sceneActive()) {
+      if (FRIENDS.tapScene && FRIENDS.tapScene()) { press = null; return; }
+    }
     if (typeof ROUTINE !== 'undefined') ROUTINE.poke(); // Round 14: a tap stops whatever he set off to do by himself
     if (DASHA.down(x, sceneY(y))) { press = null; AUDIO.init(); return; } // Round 22: the gift box, blowing out her candles with a finger, her party
     if (trans || tool) return; y = sceneY(y); AUDIO.init();
@@ -1373,7 +1379,7 @@ const HOME = (() => {
     micToggle, micActive: () => mic.on, toggleLight, waterTree, fertilize, shower, showerOn: () => !!showerSt, startTool, setPreview, closeWindow,
     monkeyAt: (x, y) => monkeyPart(x, y), clearTry: () => { tryCloth = null; }, dropFiller, tryOn: (id) => { tryCloth = id; }, tryId: () => tryCloth, feed, act, fx, face, lookAt, hop, headTop, busy, things, whine, tripStart, _params: () => params(), _mk: () => ({ x0: mk.x0, y0: mk.y0, cv: mk.sp && mk.sp.cv }),
     sneak, get sneaking() { return sneaking; },     get camY() { return camY; }, get tvOn() { return tvOn && GAME.hasUp('tv'); }, get trip() { return trip ? Object.assign({ kind: trip.kind, ph: trip.ph }, trip.climb ? { climb: true } : {}, trip.kind === 'mirror' ? { pose: trip.pose || null } : {}, trip.kind === 'guitar' ? { gp: trip.gp || null } : {}) : null; },
-    phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; },
+    phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; }, ignoreTapUntil,
     _mirror: (id) => { if (trip && trip.kind === 'mirror' && trip.ph === 'do') { trip.t = 0; mirrorPose(trip, id); } },
     get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes,
   };
