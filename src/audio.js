@@ -8,7 +8,7 @@ try {
 
 const AUDIO = (() => {
   let ac = null, master, sfxG, musG, voxG, noiseBuf; const st = { sfx: true, music: true };
-  let unlockedSession = false;
+  let unlockedSession = false, suspended = false;
 
   function unlockSilentSwitch() {
     try {
@@ -53,8 +53,17 @@ const AUDIO = (() => {
   }
 
   function init() {
+    if (typeof document !== 'undefined' && document.hidden) return false;
+    suspended = false;
     unlockSilentSwitch();
     if (ac) {
+      if (master) {
+        try {
+          master.gain.cancelScheduledValues(ac.currentTime);
+          master.gain.setValueAtTime(0.8, ac.currentTime);
+        } catch (e) { }
+        try { master.gain.value = 0.8; } catch (e) { }
+      }
       if (ac.state !== 'running' && ac.state !== 'closed') {
         try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { }
         silent();
@@ -85,9 +94,71 @@ const AUDIO = (() => {
     if (SP.ok) setTimeout(warm, 50);
     return true;
   }
+
+  function suspend() {
+    if (suspended) return;
+    suspended = true;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.audioSession) {
+        navigator.audioSession.type = 'ambient';
+      }
+    } catch (e) { }
+    try { music.stop(); } catch (e) { }
+    try { hush(); } catch (e) { }
+    if (hbdTimer) { clearTimeout(hbdTimer); hbdTimer = null; }
+    for (const k in live) {
+      try { stop(k); } catch (e) { }
+    }
+    if (master && ac) {
+      try {
+        master.gain.cancelScheduledValues(ac.currentTime);
+        master.gain.setValueAtTime(0, ac.currentTime);
+      } catch (e) { }
+      try { master.gain.value = 0; } catch (e) { }
+    }
+    if (ac && ac.state === 'running') {
+      try {
+        const p = ac.suspend();
+        if (p && p.catch) p.catch(() => { });
+      } catch (e) { }
+    }
+  }
+
+  function resume() {
+    if (typeof document !== 'undefined' && document.hidden) return false;
+    suspended = false;
+    unlockSilentSwitch();
+    if (ac) {
+      if (master) {
+        try {
+          master.gain.cancelScheduledValues(ac.currentTime);
+          master.gain.setValueAtTime(0.8, ac.currentTime);
+        } catch (e) { }
+        try { master.gain.value = 0.8; } catch (e) { }
+      }
+      if (ac.state !== 'running' && ac.state !== 'closed') {
+        try {
+          const p = ac.resume();
+          if (p && p.catch) p.catch(() => { });
+        } catch (e) { }
+        silent();
+      }
+      if (sfxG) sfxG.gain.value = st.sfx ? 0.55 : 0;
+      if (voxG) voxG.gain.value = st.sfx ? 0.65 : 0;
+      if (musG) {
+        const mv = (st.music && !quietF && !duckF) ? 0.16 : 0;
+        try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { }
+        musG.gain.value = mv;
+      }
+      if (st.music && !music.running()) music.start();
+      return true;
+    }
+    return init();
+  }
+
   const now = () => ac.currentTime;
   function tone(f, dur, o = {}) {
-    if (!ac || !st.sfx) return; const t = now() + (o.delay || 0);
+    if (!ac || !st.sfx || suspended || (typeof document !== 'undefined' && document.hidden)) return; const t = now() + (o.delay || 0);
     const osc = ac.createOscillator(), g = ac.createGain(); osc.type = o.type || 'square'; osc.frequency.setValueAtTime(f, t);
     if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.slide), t + dur);
     if (o.vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = o.vib[0]; lg.gain.value = o.vib[1]; l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(t + dur + 0.05); }
@@ -96,7 +167,7 @@ const AUDIO = (() => {
     node.connect(g); g.connect(o.bus || sfxG); osc.start(t); osc.stop(t + dur + 0.02);
   }
   function noise(dur, o = {}) {
-    if (!ac || !st.sfx) return; const t = now() + (o.delay || 0);
+    if (!ac || !st.sfx || suspended || (typeof document !== 'undefined' && document.hidden)) return; const t = now() + (o.delay || 0);
     const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true; const f = ac.createBiquadFilter(); f.type = o.ft || 'bandpass'; f.frequency.setValueAtTime(o.f || 1200, t); if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + dur); f.Q.value = o.q || 0.8;
     const g = ac.createGain(); const v = o.vol === undefined ? 0.3 : o.vol, a = o.a || 0.005; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a); if (o.hold) g.gain.setValueAtTime(v, t + Math.max(a, dur - o.hold)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(o.bus || sfxG); src.start(t, Math.random() * 0.5); src.stop(t + dur + 0.02);
@@ -310,7 +381,7 @@ const AUDIO = (() => {
     peel: () => noise(0.3, { f: 1800, f2: 4200, q: 1.2, vol: 0.08 }),
     chime: (p) => { const pitch = typeof p === 'number' ? p : 1, f = Math.round(1100 * pitch); tone(f, 0.16, { type: 'sine', vol: 0.14 }); tone(f * 1.5, 0.12, { type: 'triangle', vol: 0.06, delay: 0.02 }); tone(f * 2.01, 0.18, { type: 'sine', vol: 0.04, delay: 0.03 }); },
   };
-  function play(name, a) { if (!ac) return; try { if (SP.ok && st.sfx && VOX[name]) { if (VOX[name](a)) return; } SFX[name] && SFX[name](a); } catch (e) { } }
+  function play(name, a) { if (!ac || suspended || (typeof document !== 'undefined' && document.hidden)) return; try { if (SP.ok && st.sfx && VOX[name]) { if (VOX[name](a)) return; } SFX[name] && SFX[name](a); } catch (e) { } }
 
   // ---------- voice: SPEECH (built by tools/tts.py) — every line pre-spoken in the monkey's voice + word/syllable bank for typed text ----------
   const SP = { ok: typeof SPEECH !== 'undefined', cache: new Map(), rate: 1, active: [], busy: 0, tok: 0, pend: null, played: 0, warm: 0 };
@@ -467,7 +538,7 @@ const AUDIO = (() => {
   // speak a bubble line / typed text; returns {dur, env(t)} for lip sync (t = seconds since the call)
   const lisp = (s) => String(s).replace(/с/g, 'ш').replace(/С/g, 'Ш');
   function say(text, o = {}) {
-    if (!ac || !st.sfx) return null;
+    if (!ac || !st.sfx || suspended || (typeof document !== 'undefined' && document.hidden)) return null;
     text = lisp(text);
     if (!SP.ok) { const d = voice(text, SP.rate * (o.rate || 1)); return d ? { dur: d } : null; }
     hush();
@@ -597,7 +668,7 @@ const AUDIO = (() => {
       k: (t) => boom(t, 150, 45, 0.16, 0.7), t: (t, i) => boom(t, i % 4 < 2 ? 220 : 165, i % 4 < 2 ? 120 : 90, 0.14, 0.4), S: (t) => { nz(t, 0.12, 0.14, 'bandpass', 1800, 0.8); boom(t, 240, 160, 0.06, 0.25); },
       b: (t) => nz(t, 0.16, 0.06, 'bandpass', 3000, 0.7), r: (t, i) => { note(i % 2 ? 4200 : 3900, t, 0.12, 'sine', 0.025); nz(t, 0.08, 0.025, 'highpass', 9000); }, n: (t) => nz(t, 0.07, 0.13, 'bandpass', 2400, 0.5) };
     function sched() {
-      if (!ac || ac.state !== 'running') return;
+      if (!ac || ac.state !== 'running' || suspended || (typeof document !== 'undefined' && document.hidden)) return;
       if (next < ac.currentTime - 0.25) next = ac.currentTime + 0.05;
       while (next < ac.currentTime + 0.25) {
         const T = TRACKS[cur], SP = 60 / T.bpm / 2, B = T.bar || 8, s8 = step % B, bi = Math.floor(step / B), ch = T.prog[bi % T.prog.length], nx = T.prog[(bi + 1) % T.prog.length], r = ch[0];
@@ -647,5 +718,14 @@ const AUDIO = (() => {
     level: () => 0,
     get active() { return false; }
   };
-  return { get unlockedN() { return unlockedN; }, voiceInline, voiceState: () => ({ ready: SPEECH.ready, pend: SP.pend ? 1 : 0, played: SP.played }), TRACKS, track, get trackId() { return music.id; }, _musLog: music.log, init, play, has: (n) => !!SFX[n], stop, liveOn: (n) => !!live[n], voice, chat, say, setRate, hush, set, duck, quiet, quietOn: () => quietF, mic, st, get ctx() { return ac; }, get voiceReady() { return SP.ok; }, get _out() { return master; }, _sp: SP, _plan: (t) => SP.ok ? plan(t) : [], _norm: normT };
+  return { get unlockedN() { return unlockedN; }, voiceInline, voiceState: () => ({ ready: SPEECH.ready, pend: SP.pend ? 1 : 0, played: SP.played }), TRACKS, track, get trackId() { return music.id; }, _musLog: music.log, init, suspend, resume, isSuspended: () => suspended, play, has: (n) => !!SFX[n], stop, liveOn: (n) => !!live[n], voice, chat, say, setRate, hush, set, duck, quiet, quietOn: () => quietF, mic, st, get ctx() { return ac; }, get voiceReady() { return SP.ok; }, get _out() { return master; }, _sp: SP, _plan: (t) => SP.ok ? plan(t) : [], _norm: normT };
 })();
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) AUDIO.suspend();
+    else AUDIO.resume();
+  });
+  window.addEventListener('pagehide', () => AUDIO.suspend());
+  window.addEventListener('pageshow', () => { if (!document.hidden) AUDIO.resume(); }, { passive: true });
+}

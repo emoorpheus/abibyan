@@ -1127,3 +1127,38 @@
   - Регрессионные тесты: `test/verify_r44.js`, `test/verify_r43.js`, `test/verify_r42.js`, `test/verify_r41.js` — ALL PASS.
   - `tools/compat.js`: 28 файлов, 0 проблем Safari 15.
   - Сборка: `python3 build.py` успешна.
+
+## 2026-11-22 — Раунд 46: остановка звука и музыки при сворачивании игры или блокировке экрана
+- Проблема:
+  - При сворачивании игры или блокировке экрана телефона (iOS PWA / Safari / Android) игра продолжала издавать звуки и играть музыку в фоне.
+  - Причина: `navigator.audioSession.type = 'playback'` разрешал фоновое аудио в iOS WebKit, а `visibilitychange` и `pagehide` не приостанавливали WebAudio context (`AudioContext`), не сбрасывали `master.gain` и не останавливали таймер чиптюн-музыки `music.stop()`.
+- Решение:
+  - `src/audio.js`:
+    - Добавлены функции `AUDIO.suspend()` и `AUDIO.resume()`, экспортирован флаг `isSuspended()`.
+    - В `suspend()`:
+      1. `navigator.audioSession.type = 'ambient'` — гарантирует, что iOS CoreAudio отзывает разрешение на воспроизведение звука в фоне и при блокировке экрана.
+      2. `music.stop()` — немедленно сбрасывает интервал планировщика нот.
+      3. `hush()` — останавливает все активные речевые клипы.
+      4. Остановка всех активных фоновых звуков бытовых приборов (`live`).
+      5. `master.gain.value = 0` — моментальное обнуление громкости мастера.
+      6. `ac.suspend()` — аппаратная приостановка аудиотреда WebAudio.
+    - В `resume()`:
+      1. Восстановление `navigator.audioSession.type = 'playback'`.
+      2. `master.gain.value = 0.8` — восстановление штатной громкости.
+      3. `ac.resume()` — возобновление работы контекста.
+      4. Перезапуск музыки `music.start()`, если музыка включена в настройках (`st.music`).
+    - Методы `play()`, `say()`, `tone()`, `noise()`, `sched()` защищены от вызова в фоне (`if (suspended || document.hidden) return`).
+    - Добавлены слушатели `visibilitychange`, `pagehide`, `pageshow` внутри `audio.js`.
+  - `src/main.js`:
+    - При `visibilitychange` (`document.hidden = true`) и `pagehide` вызывается `AUDIO.suspend()`.
+    - При `visibilitychange` (`!document.hidden`), `pageshow` и `focus` вызывается `AUDIO.resume()`.
+- Верификация:
+  - `test/verify_r46.js`:
+    1. Проверка активного состояния: `ctxState = 'running'`, `masterGain = 0.8`, `isSuspended = false`.
+    2. Симуляция сворачивания / блокировки (`document.hidden = true`, `visibilitychange`): `isSuspended = true`, `masterGain = 0`, `ctxState = 'suspended'`.
+    3. Попытки воспроизведения звуков в фоне (`play`, `say`): 0 звуков запущено.
+    4. Симуляция разблокировки экрана (`document.hidden = false`, `visibilitychange`): `isSuspended = false`, `masterGain = 0.8`, `ctxState = 'running'`.
+    5. Проверка событий `pagehide` и `pageshow`: мгновенный переход suspend -> resume.
+  - `test/verify_r45.js`, `test/verify_r44.js`, `test/verify_r41.js` — ALL PASS.
+  - `tools/compat.js`: 28 файлов, 0 проблем Safari 15.
+  - Сборка `python3 build.py` выполнена без ошибок.

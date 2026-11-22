@@ -120,11 +120,22 @@ const APP = (() => {
     for (const ev of ['pointerup', 'pointercancel']) document.addEventListener(ev, () => { poke(); downAt = 0; }, { capture: true, passive: true });
     document.addEventListener('contextmenu', (e) => { if (!(e.target && e.target.closest && e.target.closest('input,textarea'))) e.preventDefault(); });
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { GAME.save(true); if (scene === 'game') MINI.pause(); HOME.pause(); DASHA.pause(); }
-      else { const dt = GAME.catchUp(); AUDIO.init(); if (dt > 600 && scene === 'home') setTimeout(() => greet(), 400); UI.refresh(); }
+      if (document.hidden) {
+        GAME.save(true);
+        if (scene === 'game') MINI.pause();
+        HOME.pause();
+        DASHA.pause();
+        AUDIO.suspend();
+      } else {
+        const dt = GAME.catchUp();
+        AUDIO.resume();
+        if (dt > 600 && scene === 'home') setTimeout(() => greet(), 400);
+        UI.refresh();
+      }
     });
-    window.addEventListener('focus', () => AUDIO.init(), { passive: true });
-    window.addEventListener('pagehide', () => GAME.save(true));
+    window.addEventListener('focus', () => { if (!document.hidden) AUDIO.resume(); }, { passive: true });
+    window.addEventListener('pagehide', () => { GAME.save(true); AUDIO.suspend(); });
+    window.addEventListener('pageshow', () => { if (!document.hidden) AUDIO.resume(); }, { passive: true });
   }
   function unlockedAt(L) {
     const n = []; for (const id in DATA.FOODS) if (DATA.FOODS[id].lvl === L && GAME.ageOK(DATA.FOODS[id])) n.push(DATA.FOODS[id].name);
