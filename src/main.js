@@ -87,24 +87,50 @@ const APP = (() => {
     const stage = document.getElementById('stage'); let capId = null;
     // the stage never scrolls (overflow:hidden still scrolls on focus / scrollIntoView, which shifted the whole picture up by the HUD strip)
     stage.addEventListener('scroll', () => { if (stage.scrollTop || stage.scrollLeft) { stage.scrollTop = 0; stage.scrollLeft = 0; } });
-    const ok = (e) => e.target === cv || e.target === stage;
+    const ok = (e) => {
+      if (e.target === cv || e.target === stage) return true;
+      if (scene === 'game') {
+        if (e.target && (e.target.id === 'g-pause' || (e.target.closest && (e.target.closest('#g-pause') || e.target.closest('#modal, #modalw, .mbox'))))) return false;
+        return true;
+      }
+      return false;
+    };
     const inside = (p) => p.x >= 0 && p.x <= 180 && p.y >= 0 && p.y <= ((cv && cv.height) || 320);
     const homeIn = () => scene === 'home' || (scene === 'boot' && DASHA.giftOn()); // Round 22: the gift box is tapped before the game starts
     const clampP = (p) => ({ x: Math.max(0, Math.min(180, p.x)), y: Math.max(0, Math.min((cv && cv.height) || 320, p.y)) });
     stage.addEventListener('pointerdown', (e) => {
-      if (!ok(e) || UI.hasModal()) return; e.preventDefault(); AUDIO.init();
+      if (!ok(e) || UI.hasModal()) return;
+      if (e.cancelable) e.preventDefault();
+      AUDIO.init();
       if (cv) cvRect = cv.getBoundingClientRect();
       const p = toLogical(e.clientX, e.clientY);
       if (homeIn()) { if (!inside(p)) return; HOME.down(p.x, p.y, e); } else if (scene === 'game') MINI.down(clampP(p).x, clampP(p).y); else return;
       capId = e.pointerId; try { stage.setPointerCapture(e.pointerId); } catch (er) { }
-    });
+    }, { passive: false });
     stage.addEventListener('pointermove', (e) => {
+      if (e.cancelable && (scene === 'game' || capId === e.pointerId)) e.preventDefault();
       const p = toLogical(e.clientX, e.clientY);
       if (homeIn()) { if (capId === e.pointerId || e.pointerType !== 'mouse') HOME.move(p.x, p.y, e); else if (ok(e) && inside(p)) HOME.hover(p.x, p.y); else HOME.hover(-99, -99); }
       else if (scene === 'game') { const q = clampP(p); MINI.move(q.x, q.y); }
-    });
+    }, { passive: false });
+    stage.addEventListener('touchmove', (e) => {
+      if (e.cancelable && (scene === 'game' || !UI.hasModal())) e.preventDefault();
+    }, { passive: false });
     const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; if (e.cancelable) e.preventDefault(); const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+    document.addEventListener('selectionchange', () => {
+      const a = document.activeElement;
+      if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'TEXTAREA' && !a.isContentEditable)) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) sel.removeAllRanges();
+      }
+    });
+    document.addEventListener('selectstart', (e) => {
+      const t = e.target;
+      if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA' && !t.isContentEditable)) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
     window.addEventListener('keydown', (e) => {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return; AUDIO.init();
       if (scene === 'game') { if (e.repeat && e.code !== 'ArrowLeft' && e.code !== 'ArrowRight') return; MINI.key(e.code, true); if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault(); }

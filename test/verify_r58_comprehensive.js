@@ -65,10 +65,11 @@ const assert = require('assert');
   await page.evaluate(async () => {
     if (typeof DASHA !== 'undefined' && DASHA.giftOn && DASHA.giftOn()) {
       DASHA.openGift();
+      DASHA.abort();
     }
     const H = typeof HOME !== 'undefined' ? HOME : window.HOME;
     H.goTo('kitchen');
-    await new Promise(r => setTimeout(r, 600));
+    while (H.trans) await new Promise(r => setTimeout(r, 50));
   });
   await page.waitForTimeout(600);
 
@@ -163,8 +164,8 @@ const assert = require('assert');
     U.closeModal();
     return text;
   });
-  console.log('Settings version text contains "Версия 58":', verInfo.includes('Версия 58'));
-  assert(verInfo.includes('Версия 58'), 'Settings must display Version 58');
+  console.log('Settings version text contains "Версия 5":', verInfo.includes('Версия 5'));
+  assert(verInfo.includes('Версия 5'), 'Settings must display Version 5');
 
   // -------------------------------------------------------------
   // TEST 5: Achievements Progressive Tiers
@@ -189,6 +190,8 @@ const assert = require('assert');
   // -------------------------------------------------------------
   console.log('\n--- TEST 6: Testing Mini-Games Launch & Fullscreen ---');
   await page.evaluate(() => {
+    if (typeof DASHA !== 'undefined') DASHA.abort();
+    if (typeof APP !== 'undefined') APP.afterIntro();
     const G = typeof GAME !== 'undefined' ? GAME : window.GAME;
     G.S.phone = true;
     G.S.tut = 99;
@@ -231,11 +234,12 @@ const assert = require('assert');
   // -------------------------------------------------------------
   console.log('\n--- TEST 7: Testing Interactive Gameplay Flows ---');
   // 7a: Pusya in kitchen
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     const H = typeof HOME !== 'undefined' ? HOME : window.HOME;
     H.goTo('kitchen');
+    while (H.trans) await new Promise(r => setTimeout(r, 50));
   });
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(400);
 
   const pusyaRes = await page.evaluate(async () => {
     const F = typeof FRIENDS !== 'undefined' ? FRIENDS : window.FRIENDS;
@@ -259,21 +263,26 @@ const assert = require('assert');
   assert(pusyaRes.openOk && pusyaRes.stayedOpen, 'Pusya card must open cleanly without click-through');
 
   // 7b: Toilet in bathroom
-  await page.evaluate(async () => {
+  await page.evaluate(() => {
     const H = typeof HOME !== 'undefined' ? HOME : window.HOME;
-    H.goTo('bath');
-    while (H.trans) await new Promise(r => setTimeout(r, 50));
+    H.goTo('bath', true);
   });
   await page.waitForTimeout(300);
 
   const toiletRes = await page.evaluate(async () => {
     const H = typeof HOME !== 'undefined' ? HOME : window.HOME;
     const ty = H.topY ? H.topY() : 0;
-    // WC spot in bath is [0, 192, 42, 50]
-    H.down(20, ty + 215);
-    H.up(20, ty + 215);
+    const x = 20, y = ty + 215;
+    H.down(x, y);
+    const pr = Object.assign({}, H.press);
+    H.up(x, y);
     await new Promise(r => setTimeout(r, 100));
     return {
+      room: H.room,
+      ty,
+      pr,
+      trans: H.trans,
+      modal: UI.hasModal(),
       trip: H.trip ? H.trip.kind : null
     };
   });

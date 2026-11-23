@@ -273,7 +273,7 @@ const HOME = (() => {
     if (trans || APP.scene !== 'home' || DASHA.busy()) return; const i = IDS.indexOf(room); const r = IDS[(i + d + IDS.length) % IDS.length];
     snapX.clearRect(0, 0, RW, off.height); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; AUDIO.play('whoosh'); setRoom(r);
   }
-  function goTo(r, instant) { if (r === room || !IDS.includes(r)) return; if (instant) setRoom(r, true); else { const d = (IDS.indexOf(r) > IDS.indexOf(room)) ? 1 : -1; snapX.clearRect(0, 0, RW, off.height); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; setRoom(r); } }
+  function goTo(r, instant) { if (r === room || !IDS.includes(r)) return; if (instant) { trans = null; setRoom(r, true); } else { const d = (IDS.indexOf(r) > IDS.indexOf(room)) ? 1 : -1; snapX.clearRect(0, 0, RW, off.height); snapX.drawImage(off, 0, 0); trans = { dir: d, t: 0, dur: 0.3 }; setRoom(r); } }
 
   // ---------- compose params ----------
   function clothes() {

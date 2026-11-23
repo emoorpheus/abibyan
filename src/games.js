@@ -250,7 +250,7 @@ const MINI = (() => {
     const g = {
       snapY: 180,
       init(L) { m = { x: 90, vx: 0, step: 0 }; items = []; spawnT = 0.8; stun = 0; K = GK(0.7); J = jumper(m, () => !api.over_ && stun <= 0, Y); setup(L); },
-      zone: () => [Y - 76 * K, Y - 34 * K, (14 + 10 * GAME.fat()) * (0.5 + 0.5 * K)], // Round 10 #7: where his hands catch (y0, y1, half-width) — on the ground; in a jump it rises by J.h()
+      zone: () => [Y - 76 * K, Y - 34 * K, (18 + 10 * GAME.fat()) * (0.5 + 0.5 * K)], // Round 10 #7 & Round 59: generous reach for edge-to-edge catching
       get jy() { return J ? J.h() : 0; }, get m() { return m; }, get items() { return items; },
       onLevel(L) { setup(L); api.heal(); },
       demo() { items.push({ type: 'banana', x: 70, y: 210, vy: 0, ph: 0 }, { type: 'coconut', x: 130, y: 190, vy: 0, ph: 0 }, { type: 'gold', x: 40, y: 230, vy: 0, ph: 0 }); },
@@ -260,11 +260,13 @@ const MINI = (() => {
         const sp = 165 * (1 - 0.3 * f); let dir = (keys.R ? 1 : 0) - (keys.L ? 1 : 0); if (dir) target = null;
         const spA = sp * (m.jt > 0 ? JMP.AIR : 1);
         if (stun > 0) { stun -= dt; m.vx = 0; } else if (target !== null) { const d = target - m.x; m.vx = Math.sign(d) * Math.min(Math.abs(d) * 12, spA); } else m.vx = dir * spA;
-        if (api.over_) m.vx = 0; m.x = clamp(m.x + m.vx * dt, 14, 166); if (Math.abs(m.vx) > 25) m.step += dt; if (faceT > 0) faceT -= dt; J.tick(dt);
-        const hw = (14 + 10 * f) * (0.5 + 0.5 * K), jy = J.h();
+        if (api.over_) m.vx = 0; m.x = clamp(m.x + m.vx * dt, 6, 174); if (Math.abs(m.vx) > 25) m.step += dt; if (faceT > 0) faceT -= dt; J.tick(dt);
+        const hw = (18 + 10 * f) * (0.5 + 0.5 * K), jy = J.h();
+        const atLeft = m.x <= 16, atRight = m.x >= 164;
         for (let i = items.length - 1; i >= 0; i--) {
           const it = items[i]; it.y += it.vy * dt; if (it.type === 'bee') it.x = clamp(it.x0 + Math.sin(gT * 3 + it.ph) * 26, 8, 172);
-          if (!api.over_ && it.y > Y - 76 * K - jy && it.y < Y - 34 * K - jy && Math.abs(it.x - m.x) < hw) { items.splice(i, 1); got(it); continue; }
+          const caught = (Math.abs(it.x - m.x) < hw) || (atLeft && it.x <= m.x + hw) || (atRight && it.x >= m.x - hw);
+          if (!api.over_ && it.y > Y - 76 * K - jy && it.y < Y - 34 * K - jy && caught) { items.splice(i, 1); got(it); continue; }
           if (it.y > Y + 6) { items.splice(i, 1); if (it.type === 'banana' || it.type === 'bunch') for (let k = 0; k < 4; k++) fx.spawn('crumb', it.x, Y + 2, { c: '#f4d03a', vx: rnd(-30, 30), vy: rnd(-50, -20), g: 300, life: 0.5, floor: Y + 4 }); if (it.type === 'coconut') { snd('hit'); fx.spawn('crumb', it.x, Y, { c: '#7a5236', sz: 2, vx: rnd(-20, 20), vy: -40, g: 300, life: 0.6, floor: Y + 4 }); } }
         }
       },
@@ -289,7 +291,7 @@ const MINI = (() => {
       const r = Math.random(), bad = Math.min(0.42, 0.1 + L * 0.03); let type = 'banana';
       if (r < bad) type = (L >= 4 && Math.random() < 0.4) ? 'bee' : 'coconut';
       else if (r < bad + 0.04) type = 'gold'; else if (L >= 3 && r < bad + 0.1) type = 'bunch';
-      const v = Math.min(235, (68 + L * 8) * rnd(0.85, 1.15)) * (type === 'bee' ? 0.7 : 1); const x = rnd(14, 166);
+      const v = Math.min(235, (68 + L * 8) * rnd(0.85, 1.15)) * (type === 'bee' ? 0.7 : 1); const x = rnd(8, 172);
       items.push({ type, x, x0: x, y: -14, vy: v, ph: rnd(0, 6) });
     }
     function got(it) {
@@ -608,13 +610,15 @@ const MINI = (() => {
         const sp = 165 * (1 - 0.3 * f); const dir = (keys.R ? 1 : 0) - (keys.L ? 1 : 0); if (dir) target = null;
         const spA = sp * (m.jt > 0 ? JMP.AIR : 1);
         if (m.stun > 0) { m.stun -= dt; m.vx = 0; } else if (target !== null) { const d = target - m.x; m.vx = Math.sign(d) * Math.min(Math.abs(d) * 12, spA); } else m.vx = dir * spA;
-        if (over) m.vx = 0; m.x = clamp(m.x + m.vx * dt, 14, 166); if (Math.abs(m.vx) > 25) m.step += dt; if (m.face > 0) m.face -= dt; J.tick(dt); const jy = J.h();
+        if (over) m.vx = 0; m.x = clamp(m.x + m.vx * dt, 6, 174); if (Math.abs(m.vx) > 25) m.step += dt; if (m.face > 0) m.face -= dt; J.tick(dt); const jy = J.h();
         if (!over) ai(dt); else p.vx = 0; if (p.face > 0) p.face -= dt;
-        const hwM = 14 + 10 * f, hwP = 14; if (m.hop > 0) m.hop -= dt; if (p.hop > 0) p.hop -= dt;
+        const hwM = (18 + 10 * f) * (0.5 + 0.5 * MK), hwP = 14; if (m.hop > 0) m.hop -= dt; if (p.hop > 0) p.hop -= dt;
+        const atLeftM = m.x <= 16, atRightM = m.x >= 164;
         for (let i = items.length - 1; i >= 0; i--) {
           const it = items[i]; it.y += it.vy * dt; if (it.x0 === undefined) { it.x0 = it.x; it.ph = 0; } if (it.vy) { it.ph += SWW * dt; it.x = clamp(it.x0 + Math.sin(it.ph) * SW, 10, 170); }
           if (!over) {
-            const inM = m.stun <= 0 && it.y > ZM[0] - jy && it.y < ZM[1] - jy && Math.abs(it.x - m.x) < hwM, inP = p.stun <= 0 && it.y > ZP[0] && it.y < ZP[1] && Math.abs(it.x - p.x) < hwP;
+            const caughtM = Math.abs(it.x - m.x) < hwM || (atLeftM && it.x <= m.x + hwM) || (atRightM && it.x >= m.x - hwM);
+            const inM = m.stun <= 0 && it.y > ZM[0] - jy && it.y < ZM[1] - jy && caughtM, inP = p.stun <= 0 && it.y > ZP[0] && it.y < ZP[1] && Math.abs(it.x - p.x) < hwP;
             if (inM || inP) { const who = inM && inP ? (Math.abs(it.x - m.x) <= Math.abs(it.x - p.x) ? 'me' : 'fr') : inM ? 'me' : 'fr'; items.splice(i, 1); got(who, it); if (who === 'me' && MK < 0.95 && !(m.jt > 0)) m.hop = 0.34; continue; }
           }
           if (it.y > Y + 6) { items.splice(i, 1); if (it.type !== 'coconut') for (let k = 0; k < 4; k++) fx.spawn('crumb', it.x, Y + 2, { c: '#f4d03a', vx: rnd(-30, 30), vy: rnd(-50, -20), g: 300, life: 0.5, floor: Y + 4 }); else fx.spawn('crumb', it.x, Y, { c: '#7a5236', sz: 2, vx: rnd(-20, 20), vy: -40, g: 300, life: 0.6, floor: Y + 4 }); }
@@ -650,14 +654,14 @@ const MINI = (() => {
       get m() { return m; }, get p() { return p; }, get items() { return items; }, get jy() { return J ? J.h() : 0; },
     };
     function nearest(x) { let b = null; for (const it of items) if (it.type !== 'coconut' && (!b || it.y > b.y)) b = it; return b; }
-    function spawn() { const r = rng(); const type = r < 0.2 ? 'coconut' : r < 0.27 ? 'gold' : 'banana'; const x0 = R(20, 160); items.push({ type, x: x0, x0, ph: rng() * 6.28, y: -14, vy: R(95, 128) * VY }); }
+    function spawn() { const r = rng(); const type = r < 0.2 ? 'coconut' : r < 0.27 ? 'gold' : 'banana'; const x0 = R(10, 170); items.push({ type, x: x0, x0, ph: rng() * 6.28, y: -14, vy: R(95, 128) * VY }); }
     function ai(dt) {
       const spd = 165 * AIS[sg];
       if (p.stun > 0) { p.stun -= dt; p.vx = 0; return; }
       if (p.wash > 0) { p.wash -= dt; p.vx = 0; return; }
       if (rng() < DIS[sg] * dt) { p.wash = 0.9; return; }
       p.rep -= dt; if (p.rep <= 0) { p.rep = REP[sg]; p.tgt = plan(spd); }
-      const d = p.tgt - p.x; p.vx = Math.sign(d) * Math.min(Math.abs(d) * 10, spd); p.x = clamp(p.x + p.vx * dt, 14, 166); if (Math.abs(p.vx) > 25) p.step += dt;
+      const d = p.tgt - p.x; p.vx = Math.sign(d) * Math.min(Math.abs(d) * 10, spd); p.x = clamp(p.x + p.vx * dt, 10, 170); if (Math.abs(p.vx) > 25) p.step += dt;
       if (p.hop <= 0) for (const it of items) if (it.type !== 'coconut' && it.y > Y - 104 && it.y < Y - 72 && Math.abs(it.x - p.x) < 16) { p.hop = 0.3; p.hopH = 22; break; }
     }
     function plan(spd) {
@@ -671,7 +675,7 @@ const MINI = (() => {
       }
       let tx = best ? best.x + (rng() - 0.5) * NZ[sg] : 90 + (rng() - 0.5) * 50;
       for (const it of items) if (it.type === 'coconut') { const tc = (ZP[0] - it.y) / it.vy; if (tc > -0.3 && tc < 0.7 && Math.abs(it.x - tx) < 20 && rng() > 0.15) tx = it.x + (tx >= it.x ? 22 : -22); }
-      return clamp(tx, 14, 166);
+      return clamp(tx, 10, 170);
     }
     function got(who, it) {
       const c = who === 'me' ? m : p;
