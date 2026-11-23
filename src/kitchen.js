@@ -309,7 +309,8 @@ const KITCHEN = (() => {
     if (it.clock) clockLive(ctx, P, t, g.clock === undefined ? -1 : g.clock);
     if (st.lamp === false) {
       for (const x of [30, 90, 150]) { P.r(x - 2, 9, 5, 2, '#7a746c'); P.p(x, 8, '#5a544c'); }
-      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#b8b4c8'; ctx.fillRect(0, 0, RW, RH); ctx.restore();
+      const cvH = (ctx.canvas && ctx.canvas.height) || RH;
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#b8b4c8'; ctx.fillRect(0, -100, RW, cvH + 200); ctx.restore();
     } else {
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.08;
       for (const x of [30, 90, 150]) for (const r of [16, 10, 6]) P.circ(x, 10, r, '#fff4cc');

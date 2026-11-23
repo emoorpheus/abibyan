@@ -319,10 +319,11 @@ const UI = (() => {
     openSheet('ach', 'Достижения', null, null, () => {
       const s = S(); const body = $('#sh-body');
       const allAchs = DATA.achList ? DATA.achList(s) : DATA.ACH;
-      const doneTotal = allAchs.filter((a) => s.ach[a.id]).length;
+      const achMap = (s && s.ach) || {};
+      const doneTotal = allAchs.filter((a) => achMap[a.id]).length;
       const visible = DATA.visibleAchs ? DATA.visibleAchs(s) : allAchs;
       body.innerHTML = `<div class="hint" style="padding:0 0 ${U(3)}">Получено ${doneTotal} из ${allAchs.length}</div><div class="list">${visible.map((a) => {
-        const v = Math.min(a.goal, a.val(s)), d = !!s.ach[a.id];
+        const v = Math.min(a.goal, a.val(s)), d = !!achMap[a.id];
         const tier = a.tier || 'bronze';
         const tierName = tier === 'silver' ? 'Серебро' : tier === 'gold' ? 'Золото' : 'Бронза';
         const ic = d ? (tier === 'silver' ? I('trophy_silver') : tier === 'bronze' ? I('trophy_bronze') : I('trophy')) : I('lock');
@@ -407,7 +408,7 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 57 · Звонкая оригинальная озвучка и защита от случайных нажатий</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 58 · Оптимизация, спуск потолков и равномерный ночной свет кухни</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { $('#' + id, w).onclick = () => { s.settings[key] = !s.settings[key]; AUDIO.set(key, s.settings[key]); AUDIO.play('click'); GAME.save(true); closeModal(w); openSettings(); }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
@@ -458,7 +459,8 @@ const UI = (() => {
   function openProfile() {
     const s = S(); const st = GAME.form(); const days = Math.max(1, Math.ceil((Date.now() - s.created) / 86400e3));
     const achs = DATA.achList ? DATA.achList(s) : DATA.ACH;
-    const done = achs.filter((a) => s.ach[a.id]).length;
+    const achMap = (s && s.ach) || {};
+    const done = achs.filter((a) => achMap[a.id]).length;
     const hero = HOME.portrait();
     const w = modal(`<h2>${esc(s.name)}</h2><img class="px hero" src="${hero}" alt=""><div class="kv">
       <span>Возраст</span><b>${GAME.ageDef().name}</b><span>Дней заботы</span><b>${s.grow.days}</b><span>Форма</span><b>${st.name}</b><span>Вес</span><b>${s.kg.toFixed(1).replace('.', ',')} кг</b><span>Уровень</span><b>${s.lvl}</b><span>Дней вместе</span><b>${days}</b>

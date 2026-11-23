@@ -278,12 +278,13 @@ const DATA = (() => {
     const all = achList(s);
     const seen = new Set();
     const res = [];
+    const achMap = (s && s.ach) || {};
     for (const a of all) {
       if (a.chain) {
         if (seen.has(a.chain)) continue;
         seen.add(a.chain);
         const chainItems = all.filter((x) => x.chain === a.chain);
-        const active = chainItems.find((x) => !s.ach[x.id]);
+        const active = chainItems.find((x) => !achMap[x.id]);
         res.push(active || chainItems[chainItems.length - 1]);
       } else {
         res.push(a);

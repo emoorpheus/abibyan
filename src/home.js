@@ -98,7 +98,7 @@ const HOME = (() => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
-    return extraH > 0 ? Math.min(42, Math.round(extraH * 0.6)) : 0;
+    return extraH > 0 ? Math.min(52, Math.round(extraH * 0.74)) : 0;
   };
   function drawCeilExt(c, P, room, ty) {
     if (room === 'zal') {
@@ -138,13 +138,21 @@ const HOME = (() => {
       }
     }
   }
-  function applyCeilAmbient(c, room, lightOn, ty) {
+  function applyCeilAmbient(c, room, lightOn, ty, kLamp) {
     if (room === 'zal' && !lightOn) {
       c.save();
       c.globalCompositeOperation = 'multiply';
       c.fillStyle = '#3b4078';
       c.fillRect(0, 0, RW, ty);
       c.fillStyle = '#1c1e3a';
+      c.fillRect(0, 0, RW, ty);
+      c.restore();
+      return;
+    }
+    if (room === 'kitchen' && kLamp === false) {
+      c.save();
+      c.globalCompositeOperation = 'multiply';
+      c.fillStyle = '#b8b4c8';
       c.fillRect(0, 0, RW, ty);
       c.restore();
       return;
@@ -508,7 +516,7 @@ const HOME = (() => {
     if (tool) drawTool(c);
     c.restore();
     if (ty > 0) {
-      applyCeilAmbient(c, room, s.light, ty);
+      applyCeilAmbient(c, room, s.light, ty, kitchenLamp);
     }
   }
   function drawStream(c) {

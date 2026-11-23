@@ -92,7 +92,7 @@ const APP = (() => {
     const homeIn = () => scene === 'home' || (scene === 'boot' && DASHA.giftOn()); // Round 22: the gift box is tapped before the game starts
     const clampP = (p) => ({ x: Math.max(0, Math.min(180, p.x)), y: Math.max(0, Math.min((cv && cv.height) || 320, p.y)) });
     stage.addEventListener('pointerdown', (e) => {
-      if (!ok(e)) return; e.preventDefault(); AUDIO.init();
+      if (!ok(e) || UI.hasModal()) return; e.preventDefault(); AUDIO.init();
       if (cv) cvRect = cv.getBoundingClientRect();
       const p = toLogical(e.clientX, e.clientY);
       if (homeIn()) { if (!inside(p)) return; HOME.down(p.x, p.y, e); } else if (scene === 'game') MINI.down(clampP(p).x, clampP(p).y); else return;
