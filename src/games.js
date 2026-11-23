@@ -103,9 +103,60 @@ const MINI = (() => {
     if (st.shake > 0) st.shake -= dt; G.update(dt); fx.update(dt);
     if (st.over && st.overT > 0) { st.overT -= dt; if (st.overT <= 0) results(); }
   }
+  function drawFloorExt(ctx, P, gid, ch) {
+    if (ch <= RH) return;
+    const eh = ch - RH;
+    if (gid === 'catch' || gid === 'd_catch') {
+      P.r(0, RH, RW, eh, '#8a5a3a');
+      for (let k = 0; k < Math.round(eh * 1.5); k++) {
+        P.p(Math.floor(PX.hash(k, 5, 4) * RW), RH + Math.floor(PX.hash(k, 6, 4) * eh), k % 3 ? '#a87a52' : '#6b4423');
+      }
+    } else if (gid === 'bongo' || gid === 'd_bongo') {
+      P.r(0, RH, RW, eh, '#7a4a26');
+      for (let y = RH; y < ch; y += 8) P.hl(0, y, RW, '#5a361a');
+      for (let k = 0; k < 14; k++) {
+        const yOff = RH + (k % Math.max(1, Math.floor(eh / 8))) * 8;
+        P.vl((k * 29 + 17) % RW, yOff, 8, '#5a361a');
+      }
+    } else if (gid === 'gym' || gid === 'd_gym') {
+      P.r(0, RH, RW, eh, '#3a3a44');
+      for (let y = RH; y < ch; y += 21) P.hl(0, y, RW, '#2a2a32');
+      for (let i = 0; i < RW; i += 30) P.vl(i, RH, eh, '#2a2a32');
+      for (let k = 0; k < Math.round(eh * 0.8); k++) {
+        P.p(Math.floor(PX.hash(k, 5, 3) * RW), RH + Math.floor(PX.hash(k, 6, 3) * eh), '#4c4c58');
+      }
+    } else if (gid === 'd_keys') {
+      P.r(0, RH, RW, eh, '#b88a58');
+      for (let y = RH + 6; y < ch; y += 9) P.hl(0, y, RW, '#a07444');
+      for (let k = 0; k < 16; k++) P.vl((k * 37 + (k % 3) * 11) % RW, RH + (k % 6) * 9 + 1, 8, '#a07444');
+    } else if (gid === 'stack') {
+      P.r(0, RH, RW, eh, '#8a6a48');
+      for (let k = 0; k < Math.round(eh * 0.8); k++) {
+        P.p(Math.floor(PX.hash(k, 3, 5) * RW), RH + Math.floor(PX.hash(k, 4, 5) * eh), '#a88a64');
+      }
+    } else if (gid === 'balloon') {
+      P.r(0, RH, RW, eh, '#6b4423');
+      for (let k = 0; k < Math.round(eh * 0.8); k++) {
+        P.p(Math.floor(PX.hash(k, 1, 4) * RW), RH + Math.floor(PX.hash(k, 2, 4) * eh), '#8a5a3a');
+      }
+    } else if (gid === 'vine') {
+      P.r(0, RH, RW, eh, '#241a34');
+    } else if (gid === 'roofs') {
+      P.r(0, RH, RW, eh, '#141824');
+    }
+  }
   function render(ctx) {
-    if (!G) return; const P = Painter(ctx); ctx.save(); if (st && st.shake > 0) ctx.translate(Math.round(rnd(-2, 2)), Math.round(rnd(-2, 2)));
-    G.render(ctx, P); fx.draw(ctx, P, 0); ctx.restore();
+    if (!G) return;
+    const cvEl = ctx.canvas;
+    const ch = (cvEl && cvEl.height) || RH;
+    ctx.clearRect(0, 0, RW, ch);
+    const P = Painter(ctx);
+    ctx.save();
+    if (st && st.shake > 0) ctx.translate(Math.round(rnd(-2, 2)), Math.round(rnd(-2, 2)));
+    G.render(ctx, P);
+    fx.draw(ctx, P, 0);
+    ctx.restore();
+    if (ch > RH) drawFloorExt(ctx, P, st ? st.gid : '', ch);
   }
   function results() {
     if (st.duel) return duelResults();
@@ -171,16 +222,24 @@ const MINI = (() => {
   // (a press in its last 0.25 s waits and fires — not lost); in the air he steers slower. Balanced in tools/duelbal.js.
   const JMP = { T: 0.5, H: 20, CD: 0.6, AIR: 0.4 };
   function jumper(m, canJump, Y) {
-    m.jt = 0; m.cd = 0; m.jq = 0; let sy = null, tap = null;
+    m.jt = 0; m.cd = 0; m.jq = 0; let sx = null, sy = null, movedX = false;
     const dust = () => { for (let k = 0; k < 4; k++) fx.spawn('crumb', m.x + rnd(-9, 9), Y + 1, { c: '#b9a37a', vx: rnd(-34, 34), vy: rnd(-34, -10), g: 220, life: 0.35, floor: Y + 3 }); };
     const J = {
       h: () => (m.jt > 0 ? JMP.H * Math.sin(Math.PI * (1 - m.jt / JMP.T)) : 0),
       press() { if (!canJump() || m.jt > 0) return; if (m.cd > 0) { m.jq = 0.25; return; } m.jt = JMP.T; m.jq = 0; snd('jump'); dust(); },
       tick(dt) { if (m.jt > 0) { m.jt -= dt; if (m.jt <= 0) { m.jt = 0; m.cd = JMP.CD; dust(); } } else if (m.cd > 0) m.cd -= dt; if (m.jq > 0) { m.jq -= dt; if (m.cd <= 0) J.press(); } },
       stop() { if (m.jt > 0) { m.jt = 0; m.cd = JMP.CD; } m.jq = 0; },
-      down(x, y, onM) { sy = y === undefined ? null : y; tap = onM ? { x, y, t: gT } : null; },
-      move(x, y) { if (y === undefined || sy === null) return; if (tap && (Math.abs(x - tap.x) > 6 || Math.abs(y - tap.y) > 6)) tap = null; if (y < sy - 12) { J.press(); sy = y; tap = null; } else if (y > sy) sy = y; },
-      up(x) { if (tap && gT - tap.t < 0.3 && (x === undefined || Math.abs(x - tap.x) <= 6)) J.press(); tap = null; sy = null; },
+      down(x, y) { sx = x === undefined ? null : x; sy = y === undefined ? null : y; movedX = false; },
+      move(x, y) {
+        if (y === undefined || sy === null) return;
+        if (sx !== null && Math.abs(x - sx) > 12) movedX = true;
+        if (!movedX && (sy - y) > 36 && Math.abs(x - (sx !== null ? sx : x)) < 16) {
+          J.press();
+          sy = y;
+          movedX = true;
+        }
+      },
+      up() { sx = null; sy = null; movedX = false; },
       key(k, d) { if (d && (k === 'ArrowUp' || k === 'KeyW' || k === 'Space')) J.press(); },
     };
     return J;
@@ -213,7 +272,7 @@ const MINI = (() => {
         ctx.drawImage(bgCatch(), 0, 0);
         for (const it of items) drawItem(ctx, P, it);
         const f = GAME.fat(), jy = J.h(); P.shadow(m.x, Y + 1, (14 + 8 * f) * K * (1 - jy / 60), 3, 0.25 - jy / 200);
-        const near = items.filter((i) => i.type !== 'coconut' && i.type !== 'bee').sort((a, b) => b.y - a.y)[0];
+        let near = null; for (let i = 0; i < items.length; i++) { const it = items[i]; if (it.type !== 'coconut' && it.type !== 'bee') { if (!near || it.y > near.y) near = it; } }
         const p = mp(0.7, { pose: 'catch' }); if (near) p.eyes.look = [Math.abs(near.x - m.x) < 8 ? 0 : Math.sign(near.x - m.x), -1];
         if (Math.abs(m.vx) > 25) p.legs = (Math.floor(m.step * 9) % 2) ? 'spread' : 'kick';
         if (stun > 0) { p.eyes = { mode: 'dizzy' }; p.mouth = 'wavy'; p.pose = 'fall'; } else if (faceT > 0) { p.eyes = faceE === 'happy' ? { mode: 'happy' } : { mode: 'wide' }; p.mouth = 'laugh'; }
@@ -222,7 +281,7 @@ const MINI = (() => {
         drawM(ctx, p, m.x, Y - Math.round(jy));
         if (stun > 0) for (let i = 0; i < 3; i++) { const a = gT * 5 + i * 2.1; ctx.drawImage(FX.G.star, Math.round(m.x + Math.cos(a) * 12 - 3), Math.round(Y - 70 * K + Math.sin(a) * 3 - 3)); }
       },
-      down(x, y) { target = x; J.down(x, y, y !== undefined && Math.abs(x - m.x) < 16 && y > Y - 86 * K - 6 && y < Y + 8); }, move(x, y) { if (target !== null) target = x; J.move(x, y); }, up(x) { target = null; J.up(x); },
+      down(x, y) { target = x; J.down(x, y); }, move(x, y) { if (target !== null) target = x; J.move(x, y); }, up() { target = null; J.up(); },
       key(k, d) { if (k === 'ArrowLeft' || k === 'KeyA') keys.L = d; if (k === 'ArrowRight' || k === 'KeyD') keys.R = d; J.key(k, d); },
     };
     function setup(L) { caught = 0; need = 8 + 2 * L; api.prog(0); }
@@ -335,8 +394,9 @@ const MINI = (() => {
       }
     }
     function drawPlat(ctx, P, p) {
+      const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
       const x = Math.round(p.x - p.w / 2), y = Math.round(p.y - camTop), w = Math.round(p.w);
-      if (y < -20 || y > RH + 20) return;
+      if (y < -20 || y > ch + 20) return;
       if (p.type === 'm') { P.rbox(x, y, w, 7, ['#2a3a1a', '#6a8a22', '#9cc23a', '#d0ec78']); for (let k = 6; k < w - 3; k += 8) P.vl(x + k, y + 1, 5, '#5a7a1a'); return; }
       if (p.type === 'b') { if (p.broken) { ctx.save(); ctx.globalAlpha = 0.9; P.rbox(x, y, Math.floor(w / 2) - 1, 6, ['#3b2433', '#5a4a3a', '#8a7a66', '#a89880']); P.rbox(x + Math.ceil(w / 2) + 1, y + 2, Math.floor(w / 2) - 1, 6, ['#3b2433', '#5a4a3a', '#8a7a66', '#a89880']); ctx.restore(); return; }
         P.rbox(x, y, w, 6, ['#3b2433', '#5a4a3a', '#8a7a66', '#a89880']); P.p(x + w / 2, y + 1, '#3b2433'); P.p(x + w / 2 + 1, y + 2, '#3b2433'); P.p(x + w / 2, y + 3, '#3b2433'); P.p(x + 6, y + 2, '#5a4a3a'); return; }
@@ -411,8 +471,9 @@ const MINI = (() => {
       fx.spawn('ring', bx, by, { r0: 4, r1: 16, life: 0.3 }); m.vy = -60; api.over();
     }
     function drawCol(ctx, P, c) {
+      const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
       const x = Math.round(c.x - 13), top = Math.round(c.cy - c.gap / 2), bot = Math.round(c.cy + c.gap / 2); const tl = thornTile(), cap = thornCap();
-      for (let y = top - 24; y > -24; y -= 24) ctx.drawImage(tl, x, y); for (let y = bot; y < RH; y += 24) ctx.drawImage(tl, x, y);
+      for (let y = top - 24; y > -24; y -= 24) ctx.drawImage(tl, x, y); for (let y = bot; y < ch; y += 24) ctx.drawImage(tl, x, y);
       ctx.drawImage(cap, x - 3, top - 8); ctx.drawImage(cap, x - 3, bot - 4);
       if (c.gold) { ctx.drawImage(ARTG.gold(), Math.round(c.x - 8), Math.round(c.cy - 8 + Math.sin(gT * 4) * 2)); if (Math.floor(gT * 8) % 4 === 0) ctx.drawImage(FX.G.spark, Math.round(c.x + 3), Math.round(c.cy - 10)); }
     }
@@ -584,7 +645,7 @@ const MINI = (() => {
         drawM(ctx, q, m.x, Y - hopY);
         if (m.stun > 0) for (let i = 0; i < 3; i++) { const a = gT * 5 + i * 2.1; ctx.drawImage(FX.G.star, Math.round(m.x + Math.cos(a) * 12 - 3), Math.round(Y - 70 * MK + Math.sin(a) * 3 - 3)); }
       },
-      down(x, y) { target = x; J.down(x, y, y !== undefined && Math.abs(x - m.x) < 16 && y > Y - 86 * MK - 6 && y < Y + 8); }, move(x, y) { if (target !== null) target = x; J.move(x, y); }, up(x) { target = null; J.up(x); },
+      down(x, y) { target = x; J.down(x, y); }, move(x, y) { if (target !== null) target = x; J.move(x, y); }, up(x) { target = null; J.up(); },
       key(k, dn) { if (k === 'ArrowLeft' || k === 'KeyA') keys.L = dn; if (k === 'ArrowRight' || k === 'KeyD') keys.R = dn; J.key(k, dn); },
       get m() { return m; }, get p() { return p; }, get items() { return items; }, get jy() { return J ? J.h() : 0; },
     };
@@ -939,7 +1000,8 @@ const MINI = (() => {
       render(ctx, P) {
         ctx.drawImage(bgStack(), 0, 0);
         ctx.drawImage(cityStack(), 0, Math.round(SGND - 64 + cam * 0.35));
-        const gy = Math.round(SGND + cam); if (gy < RH) { P.r(0, gy, RW, RH - gy, '#8a6a48'); P.r(0, gy, RW, 2, '#6a4a30'); for (let k = 0; k < 30; k++) P.p(Math.floor(PX.hash(k, 3, 5) * RW), gy + 3 + Math.floor(PX.hash(k, 4, 5) * 16), '#a88a64');
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
+        const gy = Math.round(SGND + cam); if (gy < ch) { P.r(0, gy, RW, ch - gy, '#8a6a48'); P.r(0, gy, RW, 2, '#6a4a30'); for (let k = 0; k < 30; k++) P.p(Math.floor(PX.hash(k, 3, 5) * RW), gy + 3 + Math.floor(PX.hash(k, 4, 5) * 16), '#a88a64');
           P.r(90 - SBW / 2 - 6, gy - 3, SBW + 12, 4, '#3b2433'); P.r(90 - SBW / 2 - 5, gy - 2, SBW + 10, 2, '#a8aeb8'); } // the foundation
         for (const b of tower) { const y = b.y + cam; if (y > RH || y < -SCH) continue; if (b.slab) { P.r(Math.round(b.x), Math.round(y), b.w, 4, '#3b2433'); P.r(Math.round(b.x) + 1, Math.round(y) + 1, b.w - 2, 2, '#b4bac4'); } else crate(ctx, P, b.x, y, b.w); }
         for (const c of chips) crate(ctx, P, c.x, c.y + cam, c.w, c.rot);
@@ -1091,7 +1153,8 @@ const MINI = (() => {
         const hx = Math.round(-((cam * 0.3) % 240)); ctx.drawImage(hillsSuper(), hx, GY - 60); ctx.drawImage(hillsSuper(), hx + 240, GY - 60);
         // ground (bricks with a grass lip), with the pits cut out
         const x0 = Math.floor(cam / 12) * 12;
-        for (let x = x0; x < cam + RW + 12; x += 12) { if (!groundTile(x)) continue; const sx = Math.round(x - cam); for (let y = GY; y < RH; y += 12) suBrick(P, sx, y); P.r(sx, GY - 1, 12, 3, '#3f9f2a'); P.r(sx, GY - 1, 12, 1, '#7fdf5a'); for (let k = 0; k < 3; k++) P.p(sx + 2 + k * 4, GY - 2, '#5fbf3a'); if (!groundTile(x - 12)) P.r(sx, GY - 1, 1, RH - GY + 1, '#5a2a0a'); if (!groundTile(x + 12)) P.r(sx + 11, GY - 1, 1, RH - GY + 1, '#5a2a0a'); }
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
+        for (let x = x0; x < cam + RW + 12; x += 12) { if (!groundTile(x)) continue; const sx = Math.round(x - cam); for (let y = GY; y < ch; y += 12) suBrick(P, sx, y); P.r(sx, GY - 1, 12, 3, '#3f9f2a'); P.r(sx, GY - 1, 12, 1, '#7fdf5a'); for (let k = 0; k < 3; k++) P.p(sx + 2 + k * 4, GY - 2, '#5fbf3a'); if (!groundTile(x - 12)) P.r(sx, GY - 1, 1, ch - GY + 1, '#5a2a0a'); if (!groundTile(x + 12)) P.r(sx + 11, GY - 1, 1, ch - GY + 1, '#5a2a0a'); }
         // the flag and the little castle
         const fx0 = Math.round(lv.flag - cam); if (fx0 > -40 && fx0 < RW + 40) {
           P.r(fx0, GY - 92, 1, 92, '#e8e8ec'); P.r(fx0 + 1, GY - 92, 1, 92, '#a8a8b4'); P.ell(fx0 + 0.5, GY - 94, 2.2, 2.2, '#3fdc7a'); P.r(fx0 - 4, GY - 3, 10, 3, '#5a5a66');
@@ -1292,9 +1355,10 @@ const MINI = (() => {
         for (let k = 0; k < 4; k++) { const cx = ((k * 64 + 20 - skyOff * 0.25 - step * 2) % 256 + 256) % 256 - 38; ROOMS.cloud(P, cx, 44 + (k % 2) * 20 + k * 5, 0.5 + (k % 3) * 0.12); }
         const mo = ((skyOff * 0.5) % 360 + 360) % 360, to = (skyOff % 360 + 360) % 360;
         ctx.drawImage(raMtn(), -mo, RA.HZ - 46); ctx.drawImage(raMtn(), 360 - mo, RA.HZ - 46); ctx.drawImage(raTrees(), -to, RA.HZ - 22); ctx.drawImage(raTrees(), 360 - to, RA.HZ - 22);
-        P.r(0, RA.HZ, RW, RH - RA.HZ, pal[5][0].g);
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
+        P.r(0, RA.HZ, RW, ch - RA.HZ, pal[5][0].g);
         // the road, front to back, row by row; rows already covered by a nearer stretch (a hill crest) are skipped
-        let maxy = RH;
+        let maxy = ch;
         for (let n = 0; n < RA.DRAW; n++) {
           CLIP[n] = maxy; const i = base + n; if (ED[n + 1] <= 12) continue;
           const ya = SY[n + 1], yb = SY[n]; if (ya >= maxy || ya >= yb) continue;

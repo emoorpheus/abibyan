@@ -69,12 +69,18 @@ const APP = (() => {
     st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
     st.setProperty('--vh', vh + 'px'); st.setProperty('--vw', vw + 'px');
     lay = { ct: 0, cb: 0, u, ux: u, uy: u, ctPx: 0, h: canvasH, mode: 'stretch' };
+    cvRect = null;
     if (typeof FILL !== 'undefined') FILL.layout(u);
   }
+  let cvRect = null;
+  function getCvRect() {
+    if (!cvRect && cv) cvRect = cv.getBoundingClientRect();
+    return cvRect || { left: 0, top: 0, width: 180, height: 320 };
+  }
   function toLogical(cx, cy) {
-    const r = cv.getBoundingClientRect();
+    const r = getCvRect();
     const ch = (cv && cv.height) || 320;
-    return { x: (cx - r.left) / r.width * 180, y: (cy - r.top) / r.height * ch };
+    return { x: (cx - r.left) / (r.width || 1) * 180, y: (cy - r.top) / (r.height || 1) * ch };
   }
   function setScene(s) { scene = s; }
   function bindInput() {
@@ -86,7 +92,9 @@ const APP = (() => {
     const homeIn = () => scene === 'home' || (scene === 'boot' && DASHA.giftOn()); // Round 22: the gift box is tapped before the game starts
     const clampP = (p) => ({ x: Math.max(0, Math.min(180, p.x)), y: Math.max(0, Math.min((cv && cv.height) || 320, p.y)) });
     stage.addEventListener('pointerdown', (e) => {
-      if (!ok(e)) return; e.preventDefault(); AUDIO.init(); const p = toLogical(e.clientX, e.clientY);
+      if (!ok(e)) return; e.preventDefault(); AUDIO.init();
+      if (cv) cvRect = cv.getBoundingClientRect();
+      const p = toLogical(e.clientX, e.clientY);
       if (homeIn()) { if (!inside(p)) return; HOME.down(p.x, p.y, e); } else if (scene === 'game') MINI.down(clampP(p).x, clampP(p).y); else return;
       capId = e.pointerId; try { stage.setPointerCapture(e.pointerId); } catch (er) { }
     });
@@ -113,7 +121,12 @@ const APP = (() => {
     for (const ev of ['pointermove', 'wheel', 'touchstart', 'keydown']) document.addEventListener(ev, poke, { capture: true, passive: true });
     document.addEventListener('pointerdown', () => { poke(); downAt = lastIn; }, { capture: true, passive: true });
     for (const ev of ['pointerup', 'pointercancel']) document.addEventListener(ev, () => { poke(); downAt = 0; }, { capture: true, passive: true });
-    document.addEventListener('contextmenu', (e) => { if (!(e.target && e.target.closest && e.target.closest('input,textarea'))) e.preventDefault(); });
+    window.addEventListener('resize', () => { cvRect = null; }, { passive: true });
+    window.addEventListener('orientationchange', () => { cvRect = null; }, { passive: true });
+    const noContext = (e) => { if (!(e.target && e.target.closest && e.target.closest('input,textarea'))) e.preventDefault(); };
+    document.addEventListener('contextmenu', noContext, { passive: false });
+    window.addEventListener('contextmenu', noContext, { passive: false });
+    stage.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         GAME.save(true);
