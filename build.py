@@ -27,7 +27,9 @@ PRIORITY_KEYS = [
     'привет я так скучал', 'о ты вернулся', 'ура гости',
     'привет абибян', 'привет как дела',
     'буп', 'мой нос', 'пип', 'голова кружится', 'не мешай я сплю', 'хррр что',
-    'шпашибо', 'шпашибо друзья мне так нравитшя', 'ш днем рождения дашулик'
+    'шпашибо', 'шпашибо друзья мне так нравитшя', 'ш днем рождения дашулик',
+    'фу-у-х', 'уединение', 'не подглядывай', 'кайф', 'жур-жур', 'буль', 'тут занято', 'крышка деревянная',
+    'м-м-м кайф', 'как приятно', 'шпашибо пушя', 'вот это машшаж'
 ]
 def _lisp_key(s): return s.replace('с', 'ш').replace('С', 'Ш')
 PRIORITY_KEYS = list(dict.fromkeys(PRIORITY_KEYS + [_lisp_key(k) for k in PRIORITY_KEYS]))
@@ -202,7 +204,7 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v55-minigames-%s';
+sw = '''const CACHE = 'abibyan-v56-massage-%s';
 const CORE = ['./', './index.html', './manifest.webmanifest', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

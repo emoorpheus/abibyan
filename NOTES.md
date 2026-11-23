@@ -517,4 +517,15 @@
 - **Friend Info Cards**:
   - Added unique character traits to all friends in `DATA.FRIENDS` (`pusya`, `monty`, `mosq`, `zhuk`).
   - Switched Mosq and Zhuk card portraits in `friends_art.js` to sharp 3x pixel-art sprites.
+- **Pusya Paw Massage & Monkey Pose**:
+  - Pusya approaches directly to Abibyan's side (`HOME.mk.x ± 12 px`), faces him, and extends front paws directly onto his torso (`onFur = true`, `knead` pose).
+  - Abibyan enters relaxed `massage` act (`belly` tuck pose, smiling eyes, blush, blissful head bobbing). Sparks and hearts spawn at contact coordinates.
+  - On finish, Abibyan hops happily and thanks Pusya with neural TTS voice lines.
+- **Progressive Achievement Tier Chains**:
+  - Achievements with progressive levels (`lvl`, `fed`, `clean`, `rich`, `pet`, `photo`, `wants`, `streak`, `duels`, `tasks`, `grow`) are grouped into chains.
+  - The achievement modal displays only the active unearned tier (Bronze -> Silver -> Gold). Completed max tier remains visible.
+  - Total count indicator displays global completion (`Получено X из 58`).
+- **Neural Voice & Monologue Synthesis**:
+  - Synthesized whole-phrase neural voice clips for all new toilet, tap, and massage dialogues into `src/speech.js` and `voice1.txt`.
+  - Embedded into `PRIORITY_KEYS` in `build.py` for frame-0 instant playback without syllable/phoneme spelling fallback.
 

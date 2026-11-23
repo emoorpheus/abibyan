@@ -34,8 +34,7 @@ const FRIENDS = (() => {
   const crossMonkey = (x0, y0, x1, y1) => {
     if (typeof HOME === 'undefined' || !HOME.mk) return false;
     const mx = HOME.mk.x, my = HOME.mk.y;
-    const minX = Math.min(x0, x1), maxX = Math.max(x0, x1);
-    if (minX <= mx + 28 && maxX >= mx - 28) {
+    if ((x0 - mx) * (x1 - mx) < 0 && Math.abs(x1 - x0) > 20) {
       const minY = Math.min(y0, y1), maxY = Math.max(y0, y1);
       return minY < my + 38 && maxY > my - 45;
     }
@@ -161,49 +160,51 @@ const FRIENDS = (() => {
       run(id, [
         ...Fd.spGo,
         () => {
-          const tx = f.x < HOME.mk.x ? HOME.mk.x - 18 : HOME.mk.x + 18;
-          walkTo(f, tx, GY + 2, 70, Math.abs(f.y - GY) > 20 ? 18 : 0);
-          return (f.path ? f.path.dur : 0.5) + 0.15;
-        },
-        () => {
+          AUDIO.play('purr');
           const side = f.x <= HOME.mk.x ? -1 : 1;
-          const tx = HOME.mk.x + side * 20;
-          walkTo(f, tx, GY + 2, 75, 0);
+          const tx = HOME.mk.x + side * 12;
+          moveTo(f, tx, GY + 2, 75, 0);
           f.look = [side < 0 ? 1 : -1, 0];
           f.lookUntil = t + 5.0;
-          return (f.path ? f.path.dur : 0.3) + 0.1;
+          return (f.path ? f.path.dur : 0.4) + 0.15;
         },
         () => {
           const side = f.x <= HOME.mk.x ? -1 : 1;
           f.look = [side < 0 ? 1 : -1, 0];
           f.lookUntil = t + 5.0;
           f.pose = 'knead';
-          f.poseUntil = t + 3.6;
+          f.poseUntil = t + 4.2;
+          f.onFur = true;
           AUDIO.play('purr');
-          HOME.face('happy', 'smile', 4.0, { blush: 1 });
-          const contactX = HOME.mk.x + (side < 0 ? -6 : 6);
-          const contactY = HOME.mk.y - 18;
-          for (let k = 0; k < 9; k++) {
-            later(k * 0.38, () => {
+          HOME.act('massage', { keep: true, dur: 4.5 });
+          const contactX = HOME.mk.x + (side < 0 ? -4 : 4);
+          const contactY = HOME.mk.y - 14;
+          for (let k = 0; k < 11; k++) {
+            later(k * 0.35, () => {
               if (f.pose !== 'knead') return;
-              HOME.fx.spawn('heart', contactX + rnd(-6, 6), contactY + rnd(-10, 10), { vy: -20, life: 1.1, wob: 4 });
-              HOME.fx.spawn('spark', contactX + rnd(-5, 5), contactY + rnd(-6, 6), { vy: -14, life: 0.5 });
-              if (k === 3 || k === 6) AUDIO.play('purr');
+              HOME.fx.spawn('heart', contactX + rnd(-5, 5), contactY + rnd(-8, 8), { vy: -20, life: 1.1, wob: 4 });
+              HOME.fx.spawn('spark', contactX + rnd(-4, 4), contactY + rnd(-5, 5), { vy: -14, life: 0.5 });
+              if (k === 3 || k === 7) AUDIO.play('purr');
               if (k % 2 === 0) AUDIO.play('pop');
             });
           }
-          return 3.6;
+          return 4.2;
         },
         () => {
+          f.onFur = false;
           GAME.friendSpecial(id);
           gain('+14', 'energy');
           gain('+10', 'fun');
           AUDIO.play('happy');
           f.pose = 'happy';
           f.poseUntil = t + 1.2;
+          HOME.act('hop');
+          later(0.3, () => {
+            HOME.say(pick((DATA.LINES && DATA.LINES.massage) || ['М-м-м, кайф!', 'Как приятно!', 'Шпашибо, Пушя!', 'Вот это машшаж!']), 'happy');
+          });
           const backX = HOME.mk.x + (f.x <= HOME.mk.x ? -26 : 26);
           walkTo(f, backX, GY + 2, 75, 0);
-          return 1.0;
+          return 1.2;
         },
         ...Fd.spDone,
         back
@@ -743,7 +744,8 @@ const FRIENDS = (() => {
     if (FLY[f.id]) fr = Math.floor(t * 14) % 2;
     if (f.id === 'zhuk' && f.path && pose === 'idle') pose = 'walk';
     const o = { pose, f: fr, fat: (S().friends[f.id] || {}).fat || 0 };
-    if (f.id !== 'monty') { o.look = (f.look && t < f.lookUntil) ? f.look : (Math.abs(HOME.mk.x - f.x) > 24 ? [Math.sign(HOME.mk.x - f.x), 0] : null); }
+    if (pose === 'knead') { o.look = [Math.sign(HOME.mk.x - f.x) || (f.x <= HOME.mk.x ? 1 : -1), 0]; }
+    else if (f.id !== 'monty') { o.look = (f.look && t < f.lookUntil) ? f.look : (Math.abs(HOME.mk.x - f.x) > 24 ? [Math.sign(HOME.mk.x - f.x), 0] : null); }
     if (f.id === 'pusya' && (pose === 'idle' || pose === 'talk') && f.blinkT < 0) o.eyes = 'closed';
     if (f.nap && !talking) { o.pose = 'idle'; o.eyes = 'closed'; o.look = null; } // Round 15b #3: Пуся napping on her sofa
     if (f.id === 'monty' && pose === 'talk' && fr) o.arm = 'wave';

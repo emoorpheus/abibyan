@@ -318,9 +318,10 @@ const UI = (() => {
     if (typeof GAME !== 'undefined' && GAME.checkAch) GAME.checkAch();
     openSheet('ach', 'Достижения', null, null, () => {
       const s = S(); const body = $('#sh-body');
-      const achs = DATA.achList ? DATA.achList(s) : DATA.ACH;
-      const done = achs.filter((a) => s.ach[a.id]).length;
-      body.innerHTML = `<div class="hint" style="padding:0 0 ${U(3)}">Получено ${done} из ${achs.length}</div><div class="list">${achs.map((a) => {
+      const allAchs = DATA.achList ? DATA.achList(s) : DATA.ACH;
+      const doneTotal = allAchs.filter((a) => s.ach[a.id]).length;
+      const visible = DATA.visibleAchs ? DATA.visibleAchs(s) : allAchs;
+      body.innerHTML = `<div class="hint" style="padding:0 0 ${U(3)}">Получено ${doneTotal} из ${allAchs.length}</div><div class="list">${visible.map((a) => {
         const v = Math.min(a.goal, a.val(s)), d = !!s.ach[a.id];
         const tier = a.tier || 'bronze';
         const tierName = tier === 'silver' ? 'Серебро' : tier === 'gold' ? 'Золото' : 'Бронза';
@@ -391,7 +392,7 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 55 · Полноэкранные мини-игры и плавное управление</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 56 · Массаж лапками, градация достижений и чистая озвучка</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { $('#' + id, w).onclick = () => { s.settings[key] = !s.settings[key]; AUDIO.set(key, s.settings[key]); AUDIO.play('click'); GAME.save(true); closeModal(w); openSettings(); }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');

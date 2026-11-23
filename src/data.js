@@ -187,22 +187,22 @@ const DATA = (() => {
   const FIDS = ['pusya', 'monty', 'mosq', 'zhuk'];
   const ACH = [
     // --- Уровни ---
-    { id: 'lvl10', name: 'Бронзовый примат', desc: 'Достигни 10 уровня', goal: 10, val: (s) => s.lvl, coins: 25, tier: 'bronze' },
-    { id: 'lvl25', name: 'Серебряный примат', desc: 'Достигни 25 уровня', goal: 25, val: (s) => s.lvl, coins: 50, tier: 'silver' },
-    { id: 'lvl50', name: 'Золотой примат', desc: 'Достигни 50 уровня', goal: 50, val: (s) => s.lvl, coins: 100, tier: 'gold' },
+    { id: 'lvl10', name: 'Бронзовый примат', desc: 'Достигни 10 уровня', goal: 10, val: (s) => s.lvl, coins: 25, tier: 'bronze', chain: 'lvl' },
+    { id: 'lvl25', name: 'Серебряный примат', desc: 'Достигни 25 уровня', goal: 25, val: (s) => s.lvl, coins: 50, tier: 'silver', chain: 'lvl' },
+    { id: 'lvl50', name: 'Золотой примат', desc: 'Достигни 50 уровня', goal: 50, val: (s) => s.lvl, coins: 100, tier: 'gold', chain: 'lvl' },
 
     // --- Еда и сытость ---
-    { id: 'first_meal', name: 'Первый перекус', desc: 'Покорми Абибяна', goal: 1, val: (s) => s.stats.fed, coins: 10, tier: 'bronze' },
-    { id: 'fed_silver', name: 'Сытый друг', desc: 'Покорми Абибяна 50 раз', goal: 50, val: (s) => s.stats.fed, coins: 35, tier: 'silver' },
-    { id: 'fed_gold', name: 'Шеф-повар', desc: 'Покорми Абибяна 150 раз', goal: 150, val: (s) => s.stats.fed, coins: 80, tier: 'gold' },
+    { id: 'first_meal', name: 'Первый перекус', desc: 'Покорми Абибяна', goal: 1, val: (s) => s.stats.fed, coins: 10, tier: 'bronze', chain: 'fed' },
+    { id: 'fed_silver', name: 'Сытый друг', desc: 'Покорми Абибяна 50 раз', goal: 50, val: (s) => s.stats.fed, coins: 35, tier: 'silver', chain: 'fed' },
+    { id: 'fed_gold', name: 'Шеф-повар', desc: 'Покорми Абибяна 150 раз', goal: 150, val: (s) => s.stats.fed, coins: 80, tier: 'gold', chain: 'fed' },
     { id: 'gourmet', name: 'Гурман', desc: 'Попробуй 8 разных блюд', goal: 8, val: (s) => Object.keys(s.tried).length, coins: 30, tier: 'silver' },
     { id: 'skuf', name: 'Настоящий скуф', desc: 'Откорми до скуфа (в любом возрасте)', goal: 1, val: (s) => fat(s.kg, (AGES[s.grow.stage] || AGES[0]).kg) >= SKUF ? 1 : 0, coins: 40, tier: 'silver' },
     { id: 'slim', name: 'Фитоняшка', desc: 'Взрослым похудей до 7 кг после 11+ кг', goal: 1, val: (s) => (s.grow.stage >= AGE.adult && (s.stats.maxKgA || 0) >= 11 && s.kg <= 7) ? 1 : 0, coins: 40, tier: 'gold' },
 
     // --- Чистота ---
-    { id: 'clean10', name: 'Чистюля', desc: 'Помой Абибяна 10 раз', goal: 10, val: (s) => s.stats.washed, coins: 25, tier: 'bronze' },
-    { id: 'clean50', name: 'Сияющий мех', desc: 'Помой Абибяна 50 раз', goal: 50, val: (s) => s.stats.washed, coins: 50, tier: 'silver' },
-    { id: 'clean150', name: 'Стерильный босс', desc: 'Помой Абибяна 150 раз', goal: 150, val: (s) => s.stats.washed, coins: 100, tier: 'gold' },
+    { id: 'clean10', name: 'Чистюля', desc: 'Помой Абибяна 10 раз', goal: 10, val: (s) => s.stats.washed, coins: 25, tier: 'bronze', chain: 'clean' },
+    { id: 'clean50', name: 'Сияющий мех', desc: 'Помой Абибяна 50 раз', goal: 50, val: (s) => s.stats.washed, coins: 50, tier: 'silver', chain: 'clean' },
+    { id: 'clean150', name: 'Стерильный босс', desc: 'Помой Абибяна 150 раз', goal: 150, val: (s) => s.stats.washed, coins: 100, tier: 'gold', chain: 'clean' },
 
     // --- Сон и уют ---
     { id: 'sleepy', name: 'Соня', desc: 'Поспи 10 минут в сумме', goal: 600, val: (s) => Math.floor(s.stats.slept), coins: 25, fmt: (v) => Math.floor(v / 60) + ' мин', tier: 'bronze' },
@@ -220,46 +220,46 @@ const DATA = (() => {
     { id: 'g_race', name: 'Гонщик', desc: '10 уровень в «Банановых гонках»', goal: 10, val: (s) => s.best.race || 0, coins: 70, tier: 'gold' },
 
     // --- Богатство ---
-    { id: 'rich', name: 'Копилка', desc: 'Заработай 500 монет', goal: 500, val: (s) => s.totalCoins, coins: 30, tier: 'bronze' },
-    { id: 'rich2500', name: 'Банкир', desc: 'Заработай 2500 монет', goal: 2500, val: (s) => s.totalCoins, coins: 70, tier: 'silver' },
-    { id: 'rich10000', name: 'Миллионер', desc: 'Заработай 10000 монет', goal: 10000, val: (s) => s.totalCoins, coins: 150, tier: 'gold' },
+    { id: 'rich', name: 'Копилка', desc: 'Заработай 500 монет', goal: 500, val: (s) => s.totalCoins, coins: 30, tier: 'bronze', chain: 'rich' },
+    { id: 'rich2500', name: 'Банкир', desc: 'Заработай 2500 монет', goal: 2500, val: (s) => s.totalCoins, coins: 70, tier: 'silver', chain: 'rich' },
+    { id: 'rich10000', name: 'Миллионер', desc: 'Заработай 10000 монет', goal: 10000, val: (s) => s.totalCoins, coins: 150, tier: 'gold', chain: 'rich' },
 
     // --- Ласка и общение ---
-    { id: 'talk', name: 'Болтушка', desc: 'Поболтай с Абибяном 5 раз', goal: 5, val: (s) => s.stats.petted || 0, coins: 15, tier: 'bronze' },
-    { id: 'pet50', name: 'Обнимашки', desc: 'Погладь Абибяна 50 раз', goal: 50, val: (s) => s.stats.petted, coins: 25, tier: 'silver' },
-    { id: 'pet200', name: 'Главный ласкун', desc: 'Погладь Абибяна 200 раз', goal: 200, val: (s) => s.stats.petted, coins: 75, tier: 'gold' },
+    { id: 'talk', name: 'Болтушка', desc: 'Поболтай с Абибяном 5 раз', goal: 5, val: (s) => s.stats.petted || 0, coins: 15, tier: 'bronze', chain: 'pet' },
+    { id: 'pet50', name: 'Обнимашки', desc: 'Погладь Абибяна 50 раз', goal: 50, val: (s) => s.stats.petted, coins: 25, tier: 'silver', chain: 'pet' },
+    { id: 'pet200', name: 'Главный ласкун', desc: 'Погладь Абибяна 200 раз', goal: 200, val: (s) => s.stats.petted, coins: 75, tier: 'gold', chain: 'pet' },
 
     // --- Фотографии ---
-    { id: 'photo', name: 'Фотограф', desc: 'Сделай фото', goal: 1, val: (s) => s.stats.photos, coins: 10, tier: 'bronze' },
-    { id: 'photo10', name: 'Фотокорреспондент', desc: 'Сделай 10 снимков', goal: 10, val: (s) => s.stats.photos, coins: 35, tier: 'silver' },
-    { id: 'photo30', name: 'Папарацци', desc: 'Сделай 30 снимков', goal: 30, val: (s) => s.stats.photos, coins: 80, tier: 'gold' },
+    { id: 'photo', name: 'Фотограф', desc: 'Сделай фото', goal: 1, val: (s) => s.stats.photos, coins: 10, tier: 'bronze', chain: 'photo' },
+    { id: 'photo10', name: 'Фотокорреспондент', desc: 'Сделай 10 снимков', goal: 10, val: (s) => s.stats.photos, coins: 35, tier: 'silver', chain: 'photo' },
+    { id: 'photo30', name: 'Папарацци', desc: 'Сделай 30 снимков', goal: 30, val: (s) => s.stats.photos, coins: 80, tier: 'gold', chain: 'photo' },
 
     // --- Желания ---
-    { id: 'wants10', name: 'Исполнитель желаний', desc: 'Исполни 10 желаний', goal: 10, val: (s) => s.stats.wants, coins: 25, tier: 'bronze' },
-    { id: 'wants40', name: 'Добрый джинн', desc: 'Исполни 40 желаний', goal: 40, val: (s) => s.stats.wants, coins: 60, tier: 'silver' },
-    { id: 'wants100', name: 'Повелитель судеб', desc: 'Исполни 100 желаний', goal: 100, val: (s) => s.stats.wants, coins: 120, tier: 'gold' },
+    { id: 'wants10', name: 'Исполнитель желаний', desc: 'Исполни 10 желаний', goal: 10, val: (s) => s.stats.wants, coins: 25, tier: 'bronze', chain: 'wants' },
+    { id: 'wants40', name: 'Добрый джинн', desc: 'Исполни 40 желаний', goal: 40, val: (s) => s.stats.wants, coins: 60, tier: 'silver', chain: 'wants' },
+    { id: 'wants100', name: 'Повелитель судеб', desc: 'Исполни 100 желаний', goal: 100, val: (s) => s.stats.wants, coins: 120, tier: 'gold', chain: 'wants' },
 
     // --- Серия посещений ---
-    { id: 'streak7', name: 'Неделя дружбы', desc: 'Заходи 7 дней подряд', goal: 7, val: (s) => s.daily.best || 0, coins: 35, tier: 'bronze' },
-    { id: 'streak21', name: 'Верный друг', desc: 'Заходи 21 день подряд', goal: 21, val: (s) => s.daily.best || 0, coins: 75, tier: 'silver' },
-    { id: 'streak50', name: 'Неразлучные', desc: 'Заходи 50 дней подряд', goal: 50, val: (s) => s.daily.best || 0, coins: 150, tier: 'gold' },
+    { id: 'streak7', name: 'Неделя дружбы', desc: 'Заходи 7 дней подряд', goal: 7, val: (s) => s.daily.best || 0, coins: 35, tier: 'bronze', chain: 'streak' },
+    { id: 'streak21', name: 'Верный друг', desc: 'Заходи 21 день подряд', goal: 21, val: (s) => s.daily.best || 0, coins: 75, tier: 'silver', chain: 'streak' },
+    { id: 'streak50', name: 'Неразлучные', desc: 'Заходи 50 дней подряд', goal: 50, val: (s) => s.daily.best || 0, coins: 150, tier: 'gold', chain: 'streak' },
 
     // --- Дуэли с друзьями ---
-    { id: 'duelist', name: 'Дуэлянт', desc: 'Выиграй 5 дуэлей у друзей', goal: 5, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 25, tier: 'bronze' },
-    { id: 'duelist20', name: 'Мастер дуэлей', desc: 'Выиграй 20 дуэлей у друзей', goal: 20, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 60, tier: 'silver' },
-    { id: 'duelist50', name: 'Чемпион ринга', desc: 'Выиграй 50 дуэлей у друзей', goal: 50, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 120, tier: 'gold' },
+    { id: 'duelist', name: 'Дуэлянт', desc: 'Выиграй 5 дуэлей у друзей', goal: 5, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 25, tier: 'bronze', chain: 'duels' },
+    { id: 'duelist20', name: 'Мастер дуэлей', desc: 'Выиграй 20 дуэлей у друзей', goal: 20, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 60, tier: 'silver', chain: 'duels' },
+    { id: 'duelist50', name: 'Чемпион ринга', desc: 'Выиграй 50 дуэлей у друзей', goal: 50, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 120, tier: 'gold', chain: 'duels' },
 
     // --- Задания дня ---
-    { id: 'tasks10', name: 'Работяга', desc: 'Выполни 10 заданий дня', goal: 10, val: (s) => s.stats.tasks || 0, coins: 25, tier: 'bronze' },
-    { id: 'tasks50', name: 'Стахановец', desc: 'Выполни 50 заданий дня', goal: 50, val: (s) => s.stats.tasks || 0, coins: 70, tier: 'silver' },
-    { id: 'tasks150', name: 'Герой труда', desc: 'Выполни 150 заданий дня', goal: 150, val: (s) => s.stats.tasks || 0, coins: 150, tier: 'gold' },
+    { id: 'tasks10', name: 'Работяга', desc: 'Выполни 10 заданий дня', goal: 10, val: (s) => s.stats.tasks || 0, coins: 25, tier: 'bronze', chain: 'tasks' },
+    { id: 'tasks50', name: 'Стахановец', desc: 'Выполни 50 заданий дня', goal: 50, val: (s) => s.stats.tasks || 0, coins: 70, tier: 'silver', chain: 'tasks' },
+    { id: 'tasks150', name: 'Герой труда', desc: 'Выполни 150 заданий дня', goal: 150, val: (s) => s.stats.tasks || 0, coins: 150, tier: 'gold', chain: 'tasks' },
 
     // --- Взросление и сад ---
     { id: 'garden', name: 'Садовник', desc: 'Собери 20 бананов с дерева', goal: 20, val: (s) => s.stats.harvested, coins: 25, tier: 'bronze' },
-    { id: 'grow1', name: 'Подрос!', desc: 'Вырасти до Детёныша', goal: 1, val: (s) => s.grow.stage >= AGE.kid ? 1 : 0, coins: 30, tier: 'bronze' },
-    { id: 'grow2', name: 'Переходный возраст', desc: 'Вырасти до Подростка', goal: 1, val: (s) => s.grow.stage >= AGE.teen ? 1 : 0, coins: 50, tier: 'silver' },
-    { id: 'grow3', name: 'Совсем взрослый', desc: 'Вырасти до Взрослого', goal: 1, val: (s) => s.grow.stage >= AGE.adult ? 1 : 0, coins: 80, tier: 'gold' },
-    { id: 'grow4', name: 'Легенда двора', desc: 'Стань Легендой', goal: 1, val: (s) => s.grow.stage >= AGE.legend ? 1 : 0, coins: 150, tier: 'gold' },
+    { id: 'grow1', name: 'Подрос!', desc: 'Вырасти до Детёныша', goal: 1, val: (s) => s.grow.stage >= AGE.kid ? 1 : 0, coins: 30, tier: 'bronze', chain: 'grow' },
+    { id: 'grow2', name: 'Переходный возраст', desc: 'Вырасти до Подростка', goal: 1, val: (s) => s.grow.stage >= AGE.teen ? 1 : 0, coins: 50, tier: 'silver', chain: 'grow' },
+    { id: 'grow3', name: 'Совсем взрослый', desc: 'Вырасти до Взрослого', goal: 1, val: (s) => s.grow.stage >= AGE.adult ? 1 : 0, coins: 80, tier: 'gold', chain: 'grow' },
+    { id: 'grow4', name: 'Легенда двора', desc: 'Стань Легендой', goal: 1, val: (s) => s.grow.stage >= AGE.legend ? 1 : 0, coins: 150, tier: 'gold', chain: 'grow' },
     { id: 'care7', name: 'Заботливый', desc: '7 дней заботы', goal: 7, val: (s) => s.grow.days, coins: 40, tier: 'bronze' },
 
     // --- Друзья и события ---
@@ -274,6 +274,23 @@ const DATA = (() => {
     { id: 'dasha24', name: '24 секрета', desc: 'Найди все 24 спрятанных сердечка Дашулика', goal: 24, val: (s) => Object.keys((s.dasha && s.dasha.found) || {}).length, coins: 50, cond: (s) => !!(s && ((s.ach && s.ach.dasha24) || (s.dasha && Object.keys(s.dasha.found || {}).length > 0))), tier: 'gold' },
   ];
   const achList = (s) => ACH.filter((a) => !a.cond || a.cond(s));
+  const visibleAchs = (s) => {
+    const all = achList(s);
+    const seen = new Set();
+    const res = [];
+    for (const a of all) {
+      if (a.chain) {
+        if (seen.has(a.chain)) continue;
+        seen.add(a.chain);
+        const chainItems = all.filter((x) => x.chain === a.chain);
+        const active = chainItems.find((x) => !s.ach[x.id]);
+        res.push(active || chainItems[chainItems.length - 1]);
+      } else {
+        res.push(a);
+      }
+    }
+    return res;
+  };
   const STAGES = [{ f: 0, name: 'Стройняшка' }, { f: 0.2, name: 'Упитанный' }, { f: 0.45, name: 'Пузатик' }, { f: 0.72, name: 'Скуф' }];
   const KG0 = 6, KG1 = 18.5; // fatness 0..1 maps to weight range
   const fat = (kg, k = 1) => Math.max(0, Math.min(1, (kg - KG0 * k) / ((KG1 - KG0) * k)));
@@ -2194,6 +2211,9 @@ const DATA = (() => {
     m_kiss: ['Чмок!', 'Обожаю шебя!'], m_wave: ['Привет, крашавчик!', 'Кто это такой крашивый?'], m_cute: ['Какой я милашка!', 'Ути-пути, какой я!'], m_skuf: ['Шолидный мужчина.', 'Шразу видно — шолидный!'],
     g_lid: ['Ой! Крышка!'], g_china: ['Бабушкин шервиз!'], g_cookie: ['Печенька!'], g_spoons: ['Ложки, вилки...'], g_bags: ['Пакет ш пакетами!'], g_sofaCoin: ['Монетка в диване!'], g_sofa: ['Только крошки...'],
     g_stash: ['Заначка!'], g_empty: ['Пушто...'],
+    toilet: ['Фу-у-х!', 'Уединение...', 'Не подглядывай!', 'Кайф!', 'Жур-жур!'],
+    toiletTap: ['Буль!', 'Тут занято!', 'Крышка деревянная!'],
+    massage: ['М-м-м, кайф!', 'Как приятно!', 'Шпашибо, Пушя!', 'Вот это машшаж!'],
   };
   // «Как играть» (UI.help)
   const HELP = [
@@ -2256,5 +2276,5 @@ const DATA = (() => {
       bye: { pusya: 'Мур! С праздником, Дашулик!', monty: 'Бу-бу… Расти большой! Ой, ты уже…', mosq: 'З-з-з! Самый лучший праздник!', zhuk: 'Жу-жу! Пока-пока, Дашулик!' },
     },
   };
-  return { DASHA, GIFT, GPARTY, GAG_NAMES, HEIST, FCHAT, DEVS, DEV_NAME, BOUGHT9, CONSOLES, PHONE, TUT, HELP, SKUF, skufKg, FOODS, FOOD_ORDER, SLOTS, CLOTHES, DECOR, UPGRADES, ROOMS, GAMES, ACH, achList, STAGES, fat, stage, xpNeed, LINES, KG0, KG1, AGES, AGES_V4, AGE, GROW, TASKS, TASK, unlocks, FRIENDS, FIDS, PILLOW_LINES, DUELS, FSHIP, PARTY };
+  return { DASHA, GIFT, GPARTY, GAG_NAMES, HEIST, FCHAT, DEVS, DEV_NAME, BOUGHT9, CONSOLES, PHONE, TUT, HELP, SKUF, skufKg, FOODS, FOOD_ORDER, SLOTS, CLOTHES, DECOR, UPGRADES, ROOMS, GAMES, ACH, achList, visibleAchs, STAGES, fat, stage, xpNeed, LINES, KG0, KG1, AGES, AGES_V4, AGE, GROW, TASKS, TASK, unlocks, FRIENDS, FIDS, PILLOW_LINES, DUELS, FSHIP, PARTY };
 })();

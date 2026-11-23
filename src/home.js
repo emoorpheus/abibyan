@@ -193,6 +193,19 @@ const HOME = (() => {
     dance: { dur: 3.4, fast: 1, start: (a) => { a.beat = -1; if (!a.noMoment && (!FRIENDS.partyKind || FRIENDS.partyKind() !== 'dasha')) ALBUM.moment('dance', { title: 'Первый танец', delay: 1.3, room }); }, tick: (a) => { const b = Math.floor(a.t * 3.5); if (b !== a.beat) { a.beat = b; if (b % 2 === 0) hop(95); fx.spawn('note', mk.x + rnd(-26, 26), mk.y - rnd(70, 100), { vy: -16, life: 1.3, wob: 4, c: b % 3 }); } }, pose: (k, p, a) => { const b = Math.max(0, a.beat) % 4; p.pose = ['up', 'hips', 'shrug', 'hips'][b]; p.legs = b % 2 ? 'spread' : 'stand'; p.eyes.mode = 'happy'; p.mouth = 'laugh'; } },
     stretch: { dur: 1.9, start: () => AUDIO.play('yawn'), pose: (k, p) => { p.pose = k < 0.8 ? 'up' : 'idle'; p.mouth = 'open'; p.open = q3(Math.sin(k * Math.PI) * 1.2); p.eyes.mode = 'closed'; } },
     shy: { dur: 1.2, pose: (k, p) => { p.pose = 'cover'; p.eyes.mode = 'closed'; p.mouth = 'smile'; p.blush = 1; } },
+    massage: {
+      dur: 4.5,
+      keep: true,
+      start: () => { face('happy', 'smile', 4.5, { blush: 1 }); },
+      pose: (k, p) => {
+        p.pose = 'belly';
+        p.legs = 'tuck';
+        p.eyes = { mode: 'happy' };
+        p.mouth = 'smile';
+        p.blush = 1;
+        p.hx = Math.sin(k * Math.PI * 6) * 1.5;
+      }
+    },
     sad: { dur: 1.9, pose: (k, p) => { p.mouth = 'frown'; p.eyes.look = [0, 1]; p.tear = 1; } },
     shake: { dur: 0.9, wig: 2, start: () => { AUDIO.play('splash'); for (let i = 0; i < 26; i++) { const a = rnd(0, Math.PI * 2); fx.spawn('drop', mk.x + Math.cos(a) * 16, mk.y - 50 + Math.sin(a) * 26, { vx: Math.cos(a) * rnd(50, 110), vy: Math.sin(a) * 60 - 50, g: 380, life: 1, floor: GY + rnd(-6, 4) }); } }, pose: (k, p) => { p.eyes.mode = 'closed'; p.mouth = 'wavy'; p.pose = (Math.floor(k * 12) % 2) ? 'shrug' : 'idle'; } },
     tickle: { dur: 0.9, wig: 1, pose: (k, p) => { p.pose = 'belly'; p.eyes.mode = 'happy'; p.mouth = 'laugh'; p.blush = 1; } },
@@ -1111,7 +1124,7 @@ const HOME = (() => {
         fx.spawn('ring', mk.x, mk.y - 12, { r0: 2, r1: 10, life: 0.4, c: '#ffffff' });
         face('wide', 'o', 0.5);
         later(0.5, () => { if (trip === tr) face('closed', 'smile', 2.0); });
-        later(0.6, () => { if (trip === tr && !mk.talk) say(pick(['Фу-у-х!', 'Уединение...', 'Не подглядывай!', 'Кайф!', 'Жур-жур!']), 'happy'); });
+        later(0.6, () => { if (trip === tr && !mk.talk) say(pick((DATA.LINES && DATA.LINES.toilet) || ['Фу-у-х!', 'Уединение...', 'Не подглядывай!', 'Кайф!', 'Жур-жур!']), 'happy'); });
         GAME.stat('clean', 2);
       }
       return;
