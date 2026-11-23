@@ -531,11 +531,8 @@ const MINI = (() => {
   const gauss = () => { let u = 0, v = 0; while (!u) u = rng(); while (!v) v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
   // ---- 1) Банановая дуэль vs Пуся: shared banana rain, first to 15 points ----
   function DuelCatch() {
-    // Round 13b: she was far too easy (a relaxed player won 6 of 6, she scored ~1–3 of 15). Balanced with seeded bots (test/lib/duelsim.js, designing-mini-games):
-    // she is quick (×1.2–1.28 of his speed), re-plans every 0.25→0.19 s, aims a few px off (4→0), washes her face less; she hops to his catch height
-    // (equal reach — whoever is closer under a banana gets it) and leaves bananas he will surely get first; bananas fall faster and sway in the wind,
-    // so watching them pays off. Good player ≈ half the games at the start, fewer later; perfect play still always wins.
-    const Y = 292, AIS = [1.2, 1.22, 1.24, 1.26, 1.28], REP = [0.25, 0.235, 0.22, 0.205, 0.19], DIS = [0.08, 0.07, 0.06, 0.05, 0.04], NZ = [4, 3, 2, 1, 0];
+    // Round 13b & Round 54: balanced vs Pusya — slightly weakened to be fun and beatable, without being impossible or sluggish
+    const Y = 292, AIS = [0.95, 0.98, 1.02, 1.06, 1.10], REP = [0.34, 0.31, 0.28, 0.25, 0.22], DIS = [0.15, 0.13, 0.11, 0.09, 0.07], NZ = [10, 8, 6, 4, 2];
     const VY = 1.4, SW = 18, SWW = 2.5; // fall speed ×, sway amplitude px, sway rad/s
     const ZM = [Y - 76, Y - 34], ZP = [Y - 76, Y - 22]; let MK = 1; // catch heights: monkey (arms up) / Пуся (paws up + a hop). Round 10 #7: a small one keeps the grown-up's reach (fair vs Пуся) — he jumps for it
     let m, p, items, spawnT, keys = {}, target = null, sg, J = null;
@@ -612,7 +609,7 @@ const MINI = (() => {
         const v = it.type === 'gold' ? 3 : 1; const sc = v / (tc + 0.4 + need); if (sc > bs) { bs = sc; best = it; }
       }
       let tx = best ? best.x + (rng() - 0.5) * NZ[sg] : 90 + (rng() - 0.5) * 50;
-      for (const it of items) if (it.type === 'coconut') { const tc = (ZP[0] - it.y) / it.vy; if (tc > -0.3 && tc < 0.7 && Math.abs(it.x - tx) < 20) tx = it.x + (tx >= it.x ? 24 : -24); }
+      for (const it of items) if (it.type === 'coconut') { const tc = (ZP[0] - it.y) / it.vy; if (tc > -0.3 && tc < 0.7 && Math.abs(it.x - tx) < 20 && rng() > 0.15) tx = it.x + (tx >= it.x ? 22 : -22); }
       return clamp(tx, 14, 166);
     }
     function got(who, it) {

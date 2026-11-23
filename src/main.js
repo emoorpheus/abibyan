@@ -155,7 +155,13 @@ const APP = (() => {
     if (ev === 'levelup') { AUDIO.play('level'); UI.toast(`Уровень ${a}! Бонус +10 монет`, UI.I('star'), 'gold'); const n = unlockedAt(a); if (n.length) setTimeout(() => UI.toast('В магазине открыто: ' + n.slice(0, 4).join(', ') + (n.length > 4 ? '…' : ''), UI.I('shop')), 900); if (scene === 'home') HOME.celebrate(); }
     else if (ev === 'ach') {
       if (typeof DASHA !== 'undefined' && (DASHA.busy() || DASHA.bday() || DASHA.force)) return;
-      setTimeout(() => { AUDIO.play('star'); UI.toast(`Достижение «${a.name}» · +${a.coins}`, UI.I('trophy'), 'gold'); }, 300);
+      setTimeout(() => {
+        AUDIO.play('star');
+        const tier = a.tier || 'bronze';
+        const ic = tier === 'silver' ? UI.I('trophy_silver') : tier === 'bronze' ? UI.I('trophy_bronze') : UI.I('trophy');
+        const tName = tier === 'silver' ? ' (серебро)' : tier === 'gold' ? ' (золото)' : ' (бронза)';
+        UI.toast(`Достижение «${a.name}»${tName} · +${a.coins}`, ic, 'gold');
+      }, 300);
     }
     else if (ev === 'stage') { UI.toast(`${s.name} теперь: ${a.after}!`, UI.I('scale'), 'gold'); if (scene === 'home') HOME.stageFx(a); }
     else if (ev === 'want') { const w = s.want; const k = w ? w.type + (w.id || '') + w.until : ''; if (w && k !== lastWantK) HOME.onWant(w); lastWantK = k; }

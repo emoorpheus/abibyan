@@ -166,34 +166,44 @@ const FRIENDS = (() => {
           return (f.path ? f.path.dur : 0.5) + 0.15;
         },
         () => {
-          f.onFur = true;
-          AUDIO.play('pop');
-          moveTo(f, HOME.mk.x + (f.x < HOME.mk.x ? 2 : -2), HOME.mk.y - 12, 80, 16);
-          return (f.path ? f.path.dur : 0.4) + 0.1;
+          const side = f.x <= HOME.mk.x ? -1 : 1;
+          const tx = HOME.mk.x + side * 20;
+          walkTo(f, tx, GY + 2, 75, 0);
+          f.look = [side < 0 ? 1 : -1, 0];
+          f.lookUntil = t + 5.0;
+          return (f.path ? f.path.dur : 0.3) + 0.1;
         },
         () => {
+          const side = f.x <= HOME.mk.x ? -1 : 1;
+          f.look = [side < 0 ? 1 : -1, 0];
+          f.lookUntil = t + 5.0;
           f.pose = 'knead';
-          f.poseUntil = t + 3.2;
+          f.poseUntil = t + 3.6;
           AUDIO.play('purr');
-          HOME.face('happy', 'smile', 3.6, { blush: 1 });
-          for (let k = 0; k < 8; k++) {
+          HOME.face('happy', 'smile', 4.0, { blush: 1 });
+          const contactX = HOME.mk.x + (side < 0 ? -6 : 6);
+          const contactY = HOME.mk.y - 18;
+          for (let k = 0; k < 9; k++) {
             later(k * 0.38, () => {
-              if (!f.onFur) return;
-              HOME.fx.spawn('heart', HOME.mk.x + rnd(-16, 16), HOME.mk.y - rnd(25, 60), { vy: -18, life: 1.2, wob: 5 });
+              if (f.pose !== 'knead') return;
+              HOME.fx.spawn('heart', contactX + rnd(-6, 6), contactY + rnd(-10, 10), { vy: -20, life: 1.1, wob: 4 });
+              HOME.fx.spawn('spark', contactX + rnd(-5, 5), contactY + rnd(-6, 6), { vy: -14, life: 0.5 });
               if (k === 3 || k === 6) AUDIO.play('purr');
+              if (k % 2 === 0) AUDIO.play('pop');
             });
           }
-          return 3.2;
+          return 3.6;
         },
         () => {
           GAME.friendSpecial(id);
-          gain('+12', 'energy');
+          gain('+14', 'energy');
+          gain('+10', 'fun');
           AUDIO.play('happy');
           f.pose = 'happy';
           f.poseUntil = t + 1.2;
-          const landX = HOME.mk.x + (f.x <= HOME.mk.x ? -24 : 24);
-          moveTo(f, landX, GY + 2, 85, 12, () => { f.onFur = false; });
-          return (f.path ? f.path.dur : 0.4) + 0.2;
+          const backX = HOME.mk.x + (f.x <= HOME.mk.x ? -26 : 26);
+          walkTo(f, backX, GY + 2, 75, 0);
+          return 1.0;
         },
         ...Fd.spDone,
         back

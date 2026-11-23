@@ -721,6 +721,8 @@ const HOME = (() => {
     walk: { path: [[MX, GY]], dur: 0, wait: false, lead: 0, open: () => {} },
     // window closing when cold (jumps on desk->sill on balcony, on bed footboard in zal)
     winClose: { path: [[86, 248]], dur: 1.0, wait: false, lead: 0, open: () => {} },
+    // toilet trip in bath
+    toilet: { path: [[28, 246]], sit: true, dur: 4.2, wait: false, lead: 0.35, open: () => {} },
   };
   const VAC_TOP = 4; // his feet on the vacuum's lid
   function vacTrip(tr, dt) {
@@ -1007,15 +1009,19 @@ const HOME = (() => {
     if (tr.kind === 'knob' && tr.ph === 'go' && !tr.got && tr.i >= 1) { tr.got = true; GAGS.knobPick(); if (!GAME.ageDef().babble) say(pick(DATA.LINES.g_knobPick || ['Ага, вот ты где!'])); }
     if (tr.ph === 'go') {
       tr.shY = tr.my;
-      if (walkTick(tr, dt)) { tr.t = 0; if (D.sit || tr.climb) { tr.ph = 'sit'; tr.y0 = tr.my; tr.seatY = tr.climb ? tr.cy : D.floor ? tr.my + (18.5 - 5.2 * GAME.fat()) * s : seatY(); if (!tr.stool) AUDIO.play('jump'); } else { tr.ph = 'do'; if (tr.kind === 'fridge') AUDIO.play('fridge'); if (tr.kind === 'mirror') mirrorPose(tr); } }
+      if (walkTick(tr, dt)) { tr.t = 0; if (D.sit || tr.climb) { tr.ph = 'sit'; tr.y0 = tr.my; tr.x0 = tr.mx; tr.seatY = tr.kind === 'toilet' ? 208 : (tr.climb ? tr.cy : D.floor ? tr.my + (18.5 - 5.2 * GAME.fat()) * s : seatY()); if (!tr.stool) AUDIO.play('jump'); } else { tr.ph = 'do'; if (tr.kind === 'fridge') AUDIO.play('fridge'); if (tr.kind === 'mirror') mirrorPose(tr); } }
     } else if (tr.ph === 'sit' && tr.hops) { // Round 15b #4: up in a few hops (onto the bed rail, then the footboard post)
       if (tr.x0h === undefined) tr.x0h = tr.mx; const H = tr.hops, i = Math.min(H.length - 1, Math.floor(tr.t / HOP_T)), k = Math.min(1, (tr.t - i * HOP_T) / HOP_T), a = i ? H[i - 1] : [tr.x0h, tr.y0], b = H[i];
       if ((tr.hopN || 0) <= i) { tr.hopN = i + 1; if (i) AUDIO.play('creak'); }
       tr.mx = a[0] + (b[0] - a[0]) * k; tr.my = a[1] + (b[1] - a[1]) * k - Math.sin(Math.PI * k) * 10 * Math.max(0.6, s); tr.shY = b[1]; tr.dir = 1;
       if (tr.t >= H.length * HOP_T) { tr.ph = 'do'; tr.t = 0; tr.mx = b[0]; tr.my = b[1]; tr.shY = b[1]; }
-    } else if (tr.ph === 'sit') { // hop up onto the office chair, turning around in the air
-      const k = Math.min(1, tr.t / 0.45); tr.my = tr.y0 + (tr.seatY - tr.y0) * k - Math.sin(Math.PI * k) * (D.floor ? 6 : 14) * Math.max(0.6, s); tr.seat = k > 0.5 ? 1 : 0; tr.shY = tr.climb || D.floor ? tr.y0 : GY;
-      if (k >= 1) { tr.ph = 'do'; tr.t = 0; tr.my = tr.seatY; tr.shY = tr.climb ? tr.seatY : D.floor ? tr.y0 : null; if (D.floor) conOn(tr); else AUDIO.play('creak'); if (tr.climb && tr.kind === 'fridge') AUDIO.play('fridge'); }
+    } else if (tr.ph === 'sit') { // hop up onto the office chair / toilet, turning around in the air
+      const k = Math.min(1, tr.t / 0.45);
+      const targetX = tr.kind === 'toilet' ? 22 : tr.mx;
+      tr.mx = (tr.x0 !== undefined ? tr.x0 : tr.mx) + (targetX - (tr.x0 !== undefined ? tr.x0 : tr.mx)) * k;
+      tr.my = tr.y0 + (tr.seatY - tr.y0) * k - Math.sin(Math.PI * k) * (D.floor ? 6 : 14) * Math.max(0.6, s);
+      tr.seat = k > 0.5 ? 1 : 0; tr.shY = tr.climb || D.floor ? tr.y0 : GY;
+      if (k >= 1) { tr.ph = 'do'; tr.t = 0; tr.mx = targetX; tr.my = tr.seatY; tr.shY = tr.climb ? tr.seatY : D.floor ? tr.y0 : null; if (D.floor) conOn(tr); else AUDIO.play('creak'); if (tr.climb && tr.kind === 'fridge') AUDIO.play('fridge'); }
     } else if (tr.ph === 'do' || tr.ph === 'wait') {
       if (tr.kind === 'fridge') tr.door = Math.min(1, tr.door + dt / 0.3);
       tripBusy(tr, dt);
@@ -1024,13 +1030,24 @@ const HOME = (() => {
     } else if (tr.ph === 'back') {
       if (tr.t < D.lead) { // first shut the fridge / hop off the chair
         const k = tr.t / D.lead; if (tr.kind === 'fridge') tr.door = 1 - k;
-        if (tr.kind === 'pc' || D.floor) { const y1 = D.floor ? tr.y0 : GY; tr.my = tr.seatY + (y1 - tr.seatY) * k - Math.sin(Math.PI * k) * (D.floor ? 6 : 10) * Math.max(0.6, s); tr.seat = k < 0.5 ? 1 : 0; tr.shY = y1; }
+        if (tr.kind === 'toilet') {
+          if (!tr.flushed) {
+            tr.flushed = true; AUDIO.play('splash');
+            for (let i = 0; i < 7; i++) fx.spawn('drop', 18 + rnd(-6, 6), 206, { vx: rnd(-15, 15), vy: rnd(-35, -10), g: 260, life: 0.6, c: '#8fd0f8' });
+          }
+          const y1 = tr.y0 || GY, x1 = tr.x0 || 28;
+          tr.my = tr.seatY + (y1 - tr.seatY) * k - Math.sin(Math.PI * k) * 10 * Math.max(0.6, s);
+          tr.mx = 22 + (x1 - 22) * k;
+          tr.shY = y1;
+        } else if (tr.kind === 'pc' || D.floor) {
+          const y1 = D.floor ? tr.y0 : GY; tr.my = tr.seatY + (y1 - tr.seatY) * k - Math.sin(Math.PI * k) * (D.floor ? 6 : 10) * Math.max(0.6, s); tr.seat = k < 0.5 ? 1 : 0; tr.shY = y1;
+        }
         if (tr.hops) { const H = [[tr.x0h, tr.y0], ...tr.hops].reverse(), i = Math.min(H.length - 2, Math.floor(tr.t / HOP_T)), q = Math.min(1, (tr.t - i * HOP_T) / HOP_T), a = H[i], b = H[i + 1];
           tr.mx = a[0] + (b[0] - a[0]) * q; tr.my = a[1] + (b[1] - a[1]) * q - Math.sin(Math.PI * q) * 8 * Math.max(0.6, s); tr.shY = b[1]; return; } // hops back down the same way
         if (tr.climb) { const j = Math.max(0, (k - 0.4) / 0.6); tr.my = tr.seatY + (tr.y0 - tr.seatY) * j - Math.sin(Math.PI * j) * 8 * Math.max(0.6, s); tr.shY = j > 0 ? tr.y0 : tr.seatY; } // shuts the door, then hops down
         return;
       }
-      if (!tr.left) { tr.left = true; tr.door = 0; tr.seat = 0; if (tr.kind === 'fridge') AUDIO.play('fridgeClose'); if (tr.kind === 'pc' || tr.climb || D.floor) { tr.my = tr.climb || D.floor ? tr.y0 : GY; if (tr.hops) tr.mx = tr.x0h; AUDIO.play('step'); } }
+      if (!tr.left) { tr.left = true; tr.door = 0; tr.seat = 0; if (tr.kind === 'fridge') AUDIO.play('fridgeClose'); if (tr.kind === 'pc' || tr.kind === 'toilet' || tr.climb || D.floor) { tr.my = tr.climb || D.floor ? tr.y0 : GY; if (tr.kind === 'toilet') tr.mx = tr.x0 || 28; else if (tr.hops) tr.mx = tr.x0h; AUDIO.play('step'); } }
       tr.shY = tr.my; if (walkTick(tr, dt)) { trip = null; if (tr.auto) tr.auto.after(tr.food || null); }
     }
   }
@@ -1087,6 +1104,18 @@ const HOME = (() => {
   }
   function tripLeave(tr) { tr.path = tr.D.path.slice(0, -1).reverse().map((q) => q.slice()).concat([[rest.x, rest.y]]); tr.i = 0; if (!tr.D.lead) tr.left = true; }
   function tripBusy(tr, dt) { // rummaging: rustle, food / clothes flying out, keys clacking
+    if (tr.kind === 'toilet') {
+      if (!tr.puk && tr.t > 1.2) {
+        tr.puk = true;
+        AUDIO.play('puk');
+        fx.spawn('ring', mk.x, mk.y - 12, { r0: 2, r1: 10, life: 0.4, c: '#ffffff' });
+        face('wide', 'o', 0.5);
+        later(0.5, () => { if (trip === tr) face('closed', 'smile', 2.0); });
+        later(0.6, () => { if (trip === tr && !mk.talk) say(pick(['Фу-у-х!', 'Уединение...', 'Не подглядывай!', 'Кайф!', 'Жур-жур!']), 'happy'); });
+        GAME.stat('clean', 2);
+      }
+      return;
+    }
     if (tr.kind === 'mirror') { tr.pt = (tr.pt || 0) + dt; return; }
     if (tr.kind === 'winClose') {
       if (!tr.closed && tr.t > 0.45) {
@@ -1121,6 +1150,16 @@ const HOME = (() => {
       return;
     }
     if (tr.kind === 'rack') { rackPose(p, tr); return; }
+    if (tr.kind === 'toilet') {
+      if (ph === 'sit' || ph === 'back') { p.legs = 'tuck'; return; }
+      p.legs = 'tuck';
+      p.bob = 0;
+      p.armL = [-12, -32];
+      p.armR = [12, -32];
+      p.eyes = { mode: tr.t < 1.1 ? 'open' : (tr.t < 1.6 ? 'wide' : 'closed'), look: [1, 0] };
+      p.mouth = (tr.t >= 1.1 && tr.t < 1.6) ? 'o' : 'smile';
+      return;
+    }
     if (tr.kind === 'winClose') {
       if (ph === 'sit' || ph === 'back') { p.legs = 'tuck'; p.pose = 'catch'; p.eyes = { mode: 'open', look: [1, -1] }; p.mouth = 'o'; return; }
       const sc = GAME.ageDef().s;
@@ -1237,7 +1276,7 @@ const HOME = (() => {
         || H(sp.shower, () => shower())
         || H(sp.sink, () => soapTap())
         || H(sp.faucet, () => soapTap())
-        || H(sp.toilet, () => { AUDIO.play('splash'); say(pick(['Буль!', 'Тут занято!', 'Крышка деревянная!'])); });
+        || H(sp.toilet, () => { if (trip && trip.kind === 'toilet') { trip.ph = 'back'; trip.t = 0; tripLeave(trip); } else tripStart('toilet'); });
     }
     if (room === 'balcony') {
       const bi = treeAt(x, y); if (bi >= 0) return { fn: () => harvestAt(bi) };
