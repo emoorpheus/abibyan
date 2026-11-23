@@ -103,7 +103,7 @@ const APP = (() => {
       if (homeIn()) { if (capId === e.pointerId || e.pointerType !== 'mouse') HOME.move(p.x, p.y, e); else if (ok(e) && inside(p)) HOME.hover(p.x, p.y); else HOME.hover(-99, -99); }
       else if (scene === 'game') { const q = clampP(p); MINI.move(q.x, q.y); }
     });
-    const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
+    const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; if (e.cancelable) e.preventDefault(); const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
     window.addEventListener('keydown', (e) => {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return; AUDIO.init();

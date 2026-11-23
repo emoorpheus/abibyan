@@ -422,7 +422,7 @@ const AUDIO = (() => {
     }
   }
   // Pure neural monkey voice (Silero TTS -> WORLD -> EQ matched to assets/voice_src)
-  const TTS_UP = 1.0, WHINE = 'э-э-э-э-э';
+  const TTS_UP = 1.12, WHINE = 'э-э-э-э-э';
   const normT = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\- ]+/g, ' ').replace(/(^|\s)-+|-+(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
   function b2u(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
   // decoded clip (LRU cache): {buf, off = first audible sample (skips the mp3 decoder delay), env = 25 ms loudness 0..1}
@@ -469,9 +469,11 @@ const AUDIO = (() => {
       g.gain.linearRampToValueAtTime(0.0001, tEnd);
     } catch (e) { try { g.gain.value = v; } catch (e2) {} }
     let node = src; const via = (type, f, q, gain) => { try { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; if (gain) b.gain.value = gain; node.connect(b); node = b; } catch (e) {} };
-    via('highpass', 150, 0.707);
-    via('peaking', 5400, 1.0, -3.5);
-    via('lowpass', o.lp || 9500, 0.707);
+    via('highpass', 240, 0.707);
+    via('peaking', 380, 1.4, -4.0);
+    via('peaking', 2500, 1.2, 3.5);
+    via('peaking', 5200, 1.8, -5.0);
+    via('lowpass', o.lp || 7200, 0.7);
     const targetBus = voxG || sfxG || master;
     node.connect(g);
     if (targetBus) g.connect(targetBus);
@@ -499,8 +501,8 @@ const AUDIO = (() => {
   function spell(w, segs) { // unknown word -> syllables (consonant clusters/codas are cut from the start of a CV unit)
     const S = SPEECH.syl, ch = [...w].filter((c) => VOW.includes(c) || CON.includes(c) || c === 'ь' || c === 'ъ'); let cl = [], sep = false;
     const cons = (c, soft) => {
-      if (c === 'й') { if (S['и']) segs.push({ id: 'Sи', e: S['и'], len: 0.07, r: 1.0 }); return; }
-      const k = c + (soft || 'чщ'.includes(c) ? 'и' : 'ы'), u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(0.13, Math.max(0.04, u[2] || 0.06)), r: 1.0, cut: 1 });
+      if (c === 'й') { if (S['и']) segs.push({ id: 'Sи', e: S['и'], len: 0.07, r: 1.15 }); return; }
+      const k = c + (soft || 'чщ'.includes(c) ? 'и' : 'ы'), u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(0.13, Math.max(0.04, u[2] || 0.06)), r: 1.1, cut: 1 });
     };
     for (let i = 0; i < ch.length; i++) {
       const c = ch[i];
@@ -508,7 +510,7 @@ const AUDIO = (() => {
       if (c === 'ь' || c === 'ъ') { if (VOW.includes(ch[i + 1] || '')) sep = true; continue; }
       let last = (!sep && cl.length) ? cl.pop() : null; for (const x of cl) cons(x[0], x[1]); cl = [];
       let v = c; if (sep || (last && last[0] === 'й')) { v = IOT[v] || v; if (last && last[0] === 'й') last = null; } sep = false;
-      const k = last ? last[0] + v : v, u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(u[1], (last ? u[2] || 0.06 : 0) + 0.17), r: 1.0, cut: 1 });
+      const k = last ? last[0] + v : v, u = S[k]; if (u) segs.push({ id: 'S' + k, e: u, len: Math.min(u[1], (last ? u[2] || 0.06 : 0) + 0.17), r: 1.12, cut: 1 });
     }
     for (const x of cl) cons(x[0], x[1]);
   }

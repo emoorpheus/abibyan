@@ -820,7 +820,7 @@ const FRIENDS = (() => {
     AUDIO.play(SND[h.id]); f.pose = 'happy'; f.poseUntil = t + 0.9; hop(f, 90); HOME.lookAt(f.x, f.headY, 2);
     if (guest && !party && !S().sleeping && guest.ph === 'there' && guest.room === HOME.room && (h.id === guest.id || h.id === guest.host) && joinChat(h.id)) return; // Round 15
     if (h.id === 'zhuk' && t < offerUntil && !scene && startHeist('offer')) return; // Round 15b #3: a tap on his whispered offer = «yes»
-    if (scene || party || S().sleeping) return; extend(f); card(h.id);
+    if (scene || party || S().sleeping) return; extend(f); setTimeout(() => { if (!scene && !party && !S().sleeping) card(h.id); }, 40);
   }
   function tapPillow(id) {
     const p = PIL[id], s = S(); s.stats.pillows = (s.stats.pillows || 0) + 1;
@@ -859,7 +859,8 @@ const FRIENDS = (() => {
       ${id === 'zhuk' ? `<button class="btn" id="fr-heist" style="${hl > 0 ? 'filter:grayscale(.6)' : ''}">${UI.im(UI.F('icecream'))}Вылазка<small>· ${hl > 0 ? 'через ' + spLeftTxt(hl) : 'тайком к Пусе'}</small></button>` : ''}
       <button class="btn g" id="fr-party" style="${pl > 0 ? 'filter:grayscale(.6)' : ''}">${UI.im(UI.I('balloon'))}Все вместе!<small>· ${pl > 0 ? 'через ' + spLeftTxt(pl) : 'позвать всех друзей'}</small></button></div>
       <p class="fsc">Дуэли: побед ${st.w || 0} · поражений ${st.l || 0} · Пухлость: ${Math.round((st.fat || 0) * 100)}%</p>${fs.lv ? `<p class="fsc">Бонус: ${fs.perk}</p>` : ''}<button class="btn w sm" data-close>Пока!</button>`, { dismiss: true });
-    const b = (sel, fn) => { const el = w.querySelector(sel); if (el) el.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } AUDIO.play('click'); UI.closeModal(w); if (typeof HOME !== 'undefined' && HOME.ignoreTapUntil) HOME.ignoreTapUntil(performance.now() + 350); fn(); }; };
+    const openT = performance.now();
+    const b = (sel, fn) => { const el = w.querySelector(sel); if (el) el.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (performance.now() - openT < 350) return; AUDIO.play('click'); UI.closeModal(w); if (typeof HOME !== 'undefined' && HOME.ignoreTapUntil) HOME.ignoreTapUntil(performance.now() + 350); fn(); }; };
     b('#fr-chat', () => chat(id)); b('#fr-sp', () => special(id)); b('#fr-duel', () => MINI.duelIntro(id)); b('#fr-feed', () => feedPick(id));
     b('#fr-heist', () => { if (!startHeist('card')) { AUDIO.play('nope'); const q = heistLeft(); UI.toast(q > 0 ? 'Вылазка — через ' + spLeftTxt(q) : F.pusya.mode !== 'home' ? 'Пуси нет дома — вылазка отменяется' : 'Сейчас не получится', UI.F('icecream')); } });
     b('#fr-party', () => { if (!startParty()) { AUDIO.play('nope'); const q = partyLeft(); UI.toast(q > 0 ? 'Все вместе — через ' + spLeftTxt(q) : 'Сейчас не получится', UI.I('balloon')); } });
@@ -873,7 +874,8 @@ const FRIENDS = (() => {
     const btn = (f) => `<button class="btn fd ${MARK[kn[f]] ? kn[f] : ''}${wish(f) ? ' wish' : ''}" data-feed="${f}">${MARK[kn[f]] ? `<i class="tg">${MARK[kn[f]]}</i>` : ''}${wish(f) ? '<i class="wt">хочет!</i>' : ''}${UI.im(UI.F(f), 'px')}<span>${DATA.FOODS[f].name}</span><small>×${s.inv[f]}</small></button>`;
     const w = UI.modal(`<h2>Угостить: ${Fd.name}</h2>${full ? `<p class="fsc">${Fd.short || Fd.name} ${Fd.she ? 'наелась' : 'наелся'} — угости чуть позже</p>` : ''}${list.length ? `<div class="fgrid">${list.map(btn).join('')}</div>`
       : `<p>Холодильник пуст — нечем угостить.</p><button class="btn g" id="fd-shop">${UI.im(UI.I('shop'))}В магазин</button>`}<p class="fsc">Сегодня хочет: ${foodTxt(cr.id)}${cr.done ? ' ✓' : ''}${Object.keys(kn).length ? '<br>★ любит · ♥ нравится · ✕ не ест' : ''}</p><button class="btn w sm" data-close>Отмена</button>`, { dismiss: true });
-    w.querySelectorAll('[data-feed]').forEach((b) => { b.onclick = () => { UI.closeModal(w); feed(id, b.dataset.feed); }; });
+    const openFeedT = performance.now();
+    w.querySelectorAll('[data-feed]').forEach((b) => { b.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (performance.now() - openFeedT < 350) return; UI.closeModal(w); feed(id, b.dataset.feed); }; });
     const sh = w.querySelector('#fd-shop'); if (sh) sh.onclick = () => { AUDIO.play('click'); UI.closeModal(w); UI.openShop('food'); };
     return w;
   }
