@@ -94,6 +94,71 @@ const HOME = (() => {
       snapX.imageSmoothingEnabled = false;
     }
   }
+  const topY = () => {
+    const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
+    const curH = (curCv && curCv.height) || RH;
+    const extraH = Math.max(0, curH - RH);
+    return extraH > 0 ? Math.min(42, Math.round(extraH * 0.6)) : 0;
+  };
+  function drawCeilExt(c, P, room, ty) {
+    if (room === 'zal') {
+      P.r(0, 0, RW, ty, '#ece7e0');
+      ROOMS.dither(P, 0, 0, RW, Math.min(10, ty), '#e0dad2', '#ece7e0', 0.5);
+      if (ty >= 14) {
+        for (const x of [24, 76, 128, 168]) {
+          P.r(x - 2, ty - 18, 5, 2, '#f8f6f2');
+          P.p(x, ty - 19, '#c8c0b4');
+        }
+      }
+      P.vl(78 + 22, 0, ty, '#b08c48');
+      P.vl(78 + 21, 0, ty, '#8a6a30');
+    } else if (room === 'kitchen') {
+      P.r(0, 0, RW, ty, '#ece7e0');
+      ROOMS.dither(P, 0, 0, RW, Math.min(10, ty), '#e0dad2', '#ece7e0', 0.5);
+      if (ty >= 14) {
+        for (const x of [30, 90, 150]) {
+          P.r(x - 2, ty - 18, 5, 2, '#f8f6f2');
+          P.p(x, ty - 19, '#c8c0b4');
+        }
+      }
+    } else if (room === 'bath') {
+      P.r(0, 0, RW, ty, '#efebe6');
+      ROOMS.dither(P, 0, 0, RW, Math.min(10, ty), '#e0dac8', '#efebe6', 0.4);
+    } else if (room === 'hall') {
+      P.r(0, 0, RW, ty, '#3e2416');
+      for (const [x0, x1] of [[3, 57], [63, 117], [123, 177]]) {
+        P.r(x0, 0, x1 - x0, ty, '#5a3420');
+        P.r(x0 + 2, 0, x1 - x0 - 4, ty, '#2e1a10');
+      }
+    } else if (room === 'balcony') {
+      P.r(0, 0, RW, ty, '#5a3422');
+      for (let x = 0; x < RW; x += 14) {
+        P.r(x, 0, 1, ty, '#3e2214');
+        P.r(x + 1, 0, 1, ty, '#7a462e');
+      }
+    }
+  }
+  function applyCeilAmbient(c, room, lightOn, ty) {
+    if (room === 'zal' && !lightOn) {
+      c.save();
+      c.globalCompositeOperation = 'multiply';
+      c.fillStyle = '#3b4078';
+      c.fillRect(0, 0, RW, ty);
+      c.fillStyle = '#1c1e3a';
+      c.fillRect(0, 0, RW, ty);
+      c.restore();
+      return;
+    }
+    const ph = ROOMS.phase();
+    const amb = { evening: '#fff0dc', night: '#dcd8ee' }[ph];
+    if (amb) {
+      c.save();
+      c.globalCompositeOperation = 'multiply';
+      c.fillStyle = amb;
+      c.fillRect(0, 0, RW, ty);
+      c.restore();
+    }
+  }
   const fx = FX.make();
   let t = 0, room = 'zal', trans = null, camY = 0, camT = 0, preview = false, tvOn = true, tryCloth = null, flash = 0, tailPh = 0;
   let tool = null, press = null, taps = [], timers = [], foam = [], falling = [], showerSt = null, watering = null, lastSay = 0, hoverPt = null, bubbleOn = false, portraitC = { k: '', url: '' };
@@ -312,7 +377,8 @@ const HOME = (() => {
     if (!mood && S().st.energy < 20) mood = 'tired';
     const r = AUDIO.say(text, { mood }); let dur = (r && r.dur) || 0; if (!dur) dur = Math.min(2.2, 0.35 + text.length * 0.045);
     if (!S().sleeping) mk.talk = { t: 0, dur: Math.max(0.45, dur), env: r && r.env };
-    UI.bubble(text, mk.x, headTop() - 12 - camY, Math.max(2300, dur * 1000 + 1400)); bubbleOn = true;
+    const ty = topY();
+    UI.bubble(text, mk.x, headTop() + ty - 12 - camY, Math.max(2300, dur * 1000 + 1400)); bubbleOn = true;
     if (mood === 'happy') face('happy', null, Math.max(0.8, dur));
     return dur;
   }
@@ -320,16 +386,18 @@ const HOME = (() => {
   function whine(o) {
     if ((APP.scene !== 'home' && APP.scene !== 'boot') || S().sleeping) return; lastSay = t;
     if (mk.talk) { mk.talk = null; AUDIO.hush(); } mk.face = null; // a whine cuts in: he stops talking, the cry is on his face (r22: the long hello after the gift)
-    AUDIO.play('whine'); if (!o || !o.noAct) act('whine'); UI.bubble('Э-э-э-э-э!', mk.x, headTop() - 12 - camY, 1900); bubbleOn = true;
+    const ty = topY();
+    AUDIO.play('whine'); if (!o || !o.noAct) act('whine'); UI.bubble('Э-э-э-э-э!', mk.x, headTop() + ty - 12 - camY, 1900); bubbleOn = true;
   }
   function headTop() { const sp = mk.sp; let y = mk.y + mk.jy + (sp ? sp.head.y - sp.head.ry : -100); const h = clothes().hat; if (h === 'tophat') y -= 14; else if (h === 'cowboy' || h === 'crown' || h === 'propeller') y -= 8; else if (h) y -= 3; return y; }
   function mouthPos() { const sp = mk.sp; return { x: mk.x, y: mk.y + mk.jy + (sp ? sp.mouth.y : -67) + 1 }; }
   function lookAt(x, y, dur) { const sp = mk.sp; const hy = mk.y + (sp ? sp.head.y : -80); const dx = x - mk.x, dy = y - hy; mk.look = [Math.abs(dx) < 10 ? 0 : Math.sign(dx), dy > 14 ? 1 : dy < -22 ? -1 : 0]; mk.lookUntil = t + dur; }
   function positionUI() {
     const s = S(), home = APP.scene === 'home';
-    if (bubbleOn) bubbleOn = UI.bubbleTick(mk.x, headTop() - 12 - camY);
+    const ty = topY();
+    if (bubbleOn) bubbleOn = UI.bubbleTick(mk.x, headTop() + ty - 12 - camY);
     const showWant = home && s.want && !preview && !UI.sheetOpen && camY < 1 && !s.sleeping;
-    if (!showWant) { UI.want(null); return; } const w = wantSpot(); UI.want(s.want, w[0], w[1], w[2]);
+    if (!showWant) { UI.want(null); return; } const w = wantSpot(); UI.want(s.want, w[0], w[1] + ty, w[2]);
   }
   // Round 14b (user: «снова перекрывает потребность текстуру друга»): the want bubble (24×22 + its 5-px tail) goes beside his head —
   // right, left, or higher up on either side — wherever no friend is drawn; the side it had stays while it is still free
@@ -379,8 +447,15 @@ const HOME = (() => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     ensureOffH(curH);
+    const ty = topY();
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
-    c.drawImage(ROOMS.build(room, H, curH), 0, 0);
+    if (ty > 0) {
+      drawCeilExt(c, P, room, ty);
+    }
+    c.save();
+    if (ty > 0) c.translate(0, ty);
+    const roomH = curH - ty;
+    c.drawImage(ROOMS.build(room, H, roomH), 0, 0);
     const pp = params(), sp = mk.sp = SPR.get(pp);
     ROOMS.dyn(c, room, H, t, { me: room === 'hall' ? mirrorMe(pp, sp) : null, tvOn, light: s.light, treeSlots: tree, front: GAGS.front(), g: GAGS.view(), lamp: kitchenLamp, sleeping: s.sleeping, th, balLamp: balLampOn(), radio: !!th.radio, guitar: guitarCase(), bagDx: bagDx(), sbOn: sbOn(), tvGame: tvGame(), con: trip && trip.con, sconces: th.sconces, fridge: trip && trip.kind === 'fridge' ? trip.door : 0, chairDx });
     if (room === 'balcony') drawYardBack(c);
@@ -409,8 +484,8 @@ const HOME = (() => {
     if (s.st.clean < 20 && !showerSt) drawStink(c);
     ROOMS.front(c, room, H, t, { behind: !!((trip && trip.kind === 'fridge' && !trip.climb && trip.my < 250) || (room === 'kitchen' && FRIENDS.behindTable && FRIENDS.behindTable())), seat: trip && trip.kind === 'pc' ? trip.seat : 0, chairDx, g: GAGS.view() });
     if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P);
-    ROOMS.ambient(c, room, s.light, curH);
-    if (room === 'zal' && !s.light) ROOMS.night(c, H, t, curH);
+    ROOMS.ambient(c, room, s.light, roomH);
+    if (room === 'zal' && !s.light) ROOMS.night(c, H, t, roomH);
     FRIENDS.render(c, P, 'top'); GAGS.draw(c, P, 'top');
     DASHA.draw(c, P, 'top'); // Round 22: the gift box, her cake and its candlelight
     if (s.st.clean < 30 && !showerSt) drawFlies(c);
@@ -418,6 +493,10 @@ const HOME = (() => {
     fx.draw(c, P, 0);
     if (watering) drawCan(c);
     if (tool) drawTool(c);
+    c.restore();
+    if (ty > 0) {
+      applyCeilAmbient(c, room, s.light, ty);
+    }
   }
   function drawStream(c) {
     // translucent water curtain from the shower head down to the monkey + falling streaks
@@ -454,7 +533,7 @@ const HOME = (() => {
   function drawYardBack(c) { for (const b of falling) { const im = ROOMS.fur('banana1', ROOMS.FUR.banana1); c.globalAlpha = b.st === 'ground' ? Math.max(0, 1 - b.t * 2) : 1; c.save(); c.translate(Math.round(b.x), Math.round(b.y)); if (b.st === 'fall') c.rotate(b.rot); c.drawImage(im, -5, -6); c.restore(); c.globalAlpha = 1; } }
 
   // ---------- pointer input (scene coords) ----------
-  function sceneY(y) { return y + camY; }
+  function sceneY(y) { return y - topY() + camY; }
   function monkeyPart(x, y) {
     const sp = mk.sp; if (!sp || !SPR.hit(sp, x - mk.x0, y - mk.y0)) return null;
     const lx = x - mk.x, ly = y - (mk.y + mk.jy);
@@ -509,7 +588,7 @@ const HOME = (() => {
   }
   const maxWalkY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
-    return curCv && curCv.height > 320 ? Math.min(curCv.height - 18, 380) : WALK.y1;
+    return curCv && curCv.height > 320 ? Math.min(curCv.height - topY() - 18, 380) : WALK.y1;
   };
   function walkTo(x, y, then) { // Round 10 #4: tap on the floor → he walks over there (in scene coords); Round 11 #6: then() when he is there
     const s = S(); if (s.sleeping || trans || tool || APP.scene !== 'home' || mk.eat) return false;
@@ -1216,7 +1295,7 @@ const HOME = (() => {
     for (let i = falling.length - 1; i >= 0; i--) {
       const b = falling[i]; b.t += dt;
       if (b.st === 'fall') { b.vy += 520 * dt; b.y += b.vy * dt; b.x += b.vx * dt; b.rot += b.vr * dt; const gy = 258; if (b.y >= gy) { b.y = gy; if (!b.bounced && b.vy > 80) { b.vy = -b.vy * 0.35; b.bounced = 1; AUDIO.play('hit'); } else { b.st = 'ground'; b.t = 0; b.rot = 0; } } }
-      else if (b.t > 0.25 && !b.got) { b.got = 1; AUDIO.play('harvest'); UI.float(b.x, b.y - 14 - camY, '+1', UI.F('banana')); fx.spawn('spark', b.x, b.y - 4, { life: 0.5 }); face('happy', 'laugh', 0.9); if (Math.random() < 0.4) say(pick(['Швежий банан!', 'Прямо ш ветки!', 'Урожай!'])); }
+      else if (b.t > 0.25 && !b.got) { b.got = 1; AUDIO.play('harvest'); const ty = topY(); UI.float(b.x, b.y + ty - 14 - camY, '+1', UI.F('banana')); fx.spawn('spark', b.x, b.y - 4, { life: 0.5 }); face('happy', 'laugh', 0.9); if (Math.random() < 0.4) say(pick(['Швежий банан!', 'Прямо ш ветки!', 'Урожай!'])); }
       if (b.st === 'ground' && b.t > 0.6) falling.splice(i, 1);
     }
   }
@@ -1254,7 +1333,9 @@ const HOME = (() => {
       if (sp.sponge) home = { x: sp.sponge[0] + sp.sponge[2] / 2, y: sp.sponge[1] + sp.sponge[3] / 2 };
     }
     if (kind === 'food' && S().sleeping) { sleepyPoke(); return; }
-    tool = { kind, id, x: p.x, y: p.y + camY, dy: (e && e.pointerType === 'touch') ? -16 : -4, pid: e ? e.pointerId : undefined, img: ART.food(kind === 'soap' ? 'soap' : id), home: { x: home.x, y: home.y + camY }, near: 0, back: null, acc: 0, lx: p.x, ly: p.y };
+    const ty = topY();
+    const homeY = kind === 'soap' ? home.y : home.y - ty + camY;
+    tool = { kind, id, x: p.x, y: p.y - ty + camY, dy: (e && e.pointerType === 'touch') ? -16 : -4, pid: e ? e.pointerId : undefined, img: ART.food(kind === 'soap' ? 'soap' : id), home: { x: home.x, y: homeY }, near: 0, back: null, acc: 0, lx: p.x, ly: p.y };
     AUDIO.play('pop');
     window.addEventListener('pointermove', toolMove); window.addEventListener('pointerup', toolUp); window.addEventListener('pointercancel', toolUp);
   }
@@ -1262,7 +1343,7 @@ const HOME = (() => {
   function cancelTool() { if (tool) { unbind(); tool = null; } }
   function toolMove(e) {
     if (!tool || tool.back || (tool.pid !== undefined && e.pointerId !== tool.pid)) return;
-    const p = APP.toLogical(e.clientX, e.clientY); const nx = p.x, ny = p.y + camY; const d = Math.hypot(nx - tool.x, ny - tool.y); tool.x = nx; tool.y = ny;
+    const p = APP.toLogical(e.clientX, e.clientY); const nx = p.x, ny = p.y - topY() + camY; const d = Math.hypot(nx - tool.x, ny - tool.y); tool.x = nx; tool.y = ny;
     if (tool.kind === 'soap') {
       const px = tool.x, py = tool.y + tool.dy;
       if (mk.sp && SPR.hit(mk.sp, px - mk.x0, py - mk.y0)) { mk.scrub = t + 0.35; tool.acc += d; while (tool.acc > 3.5) { tool.acc -= 3.5; addFoam(px, py); } }
@@ -1294,8 +1375,8 @@ const HOME = (() => {
     const r = GAME.eat(id); if (!r) { AUDIO.play('nope'); return false; }
     AUDIO.play('chomp'); UI.carUpdate(); mk.act = null; mk.talk = null; UI.hideBubble(); bubbleOn = false;
     mk.eat = { t: 0, dur: 1.25, id, yuck: id === 'salad', over: r.over, dk: r.dk, cT: 0 };
-    const m = mouthPos(); UI.float(m.x + 16, m.y - 18 - camY, '+' + Math.round(r.F.food || 0), UI.I('food'));
-    if (Math.abs(r.dk) >= 0.3) later(0.55, () => UI.float(mk.x - 30, mk.y - 44 - camY, (r.dk > 0 ? '+' : '−') + kgStr(Math.abs(r.dk)) + ' кг', UI.I('scale')));
+    const m = mouthPos(), ty = topY(); UI.float(m.x + 16, m.y + ty - 18 - camY, '+' + Math.round(r.F.food || 0), UI.I('food'));
+    if (Math.abs(r.dk) >= 0.3) later(0.55, () => UI.float(mk.x - 30, mk.y + ty - 44 - camY, (r.dk > 0 ? '+' : '−') + kgStr(Math.abs(r.dk)) + ' кг', UI.I('scale')));
     return true;
   }
   function eatTick(dt) {
@@ -1374,13 +1455,14 @@ const HOME = (() => {
   // Round 16: the polaroid, the font wait and «Сохранить» moved to ALBUM (album.js); every photo also goes into the album
   function snap(top) { // the room right now: square frame fitting floor characters and head
     const sw = 176, sh = 176, sx = 2;
-    const targetBottom = 296;
+    const ty = topY();
+    const targetBottom = 296 + ty;
     let sy;
     if (top !== undefined) {
-      sy = Math.max(0, Math.min(targetBottom - sh, Math.round(top)));
+      sy = Math.max(0, Math.min(targetBottom - sh, Math.round(top + ty)));
     } else {
-      sy = Math.max(0, Math.min(RH - sh, Math.round(headTop() - 30)));
-      if (sy + sh < targetBottom) sy = Math.min(RH - sh, targetBottom - sh);
+      sy = Math.max(0, Math.min(off.height - sh, Math.round(headTop() + ty - 30)));
+      if (sy + sh < targetBottom) sy = Math.min(off.height - sh, targetBottom - sh);
     }
     const cw = 150, ch = 150;
     const c = PX.canvas(cw, ch); const ctx = c.getContext('2d');
@@ -1419,7 +1501,7 @@ const HOME = (() => {
   function react(type) { if (type === 'happy') { face('happy', 'laugh', 0.8); hop(110); } else if (type === 'sad') { act('sad'); } }
   function celebrate() { AUDIO.play('star'); confetti(30); face('happy', 'laugh', 1.2); hop(150); }
   function onWant(w) { if (w && APP.scene === 'home' && !S().sleeping && t - lastSay > 2) later(0.4, () => say(wantLine(w))); }
-  function onWantDone() { const ht = headTop(); UI.float(mk.x + 34, ht + 4 - camY, '+3', UI.I('coin')); AUDIO.play('coin'); for (let i = 0; i < 5; i++) fx.spawn('heart', mk.x + rnd(-20, 20), ht + rnd(0, 30), { vy: -22, life: 1.1, wob: 5 }); later(0.2, () => say(pick(['Шпашибо!', 'Ура, ты лучший!', 'Обожаю тебя!']), 'happy')); }
+  function onWantDone() { const ht = headTop(), ty = topY(); UI.float(mk.x + 34, ht + ty + 4 - camY, '+3', UI.I('coin')); AUDIO.play('coin'); for (let i = 0; i < 5; i++) fx.spawn('heart', mk.x + rnd(-20, 20), ht + rnd(0, 30), { vy: -22, life: 1.1, wob: 5 }); later(0.2, () => say(pick(['Шпашибо!', 'Ура, ты лучший!', 'Обожаю тебя!']), 'happy')); }
   function stageFx(a) { confetti(20); for (let i = 0; i < 6; i++) fx.spawn('puff', mk.x + rnd(-30, 30), mk.y - rnd(10, 90), { c: '#ffffff', r0: 2, r1: 8, life: 0.6, alpha: 0.8 }); if (a.after === 'Скуф') ALBUM.moment('skuf', { title: 'Настоящий скуф!', delay: 1.2, room }); later(0.6, () => say(a.after === 'Скуф' ? 'Я штал наштоящим шкуфом!' : a.up ? 'Кажетшя, я поправилшя...' : 'Я похудел!', 'happy')); }
   function growFx() {
     mk.act = null; mk.eat = null; confetti(40); flash = 0.6; AUDIO.play('star');
@@ -1454,6 +1536,6 @@ const HOME = (() => {
     sneak, get sneaking() { return sneaking; },     get camY() { return camY; }, get tvOn() { return tvOn && GAME.hasUp('tv'); }, get trip() { return trip ? Object.assign({ kind: trip.kind, ph: trip.ph }, trip.climb ? { climb: true } : {}, trip.kind === 'mirror' ? { pose: trip.pose || null } : {}, trip.kind === 'guitar' ? { gp: trip.gp || null } : {}) : null; },
     phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; }, ignoreTapUntil,
     _mirror: (id) => { if (trip && trip.kind === 'mirror' && trip.ph === 'do') { trip.t = 0; mirrorPose(trip, id); } },
-    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes, soapTap, get tool() { return tool; },
+    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes, soapTap, get tool() { return tool; }, topY: () => topY(),
   };
 })();

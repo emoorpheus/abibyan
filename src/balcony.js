@@ -185,7 +185,8 @@ const BALCONY = (() => {
   let layer = null, layerKey = '';
   function roomLayer(H, ph) {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
-    const H_total = (curCv && curCv.height) || RH;
+    const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0;
+    const H_total = ((curCv && curCv.height) || RH) - ty;
     const stg = typeof GAME !== 'undefined' && GAME.treeStage ? GAME.treeStage() : 4;
     const key = JSON.stringify(H.items) + '|' + ph + '|t' + stg + '|' + H_total; if (layer && key === layerKey) return layer;
     const c = PX.canvas(RW, H_total), x = c.getContext('2d'); drawRoom(x, Painter(x), H, ph, H_total); layer = c; layerKey = key; return c;

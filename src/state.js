@@ -322,7 +322,8 @@ const GAME = (() => {
   // ---- achievements ----
   function checkAch() {
     if (typeof DASHA !== 'undefined' && DASHA.busy && DASHA.busy()) return;
-    for (const a of DATA.ACH) { if (S.ach[a.id]) continue; if (a.val(S) >= a.goal) { S.ach[a.id] = Date.now(); S.coins += a.coins; S.totalCoins += a.coins; emit('ach', a); } }
+    const achs = DATA.achList ? DATA.achList(S) : DATA.ACH;
+    for (const a of achs) { if (S.ach[a.id]) continue; if (a.val(S) >= a.goal) { S.ach[a.id] = Date.now(); S.coins += a.coins; S.totalCoins += a.coins; emit('ach', a); } }
   }
   // ---- daily gift ----
   function dailyAvailable() { return S.daily.last !== dayStr(new Date()); }

@@ -223,7 +223,8 @@ const DASHA = (() => {
     A.digits.forEach((d, i) => { const x = 138 + i * 16 - (A.digits.length - 2) * 8, y = 104 + (i % 2) * 4 + Math.round(Math.sin(t * 1.4 + i * 1.7) * 1.5); P.line(x + 6, y + 20, 151 + i * 2, 163, '#c9b27a'); c.drawImage(d, x, y); });
     // confetti on the floor (fixed)
     const curH = (typeof cv !== 'undefined' && cv && cv.height) || (c.canvas && c.canvas.height) || 320;
-    const maxConfettiY = curH - 16;
+    const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0;
+    const maxConfettiY = curH - ty - 16;
     const rangeY = Math.max(64, maxConfettiY - 236);
     const count = Math.round(26 * (rangeY / 64));
     for (let i = 0; i < count; i++) {
@@ -388,7 +389,7 @@ const DASHA = (() => {
   const nextSlot = () => { const D = st(); return D.gift ? slots().find((x) => !D.found[x.n]) || null : null; };
   function current() { if (pend || !heartsOn()) return null; const x = nextSlot(); return x ? place(x) : null; } // the one hidden now (none while its card is open or outside birthday event)
   function secrets() { const D = st(), c = current(); if (!D.gift) return []; return slots().filter((x) => D.found[x.n] || (c && c.n === x.n)).map(place); } // found + the hidden one
-  const heartsOn = () => slots().length > 0 && !!st().gift && (TEST() || !!bday() || (!!force && !force.off));
+  const heartsOn = () => false;
   const foundN = () => { const D = st(); return slots().filter((x) => D.found[x.n]).length; };
   // how a spot hides it: clip = only that part shows; behind = the room's own pixels of that kind cover it (bt = the brightness line for
   // 'light' / 'dark', r+g+b); dark = blends into the shadow around it; a = behind glass. Cut once per room visit from the picture under it.

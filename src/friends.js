@@ -82,8 +82,9 @@ const FRIENDS = (() => {
   // ---------- speech ----------
   function speakerPos(who) {
     const camY = HOME.camY || 0;
-    if (F[who]) { const f = F[who]; if (f.room !== HOME.room) return null; return { x: f.x, y: f.headY - 3 - camY }; }
-    const p = PIL[who]; if (!p || HOME.room !== 'zal') return null; return { x: p.x, y: p.top - 3 - camY };
+    const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0;
+    if (F[who]) { const f = F[who]; if (f.room !== HOME.room) return null; return { x: f.x, y: f.headY + ty - 3 - camY }; }
+    const p = PIL[who]; if (!p || HOME.room !== 'zal') return null; return { x: p.x, y: p.top + ty - 3 - camY };
   }
   function fsay(who, text, kind) {
     const cd = AUDIO.chat(kind || (F[who] ? FD[who].voice : who), text) || 0, dur = Math.max(cd, Math.max(2.4, 0.9 + text.length * 0.05));
@@ -215,7 +216,7 @@ const FRIENDS = (() => {
     }
     return 'ok';
   }
-  function gain(txt, icon) { const ht = HOME.headTop(); UI.float(HOME.mk.x + 30, ht - (HOME.camY || 0), txt, UI.I(icon)); AUDIO.play('happy'); }
+  function gain(txt, icon) { const ht = HOME.headTop(), ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0; UI.float(HOME.mk.x + 30, ht + ty - (HOME.camY || 0), txt, UI.I(icon)); AUDIO.play('happy'); }
 
   // ---------- visits ----------
   function canVisit() { const s = S(); return !visitorId() && !scene && !party && !guest && !heist && !s.sleeping && APP.scene === 'home' && !DASHA.busy() && !UI.hasModal() && !UI.sheetOpen && t >= FIRST_VISIT && Date.now() - (s.friends.visitAt || 0) >= VISIT_GAP; }

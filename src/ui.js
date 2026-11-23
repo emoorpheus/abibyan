@@ -317,8 +317,10 @@ const UI = (() => {
   function openAch() {
     if (typeof GAME !== 'undefined' && GAME.checkAch) GAME.checkAch();
     openSheet('ach', 'Достижения', null, null, () => {
-      const s = S(); const body = $('#sh-body'); const done = DATA.ACH.filter((a) => s.ach[a.id]).length;
-      body.innerHTML = `<div class="hint" style="padding:0 0 ${U(3)}">Получено ${done} из ${DATA.ACH.length}</div><div class="list">${DATA.ACH.map((a) => { const v = Math.min(a.goal, a.val(s)), d = !!s.ach[a.id]; return `<div class="li notch ${d ? 'done' : ''}">${im(d ? I('trophy') : I('lock'), 'px ic')}<div class="tx"><div class="t1">${a.name}</div><div class="t2">${a.desc} · ${im(I('coin'))}${a.coins}</div>${d ? '' : `<div class="pbar"><i style="width:${(v / a.goal * 100).toFixed(0)}%"></i></div>`}</div></div>`; }).join('')}</div>`;
+      const s = S(); const body = $('#sh-body');
+      const achs = DATA.achList ? DATA.achList(s) : DATA.ACH;
+      const done = achs.filter((a) => s.ach[a.id]).length;
+      body.innerHTML = `<div class="hint" style="padding:0 0 ${U(3)}">Получено ${done} из ${achs.length}</div><div class="list">${achs.map((a) => { const v = Math.min(a.goal, a.val(s)), d = !!s.ach[a.id]; return `<div class="li notch ${d ? 'done' : ''}">${im(d ? I('trophy') : I('lock'), 'px ic')}<div class="tx"><div class="t1">${a.name}</div><div class="t2">${a.desc} · ${im(I('coin'))}${a.coins}</div>${d ? '' : `<div class="pbar"><i style="width:${(v / a.goal * 100).toFixed(0)}%"></i></div>`}</div></div>`; }).join('')}</div>`;
       body.querySelectorAll('.t2 img').forEach((i) => { i.style.width = U(7); i.style.height = U(7); i.style.verticalAlign = 'middle'; });
     });
   }
@@ -383,7 +385,7 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 52 · Бесшовный экран</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 53 · Опущенный потолок под островок</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { $('#' + id, w).onclick = () => { s.settings[key] = !s.settings[key]; AUDIO.set(key, s.settings[key]); AUDIO.play('click'); GAME.save(true); closeModal(w); openSettings(); }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
@@ -432,11 +434,13 @@ const UI = (() => {
     };
   }
   function openProfile() {
-    const s = S(); const st = GAME.form(); const days = Math.max(1, Math.ceil((Date.now() - s.created) / 86400e3)); const done = DATA.ACH.filter((a) => s.ach[a.id]).length;
+    const s = S(); const st = GAME.form(); const days = Math.max(1, Math.ceil((Date.now() - s.created) / 86400e3));
+    const achs = DATA.achList ? DATA.achList(s) : DATA.ACH;
+    const done = achs.filter((a) => s.ach[a.id]).length;
     const hero = HOME.portrait();
     const w = modal(`<h2>${esc(s.name)}</h2><img class="px hero" src="${hero}" alt=""><div class="kv">
       <span>Возраст</span><b>${GAME.ageDef().name}</b><span>Дней заботы</span><b>${s.grow.days}</b><span>Форма</span><b>${st.name}</b><span>Вес</span><b>${s.kg.toFixed(1).replace('.', ',')} кг</b><span>Уровень</span><b>${s.lvl}</b><span>Дней вместе</span><b>${days}</b>
-      <span>Заработано монет</span><b>${s.totalCoins}</b><span>Покормлен раз</span><b>${s.stats.fed}</b><span>Пройдено уровней</span><b>${s.stats.levels}</b><span>Достижения</span><b>${done}/${DATA.ACH.length}</b><span>Стрик входов</span><b>${s.daily.streak} дн.</b></div>
+      <span>Заработано монет</span><b>${s.totalCoins}</b><span>Покормлен раз</span><b>${s.stats.fed}</b><span>Пройдено уровней</span><b>${s.stats.levels}</b><span>Достижения</span><b>${done}/${achs.length}</b><span>Стрик входов</span><b>${s.daily.streak} дн.</b></div>
       <p style="font-size:${U(6.5)};opacity:.75">${skufNote()}</p><div class="bt"><button class="btn g" id="p-album">Альбом</button><button class="btn" data-close>Ок</button></div>`, { dismiss: true });
     $('#p-album', w).onclick = () => { click(); closeModal(w); openAlbum(); };
   }

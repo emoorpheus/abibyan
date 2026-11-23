@@ -225,8 +225,9 @@ const DATA = (() => {
     { id: 'bestie', name: 'Не разлей вода', desc: 'Стань лучшим другом для кого-нибудь', goal: 1, val: (s) => FIDS.some((k) => s.friends && s.friends[k] && (s.friends[k].lv || 0) >= 3) ? 1 : 0, coins: 50 },
     { id: 'champ', name: 'Чемпион недели', desc: 'Займи 1-е место в турнире недели', goal: 1, val: (s) => (s.tour && s.tour.wins) || 0, coins: 50 }, // Round 18
     { id: 'duelist', name: 'Дуэлянт', desc: 'Выиграй 5 дуэлей у друзей', goal: 5, val: (s) => FIDS.reduce((n, k) => n + ((s.friends && s.friends[k] && s.friends[k].w) || 0), 0), coins: 30 },
-    { id: 'dasha24', name: '24 секрета', desc: 'Найди все 24 спрятанных сердечка Дашулика', goal: 24, val: (s) => Object.keys((s.dasha && s.dasha.found) || {}).length, coins: 50 },
+    { id: 'dasha24', name: '24 секрета', desc: 'Найди все 24 спрятанных сердечка Дашулика', goal: 24, val: (s) => Object.keys((s.dasha && s.dasha.found) || {}).length, coins: 50, cond: (s) => !!(s && ((s.ach && s.ach.dasha24) || (s.dasha && Object.keys(s.dasha.found || {}).length > 0))) },
   ];
+  const achList = (s) => ACH.filter((a) => !a.cond || a.cond(s));
   const STAGES = [{ f: 0, name: 'Стройняшка' }, { f: 0.2, name: 'Упитанный' }, { f: 0.45, name: 'Пузатик' }, { f: 0.72, name: 'Скуф' }];
   const KG0 = 6, KG1 = 18.5; // fatness 0..1 maps to weight range
   const fat = (kg, k = 1) => Math.max(0, Math.min(1, (kg - KG0 * k) / ((KG1 - KG0) * k)));
@@ -2209,5 +2210,5 @@ const DATA = (() => {
       bye: { pusya: 'Мур! С праздником, Дашулик!', monty: 'Бу-бу… Расти большой! Ой, ты уже…', mosq: 'З-з-з! Самый лучший праздник!', zhuk: 'Жу-жу! Пока-пока, Дашулик!' },
     },
   };
-  return { DASHA, GIFT, GPARTY, GAG_NAMES, HEIST, FCHAT, DEVS, DEV_NAME, BOUGHT9, CONSOLES, PHONE, TUT, HELP, SKUF, skufKg, FOODS, FOOD_ORDER, SLOTS, CLOTHES, DECOR, UPGRADES, ROOMS, GAMES, ACH, STAGES, fat, stage, xpNeed, LINES, KG0, KG1, AGES, AGES_V4, AGE, GROW, TASKS, TASK, unlocks, FRIENDS, FIDS, PILLOW_LINES, DUELS, FSHIP, PARTY };
+  return { DASHA, GIFT, GPARTY, GAG_NAMES, HEIST, FCHAT, DEVS, DEV_NAME, BOUGHT9, CONSOLES, PHONE, TUT, HELP, SKUF, skufKg, FOODS, FOOD_ORDER, SLOTS, CLOTHES, DECOR, UPGRADES, ROOMS, GAMES, ACH, achList, STAGES, fat, stage, xpNeed, LINES, KG0, KG1, AGES, AGES_V4, AGE, GROW, TASKS, TASK, unlocks, FRIENDS, FIDS, PILLOW_LINES, DUELS, FSHIP, PARTY };
 })();
