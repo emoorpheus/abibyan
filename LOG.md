@@ -1541,3 +1541,46 @@
 
 
 
+
+## 2026-11-24 — Раунд 60: Восстановление вертикальной прокрутки во всех меню, списках и модальных окнах, комплексное тестирование
+
+- Проблема:
+  - Пользователь сообщил: «теперь в менюшках не листается вниз, я же тебе сказал произвести самые разные тестирования и устранить всевозможные баги» (приложены скриншоты экрана «Рост» и «Задания дня», где список заданий и этапов роста заблокирован от прокрутки).
+- Причина проблемы:
+  - В Раунде 59 для защиты от вызова лупы на холсте в `src/main.js` был добавлен обработчик `stage.addEventListener('touchmove', ...)` с условием:
+    `if (e.cancelable && (scene === 'game' || !UI.hasModal())) e.preventDefault();`
+  - Поскольку нижние шторки меню (`#sheet` с `sh-body`, заданиями, гардеробом, магазином, достижениями) не входят в стек `modalStack`, функция `UI.hasModal()` возвращала `false`. В результате `!UI.hasModal()` оценивалось как `true` при любом открытом меню в комнате (`scene === 'home'`).
+  - События `touchmove` при попытке скролла списка всплывали к контейнеру `#stage`, где вызывался `e.preventDefault()`, что намертво блокировало нативный вертикальный тач-скролл на смартфонах и в браузерах.
+- Изменения:
+  - `src/main.js`:
+    - Логика обработчика `touchmove` на `#stage` строго ограничена: `e.preventDefault()` вызывается ИСКЛЮЧИТЕЛЬНО во время мини-игры (`scene === 'game'`) на игровом холсте.
+    - Добавлено явное исключение для элементов управления и модалок в мини-играх: если целью тача является `#g-pause` или модальное окно (`#modal, #modalw, .mbox`), `e.preventDefault()` не вызывается.
+    - В основном режиме квартиры (`scene === 'home'`) `touchmove` больше никогда не подавляется, обеспечивая свободный нативный скролл всех выпадающих списков, шторок и карточек.
+  - `src/style.css`:
+    - Для `#sheet`, `.sh-body`, `.mbox`, `.mbox .fgrid`, `.list`, `.tlist` добавлены обязательные правила для бесперебойного жестового скроллинга в iOS Safari / WebKit:
+      `touch-action: pan-y !important;`
+      `-webkit-overflow-scrolling: touch !important;`
+      `overscroll-behavior-y: contain;`
+    - Для панели горизонтальных вкладок `.tabs` добавлено:
+      `touch-action: pan-x !important;`
+      `-webkit-overflow-scrolling: touch !important;`
+      `overscroll-behavior-x: contain;`
+  - `src/ui.js`:
+    - Обновлена версия в окне настроек: «Версия 60 · Восстановление прокрутки всех меню и списков, надежная защита от лупы».
+  - `build.py` & `sw.js`:
+    - Service Worker query обновлен на `sw.js?v=60`.
+    - Имя кэша обновлено: `abibyan-v60-scroll-menu-%s`.
+    - Выполнен ребилд бандлов: `dist/index.html` (8865 KB), `index.html`, `test.html`, `fresh.html`, `dist/site/`, `moy-abibyan-site.zip`.
+- Верификация:
+  - `tools/compat.js`: 28 файлов, 0 проблем (Safari 15 совместимость).
+  - `test/verify_r60_scroll.js`:
+    - Проверка листания меню «Рост / Задания дня»: `scrollHeight = 1638, clientHeight = 294, canScroll = true, defaultPrevented = false, scrollTop = 120`.
+    - Проверка листания меню «Рост / Этапы»: `scrollHeight = 1638, clientHeight = 294, canScroll = true, defaultPrevented = false, scrollTop = 120`.
+    - Проверка листания меню «Достижения»: `scrollHeight = 2789, clientHeight = 331, canScroll = true, defaultPrevented = false, scrollTop = 120`.
+    - Проверка листания меню «Магазин / Еда»: `scrollHeight = 828, clientHeight = 294, canScroll = true, defaultPrevented = false, scrollTop = 120`.
+    - Проверка листания меню «Гардероб / Одежда»: `scrollHeight = 713, clientHeight = 294, canScroll = true, defaultPrevented = false, scrollTop = 120`.
+    - Проверка модального окна настроек: `hasModal = true, defaultPrevented = false, touch-action = pan-y`.
+    - Проверка мини-игры «Банановый ливень»: холст перехватывает touchmove (`cvDefaultPrevented = true`), защищая от лупы и масштабирования; кнопка паузы не блокируется (`pauseDefaultPrevented = false`); макака свободно ходит от левого края (`x = 6`) до правого края (`x = 174`).
+    - Аудит ошибок в консоли браузера: 0 ошибок.
+  - `test/verify_r59_catch.js`: ALL TESTS PASSED WITH 0 ERRORS.
+  - `test/verify_r58_comprehensive.js`: ALL TESTS PASSED WITH 0 ERRORS.

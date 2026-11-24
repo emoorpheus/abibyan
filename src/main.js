@@ -114,7 +114,10 @@ const APP = (() => {
       else if (scene === 'game') { const q = clampP(p); MINI.move(q.x, q.y); }
     }, { passive: false });
     stage.addEventListener('touchmove', (e) => {
-      if (e.cancelable && (scene === 'game' || !UI.hasModal())) e.preventDefault();
+      if (scene === 'game' && e.cancelable) {
+        if (e.target && (e.target.id === 'g-pause' || (e.target.closest && (e.target.closest('#g-pause') || e.target.closest('#modal, #modalw, .mbox'))))) return;
+        e.preventDefault();
+      }
     }, { passive: false });
     const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; if (e.cancelable) e.preventDefault(); const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);

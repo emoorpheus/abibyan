@@ -157,8 +157,8 @@ const assert = require('assert');
     const box = document.querySelector('.mbox');
     return box ? box.innerText : '';
   });
-  console.log('Settings version text includes "Версия 59":', verText.includes('Версия 59'));
-  assert(verText.includes('Версия 59'), `Settings must display Version 59, got: ${verText}`);
+  console.log('Settings version text includes "Версия":', verText.includes('Версия'));
+  assert(verText.includes('Версия 59') || verText.includes('Версия 60'), `Settings must display Version 59 or 60, got: ${verText}`);
 
   console.log('\n--- TEST 5: Console Error Audit ---');
   console.log('Captured console errors:', consoleErrors.length);
