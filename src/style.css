@@ -128,8 +128,8 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .li{display:flex;align-items:center;gap:4u;padding:3u 4u;background:#fff;border:1u solid var(--cream3);box-shadow:inset 0 -2u 0 var(--cream2)}
 .li img.ic{width:24u;height:24u;flex:none}
 .li .tx{flex:1;min-width:0}
-.li .t1{font-size:8u;font-weight:700}
-.li .t2{font-size:6.5u;opacity:.8;line-height:1.15}
+.li .t1{font-size:8u;font-weight:700;color:var(--ink)!important}
+.li .t2{font-size:6.5u;color:var(--ink)!important;opacity:.8;line-height:1.15}
 .li.done{background:#eaf8e0}
 .pbar{height:5u;margin-top:1.5u;background:var(--cream2);border:1u solid var(--cream3)}
 .pbar i{display:block;height:100%;background:var(--grn)}
@@ -365,13 +365,15 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .mode-stretch #toasts,.mode-stretch #roomt{top:max(48u,calc(env(safe-area-inset-top,0px) + 90px))!important}
 
 /* Achievement Tiers (Bronze, Silver, Gold) */
-.ach-tier{display:inline-block;padding:1u 3u;font-size:5.5u;font-weight:700;line-height:1;margin-left:2u;vertical-align:middle;text-transform:uppercase;letter-spacing:0.5px}
-.tier-bronze{background:#4a2b16;color:#f0a86c;border:1u solid #cd7a3e}
-.tier-silver{background:#2a303a;color:#e2e8f2;border:1u solid #a6b2c4}
-.tier-gold{background:#4a3810;color:#ffd854;border:1u solid #f2bf33}
-.li.done.tier-bronze{border-left:3u solid #cd7a3e!important}
-.li.done.tier-silver{border-left:3u solid #d0d4dc!important}
-.li.done.tier-gold{border-left:3u solid #f2bf33!important}
+.ach-tier{display:inline-block;padding:1u 3u;font-size:5.5u;font-weight:700;line-height:1;margin-left:2.5u;vertical-align:middle;text-transform:uppercase;letter-spacing:0.5px;border-radius:2px}
+.ach-tier.tier-bronze{background:#4a2812;color:#ffd8b0;border:1u solid #a05020}
+.ach-tier.tier-silver{background:#253040;color:#f0f4f8;border:1u solid #788ca0}
+.ach-tier.tier-gold{background:#483400;color:#fff080;border:1u solid #b8860b}
+.li.tier-bronze{border-left:3.5u solid #cd7a3e!important}
+.li.tier-silver{border-left:3.5u solid #8ca0b8!important}
+.li.tier-gold{border-left:3.5u solid #e8b020!important}
+.li.done{background:#eaf8e0!important;border-color:#b4dda0!important;box-shadow:inset 0 -2u 0 #d0ecc0!important}
+.li.done .t1,.li.done .t2{color:var(--ink)!important}
 
 /* Desktop preview mode (wide screens only) */
 .is-desktop #app{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);background:radial-gradient(ellipse at 50% 40%,#3a2c44 0%,#1d1622 70%)}
