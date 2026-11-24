@@ -195,8 +195,8 @@ const DATA = (() => {
     { id: 'first_meal', name: 'Первый перекус', desc: 'Покорми Абибяна', goal: 1, val: (s) => s.stats.fed, coins: 10, tier: 'bronze', chain: 'fed' },
     { id: 'fed_silver', name: 'Сытый друг', desc: 'Покорми Абибяна 50 раз', goal: 50, val: (s) => s.stats.fed, coins: 35, tier: 'silver', chain: 'fed' },
     { id: 'fed_gold', name: 'Шеф-повар', desc: 'Покорми Абибяна 150 раз', goal: 150, val: (s) => s.stats.fed, coins: 80, tier: 'gold', chain: 'fed' },
-    { id: 'gourmet', name: 'Гурман', desc: 'Попробуй 8 разных блюд', goal: 8, val: (s) => Object.keys(s.tried).length, coins: 30, tier: 'silver' },
-    { id: 'skuf', name: 'Настоящий скуф', desc: 'Откорми до скуфа (в любом возрасте)', goal: 1, val: (s) => fat(s.kg, (AGES[s.grow.stage] || AGES[0]).kg) >= SKUF ? 1 : 0, coins: 40, tier: 'silver' },
+    { id: 'gourmet', name: 'Гурман', desc: 'Попробуй 8 разных блюд', goal: 8, val: (s) => Object.keys(s.tried).length, coins: 35, tier: 'gold' },
+    { id: 'skuf', name: 'Настоящий скуф', desc: 'Откорми до скуфа (в любом возрасте)', goal: 1, val: (s) => fat(s.kg, (AGES[s.grow.stage] || AGES[0]).kg) >= SKUF ? 1 : 0, coins: 50, tier: 'gold' },
     { id: 'slim', name: 'Фитоняшка', desc: 'Взрослым похудей до 7 кг после 11+ кг', goal: 1, val: (s) => (s.grow.stage >= AGE.adult && (s.stats.maxKgA || 0) >= 11 && s.kg <= 7) ? 1 : 0, coins: 40, tier: 'gold' },
 
     // --- Чистота ---
@@ -205,18 +205,18 @@ const DATA = (() => {
     { id: 'clean150', name: 'Стерильный босс', desc: 'Помой Абибяна 150 раз', goal: 150, val: (s) => s.stats.washed, coins: 100, tier: 'gold', chain: 'clean' },
 
     // --- Сон и уют ---
-    { id: 'sleepy', name: 'Соня', desc: 'Поспи 10 минут в сумме', goal: 600, val: (s) => Math.floor(s.stats.slept), coins: 25, fmt: (v) => Math.floor(v / 60) + ' мин', tier: 'bronze' },
-    { id: 'fashion', name: 'Модник', desc: 'Купи 5 вещей', goal: 5, val: (s) => s.stats.boughtClothes, coins: 30, tier: 'silver' },
-    { id: 'designer', name: 'Дизайнер', desc: 'Купи 5 вещей для дома', goal: 5, val: (s) => s.stats.boughtDecor, coins: 30, tier: 'silver' },
+    { id: 'sleepy', name: 'Соня', desc: 'Поспи 10 минут в сумме', goal: 600, val: (s) => Math.floor(s.stats.slept), coins: 30, fmt: (v) => Math.floor(v / 60) + ' мин', tier: 'gold' },
+    { id: 'fashion', name: 'Модник', desc: 'Купи 5 вещей', goal: 5, val: (s) => s.stats.boughtClothes, coins: 40, tier: 'gold' },
+    { id: 'designer', name: 'Дизайнер', desc: 'Купи 5 вещей для дома', goal: 5, val: (s) => s.stats.boughtDecor, coins: 40, tier: 'gold' },
 
     // --- Мини-игры ---
-    { id: 'g_catch', name: 'Бананоед', desc: '10 уровень в «Банановом ливне»', goal: 10, val: (s) => s.best.catch, coins: 30, tier: 'bronze' },
-    { id: 'g_vine', name: 'Тарзан', desc: '10 уровень в «Лианах»', goal: 10, val: (s) => s.best.vine, coins: 30, tier: 'bronze' },
-    { id: 'g_balloon', name: 'Аэронавт', desc: '10 уровень в «Шарике»', goal: 10, val: (s) => s.best.balloon, coins: 30, tier: 'bronze' },
-    { id: 'g_bongo', name: 'Ритм-мастер', desc: '10 уровень в «Бонго»', goal: 10, val: (s) => s.best.bongo, coins: 30, tier: 'bronze' },
-    { id: 'g_gym', name: 'Качок', desc: '10 уровень в «Качалке»', goal: 10, val: (s) => s.best.gym, coins: 30, tier: 'bronze' },
-    { id: 'g_stack', name: 'Прораб', desc: '10 уровень в «Банановой башне»', goal: 10, val: (s) => s.best.stack || 0, coins: 40, tier: 'silver' },
-    { id: 'g_super', name: 'Супер-прыгун', desc: '10 уровень в «Супер Абибяне»', goal: 10, val: (s) => s.best.super || 0, coins: 60, tier: 'silver' },
+    { id: 'g_catch', name: 'Бананоед', desc: '10 уровень в «Банановом ливне»', goal: 10, val: (s) => s.best.catch, coins: 40, tier: 'gold' },
+    { id: 'g_vine', name: 'Тарзан', desc: '10 уровень в «Лианах»', goal: 10, val: (s) => s.best.vine, coins: 40, tier: 'gold' },
+    { id: 'g_balloon', name: 'Аэронавт', desc: '10 уровень в «Шарике»', goal: 10, val: (s) => s.best.balloon, coins: 40, tier: 'gold' },
+    { id: 'g_bongo', name: 'Ритм-мастер', desc: '10 уровень в «Бонго»', goal: 10, val: (s) => s.best.bongo, coins: 40, tier: 'gold' },
+    { id: 'g_gym', name: 'Качок', desc: '10 уровень в «Качалке»', goal: 10, val: (s) => s.best.gym, coins: 40, tier: 'gold' },
+    { id: 'g_stack', name: 'Прораб', desc: '10 уровень в «Банановой башне»', goal: 10, val: (s) => s.best.stack || 0, coins: 50, tier: 'gold' },
+    { id: 'g_super', name: 'Супер-прыгун', desc: '10 уровень в «Супер Абибяне»', goal: 10, val: (s) => s.best.super || 0, coins: 60, tier: 'gold' },
     { id: 'g_race', name: 'Гонщик', desc: '10 уровень в «Банановых гонках»', goal: 10, val: (s) => s.best.race || 0, coins: 70, tier: 'gold' },
 
     // --- Богатство ---
@@ -255,20 +255,20 @@ const DATA = (() => {
     { id: 'tasks150', name: 'Герой труда', desc: 'Выполни 150 заданий дня', goal: 150, val: (s) => s.stats.tasks || 0, coins: 150, tier: 'gold', chain: 'tasks' },
 
     // --- Взросление и сад ---
-    { id: 'garden', name: 'Садовник', desc: 'Собери 20 бананов с дерева', goal: 20, val: (s) => s.stats.harvested, coins: 25, tier: 'bronze' },
+    { id: 'garden', name: 'Садовник', desc: 'Собери 20 бананов с дерева', goal: 20, val: (s) => s.stats.harvested, coins: 35, tier: 'gold' },
     { id: 'grow1', name: 'Подрос!', desc: 'Вырасти до Детёныша', goal: 1, val: (s) => s.grow.stage >= AGE.kid ? 1 : 0, coins: 30, tier: 'bronze', chain: 'grow' },
     { id: 'grow2', name: 'Переходный возраст', desc: 'Вырасти до Подростка', goal: 1, val: (s) => s.grow.stage >= AGE.teen ? 1 : 0, coins: 50, tier: 'silver', chain: 'grow' },
     { id: 'grow3', name: 'Совсем взрослый', desc: 'Вырасти до Взрослого', goal: 1, val: (s) => s.grow.stage >= AGE.adult ? 1 : 0, coins: 80, tier: 'gold', chain: 'grow' },
     { id: 'grow4', name: 'Легенда двора', desc: 'Стань Легендой', goal: 1, val: (s) => s.grow.stage >= AGE.legend ? 1 : 0, coins: 150, tier: 'gold', chain: 'grow' },
-    { id: 'care7', name: 'Заботливый', desc: '7 дней заботы', goal: 7, val: (s) => s.grow.days, coins: 40, tier: 'bronze' },
+    { id: 'care7', name: 'Заботливый', desc: '7 дней заботы', goal: 7, val: (s) => s.grow.days, coins: 50, tier: 'gold' },
 
     // --- Друзья и события ---
-    { id: 'bff', name: 'Лучшие друзья', desc: 'Поболтай с Пусей, Монти, Москитом и Жучком', goal: 4, val: (s) => FIDS.filter((k) => s.friends && s.friends[k] && s.friends[k].chat > 0).length, coins: 20, tier: 'silver' },
-    { id: 'tastes', name: 'Знаток вкусов', desc: 'Узнай любимую еду Пуси, Монти, Москита и Жучка', goal: 4, val: (s) => FIDS.filter((k) => s.friends && s.friends[k] && s.friends[k].known && Object.values(s.friends[k].known).includes('fav')).length, coins: 30, tier: 'silver' },
-    { id: 'chef', name: 'Блинный мастер', desc: 'Испеки 10 блинчиков', goal: 10, val: (s) => s.stats.pancakes || 0, coins: 25, tier: 'silver' },
-    { id: 'laundry', name: 'Прачечная', desc: 'Постирай 5 раз', goal: 5, val: (s) => s.stats.washes || 0, coins: 20, tier: 'bronze' },
-    { id: 'explorer', name: 'Всё потрогал', desc: 'Найди 25 приколов в квартире', goal: 25, val: (s) => Object.keys((s.gags && s.gags.seen) || {}).length, coins: 40, tier: 'silver' },
-    { id: 'party', name: 'Все в сборе', desc: 'Устрой вечеринку «Все вместе»', goal: 1, val: (s) => s.stats.parties || 0, coins: 20, tier: 'bronze' },
+    { id: 'bff', name: 'Лучшие друзья', desc: 'Поболтай с Пусей, Монти, Москитом и Жучком', goal: 4, val: (s) => FIDS.filter((k) => s.friends && s.friends[k] && s.friends[k].chat > 0).length, coins: 35, tier: 'gold' },
+    { id: 'tastes', name: 'Знаток вкусов', desc: 'Узнай любимую еду Пуси, Монти, Москита и Жучка', goal: 4, val: (s) => FIDS.filter((k) => s.friends && s.friends[k] && s.friends[k].known && Object.values(s.friends[k].known).includes('fav')).length, coins: 40, tier: 'gold' },
+    { id: 'chef', name: 'Блинный мастер', desc: 'Испеки 10 блинчиков', goal: 10, val: (s) => s.stats.pancakes || 0, coins: 35, tier: 'gold' },
+    { id: 'laundry', name: 'Прачечная', desc: 'Постирай 5 раз', goal: 5, val: (s) => s.stats.washes || 0, coins: 30, tier: 'gold' },
+    { id: 'explorer', name: 'Всё потрогал', desc: 'Найди 25 приколов в квартире', goal: 25, val: (s) => Object.keys((s.gags && s.gags.seen) || {}).length, coins: 50, tier: 'gold' },
+    { id: 'party', name: 'Все в сборе', desc: 'Устрой вечеринку «Все вместе»', goal: 1, val: (s) => s.stats.parties || 0, coins: 35, tier: 'gold' },
     { id: 'bestie', name: 'Не разлей вода', desc: 'Стань лучшим другом для кого-нибудь', goal: 1, val: (s) => FIDS.some((k) => s.friends && s.friends[k] && (s.friends[k].lv || 0) >= 3) ? 1 : 0, coins: 50, tier: 'gold' },
     { id: 'champ', name: 'Чемпион недели', desc: 'Займи 1-е место в турнире недели', goal: 1, val: (s) => (s.tour && s.tour.wins) || 0, coins: 50, tier: 'gold' },
     { id: 'dasha24', name: '24 секрета', desc: 'Найди все 24 спрятанных сердечка Дашулика', goal: 24, val: (s) => Object.keys((s.dasha && s.dasha.found) || {}).length, coins: 50, cond: (s) => !!(s && ((s.ach && s.ach.dasha24) || (s.dasha && Object.keys(s.dasha.found || {}).length > 0))), tier: 'gold' },
