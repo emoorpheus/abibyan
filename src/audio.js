@@ -217,7 +217,30 @@ const AUDIO = (() => {
     yawn: () => tone(520, 0.7, { type: 'sine', slide: 220, vib: [6, 20], vol: 0.18, a: 0.1 }),
     lift: () => { tone(160, 0.25, { type: 'sawtooth', lp: 700, slide: 110, vol: 0.2 }); },
     clank: () => { tone(1800, 0.2, { type: 'square', vol: 0.06 }); tone(2400, 0.15, { type: 'square', vol: 0.05 }); noise(0.1, { f: 5000, vol: 0.08 }); },
-    drum: (i) => { const f = [196, 262, 330, 440][i] || 262; tone(f * 1.6, 0.25, { type: 'sine', slide: f, vol: 0.4 }); noise(0.06, { f: f * 5, q: 1, vol: 0.15 }); },
+    drum: (i) => {
+      const idx = (typeof i === 'number') ? Math.min(3, Math.max(0, Math.floor(i))) : 0;
+      if (idx === 0) {
+        // 0) Красная бочка: глубокий басовый удар (Deep Bass Conga / Tumbadora)
+        tone(130, 0.32, { type: 'sine', slide: 55, vol: 0.46, a: 0.003 });
+        tone(85, 0.18, { type: 'triangle', slide: 48, lp: 280, vol: 0.28, a: 0.003 });
+        noise(0.05, { f: 340, q: 2.2, vol: 0.20, ft: 'bandpass' });
+      } else if (idx === 1) {
+        // 1) Жёлтая бочка: упругий шлепок конги (Conga Slap / Mid Wood Tom)
+        tone(300, 0.22, { type: 'sine', slide: 175, vol: 0.40, a: 0.002 });
+        tone(460, 0.11, { type: 'triangle', slide: 250, lp: 1400, vol: 0.18, a: 0.002 });
+        noise(0.06, { f: 1400, f2: 750, q: 2.6, vol: 0.26, ft: 'bandpass' });
+      } else if (idx === 2) {
+        // 2) Зелёная бочка: открытый звонкий бонго (High Open Bongo / Quinto)
+        tone(480, 0.25, { type: 'sine', slide: 392, vol: 0.38, a: 0.003, vib: [12, 6] });
+        tone(960, 0.13, { type: 'triangle', slide: 784, lp: 2200, vol: 0.16, a: 0.002 });
+        noise(0.045, { f: 2800, q: 3.2, vol: 0.18, ft: 'bandpass' });
+      } else {
+        // 3) Синяя бочка: звонкий стальной римшот / тимбалес (Steel Rimshot / Timbale)
+        tone(784, 0.22, { type: 'square', slide: 700, lp: 2600, vol: 0.18, a: 0.002 });
+        tone(1480, 0.16, { type: 'sine', slide: 1320, vol: 0.22, a: 0.002 });
+        noise(0.05, { f: 6500, q: 3.5, vol: 0.22, ft: 'highpass' });
+      }
+    },
     fly: () => tone(R(180, 220), 0.12, { type: 'sawtooth', lp: 900, vib: [60, 30], vol: 0.03 }),
     harvest: () => { tone(660, 0.06, { type: 'triangle', vol: 0.15 }); tone(990, 0.12, { type: 'triangle', vol: 0.15, delay: 0.05 }); noise(0.08, { f: 1200, vol: 0.08 }); },
     water: () => { for (let i = 0; i < 4; i++) tone(R(600, 1200), 0.05, { type: 'sine', slide: R(300, 500), vol: 0.08, delay: i * 0.06 }); },

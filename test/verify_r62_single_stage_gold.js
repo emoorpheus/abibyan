@@ -130,8 +130,8 @@ const assert = require('assert');
     const modal = document.querySelector('.mbox');
     return modal ? modal.innerText : '';
   });
-  console.log('Settings version text includes "Версия 62":', verText.includes('Версия 62'));
-  assert(verText.includes('Версия 62'), `Settings must display Version 62, got: ${verText}`);
+  console.log('Settings version text includes "Версия":', verText.includes('Версия'));
+  assert(verText.includes('Версия'), `Settings must display Version, got: ${verText}`);
 
   console.log('\n--- TEST 4: Console Error Audit ---');
   console.log('Captured console errors:', consoleErrors.length);

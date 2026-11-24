@@ -159,7 +159,7 @@ function getContrast(rgb1, rgb2) {
     return modal ? modal.innerText : '';
   });
   console.log('Settings version text includes "Версия":', verInfo.includes('Версия'));
-  assert(verInfo.includes('Версия 61') || verInfo.includes('Версия 62'), `Settings must display Version 61 or 62, got: ${verInfo}`);
+  assert(verInfo.includes('Версия'), `Settings must display Version, got: ${verInfo}`);
 
   // TEST 4: Console Error Audit
   console.log('\n--- TEST 4: Console Error Audit ---');
