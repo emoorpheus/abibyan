@@ -182,7 +182,7 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 #modalw{position:fixed;top:0;left:0;right:0;bottom:0;height:var(--vh,100%);pointer-events:none;z-index:90}
 #modal{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;width:100%;height:100%;height:var(--vh,100%);min-height:var(--vh,100%);background:rgba(25,12,22,.6);display:flex;align-items:center;justify-content:center;animation:fin .15s;z-index:91;pointer-events:auto}
 @keyframes fin{from{opacity:0}}
-.mbox{width:156u;max-height:calc(100vh - 20u);max-height:290u;overflow:auto;background:var(--cream);border:1u solid var(--ink);padding:6u;display:flex;flex-direction:column;align-items:center;gap:4u;text-align:center;box-shadow:inset 0 -3u 0 var(--cream3);animation:mpop .2s ease-out;padding-bottom:max(6u,env(safe-area-inset-bottom,0px));touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain}
+.mbox{width:156u;max-height:min(290u,calc(100vh - 16u - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)));overflow:auto;background:var(--cream);border:1u solid var(--ink);padding:6u;display:flex;flex-direction:column;align-items:center;gap:4u;text-align:center;box-shadow:inset 0 -3u 0 var(--cream3);animation:mpop .2s ease-out;padding-bottom:max(6u,env(safe-area-inset-bottom,0px));touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain}
 @keyframes mpop{from{transform:scale(.85);opacity:0}}
 .mbox h2{margin:0;font-size:11u;line-height:1.1}
 .mbox p{margin:0;font-size:8u;line-height:1.25}
@@ -244,9 +244,9 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 @keyframes sgain{30%{transform:scale(1.12);filter:brightness(1.3)}}
 @media (prefers-reduced-motion:reduce){#h-coins.up,#h-coins.down,.stat.gain{animation:none}}
 /* Round 7 #4: the tutorial card above the bottom bar (above the sheet while one is open); the button it talks about glows */
-#tut{position:absolute;left:6u;right:6u;top:43u;padding:4u 6u;background:#fff4e2;border:1u solid var(--ink);box-shadow:0 2u 0 rgba(59,36,51,.35);color:var(--ink);font-size:7.5u;line-height:1.2;animation:tin .25s ease-out;z-index:5}
+#tut{position:absolute;left:6u;right:6u;top:calc(43u + env(safe-area-inset-top,0px));padding:4u 6u;background:#fff4e2;border:1u solid var(--ink);box-shadow:0 2u 0 rgba(59,36,51,.35);color:var(--ink);font-size:7.5u;line-height:1.2;animation:tin .25s ease-out;z-index:5}
 /* Round 23: the card sits under the HUD (was over the bottom bar — it covered Абибян and his bubble on short phones); toasts and the room name go under it */
-#ui.tutting #toasts,#ui.tutting #roomt{top:calc(46u + var(--tuth,0px))}
+#ui.tutting #toasts,#ui.tutting #roomt{top:calc(46u + env(safe-area-inset-top,0px) + var(--tuth,0px))}
 #tut.hidden{display:none}
 #tut .tn{font-size:6u;opacity:.6;margin-bottom:1u}
 #tut .tb{display:flex;justify-content:flex-end;gap:3u;margin-top:3u}
@@ -314,7 +314,7 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 #ui #gift.out{transition:opacity .5s;opacity:0}
 @keyframes gbob{50%{transform:translateY(-2u)}}
 #ui.gifting #hud,#ui.gifting #bar,#ui.bday #hud,#ui.bday #bar{visibility:hidden}
-#blow{position:absolute;left:8u;right:8u;top:max(4u,calc(var(--ct,0px) - 36u));background:var(--cream);border:1u solid var(--ink);box-shadow:inset 0 -2u 0 var(--cream3);padding:4u 4u 3u;text-align:center;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2u;animation:mpop .2s ease-out;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Comfortaa",sans-serif}
+#blow{position:absolute;left:8u;right:8u;top:max(calc(4u + env(safe-area-inset-top,0px)),calc(var(--ct,0px) - 36u));background:var(--cream);border:1u solid var(--ink);box-shadow:inset 0 -2u 0 var(--cream3);padding:4u 4u 3u;text-align:center;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2u;animation:mpop .2s ease-out;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Comfortaa",sans-serif}
 #blow .b-t{font-size:9u;font-weight:700;line-height:1.1;letter-spacing:0.1px}
 #blow .b-s{font-size:6.5u;line-height:1.2;opacity:.88}
 #blow .bt{display:flex;gap:3u;justify-content:center;flex-wrap:wrap}

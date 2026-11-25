@@ -144,8 +144,6 @@ const HOME = (() => {
       c.globalCompositeOperation = 'multiply';
       c.fillStyle = '#3b4078';
       c.fillRect(0, 0, RW, ty);
-      c.fillStyle = '#1c1e3a';
-      c.fillRect(0, 0, RW, ty);
       c.restore();
       return;
     }
@@ -316,9 +314,10 @@ const HOME = (() => {
 
   // ---------- update ----------
   function busy(lax) { const s = S(); return !!(trip || (mk.act && !(lax && mk.act.filler)) || mk.talk || mk.eat || tool || showerSt || mic.on || s.sleeping || mk.dizzy > 0 || preview || trans || UI.sheetOpen || UI.hasModal() || FRIENDS.busy()); }
-  let movedT = -9, lastMX = 0, lastMY = 0;
+  let movedT = -9, lastMX = 0, lastMY = 0, lastPh = '';
   function update(dt) {
     t += dt; const s = S(); const ag = GAME.ageDef();
+    if (room === 'balcony' && typeof ROOMS !== 'undefined' && ROOMS.phase) { const ph = ROOMS.phase(); if (ph !== lastPh) { lastPh = ph; updateCeilColor(room); } } else lastPh = '';
     { const x = trip && trip.mx !== undefined ? trip.mx : mk.x, y = trip && trip.my !== undefined ? trip.my : mk.y; if (x !== lastMX || y !== lastMY) { movedT = t; lastMX = x; lastMY = y; } } // Round 20: he walks → lively()
     AUDIO.setRate(ag.voice * (GAME.isSkuf() ? 0.92 : 1));
     if (ag.legend && !s.sleeping && room !== 'zal' && Math.random() < dt * 0.6) fx.spawn('spark', mk.x + rnd(-26, 26), mk.y - rnd(20, 110), { life: 0.7, vy: -6 });
@@ -592,7 +591,9 @@ const HOME = (() => {
   }
   function up(x, y, e) {
     if (tool) { toolUp(e); return; }
-    y = sceneY(y); if (DASHA.up(x, y)) { press = null; return; } const pr = press; press = null; if (!pr) return;
+    y = sceneY(y); if (DASHA.up(x, y)) { press = null; return; }
+    if (e && e.type === 'pointercancel') { const pr = press; press = null; if (pr && pr.held) FRIENDS.release(pr.fr.id); return; }
+    const pr = press; press = null; if (!pr) return;
     if (pr.ht) { if (pr.moved < 12) pr.ht(); return; }
     const dx = x - pr.x0, dy = y - pr.y0;
     if (pr.held) { FRIENDS.release(pr.fr.id); return; }
@@ -1251,7 +1252,7 @@ const HOME = (() => {
   // every thing in the flat: GAGS first takes a few taps before the old handlers (pigeon, bed, parcel, doorbell, stove, gnome), then the rest after them
   function hotspot(x, y) { return (room === 'zal' && GAME.placed('guitar') && ZAL.guitarHit(x, y) ? { fn: () => tripStart('guitar') } : null) || GAGS.hit(room, x, y, true) || hotspot0(x, y) || GAGS.hit(room, x, y, false); } // the guitar bag stands in front of the drape / radiator
   function soapTap() {
-    if (room !== 'bath' || S().sleeping) return;
+    if (room !== 'bath' || S().sleeping || trip) return;
     AUDIO.play('pop');
     if (!mk.scrubSnd || t - mk.scrubSnd > 0.13) { mk.scrubSnd = t; AUDIO.play('scrub'); }
     for (let i = 0; i < 6; i++) {
@@ -1293,11 +1294,11 @@ const HOME = (() => {
     if (room === 'bath') {
       return (it.duck ? H(sp.duck, () => { AUDIO.play('boop'); const [dx, dy] = sp.duck; fx.spawn('ring', dx + 9, dy + 9, { r0: 2, r1: 8, life: 0.3 }); fx.spawn('note', dx + 9, dy - 2, { vy: -14, life: 1, c: 1 }); }) : null)
         || H(sp.sponge, () => soapTap())
-        || H(sp.mirror, () => { act('mirror'); say(pick(['Крашавчик!', 'Ну я и пушиштик!', GAME.isSkuf() ? 'Шолидный мужчина.' : GAME.ageDef().age < 0.4 ? 'Какой я милашка!' : 'Какой штройный!'])); })
+        || H(sp.mirror, () => { if (!trip) { act('mirror'); say(pick(['Крашавчик!', 'Ну я и пушиштик!', GAME.isSkuf() ? 'Шолидный мужчина.' : GAME.ageDef().age < 0.4 ? 'Какой я милашка!' : 'Какой штройный!'])); } })
         || H(sp.shower, () => shower())
         || H(sp.sink, () => soapTap())
         || H(sp.faucet, () => soapTap())
-        || H(sp.toilet, () => { if (trip && trip.kind === 'toilet') { trip.ph = 'back'; trip.t = 0; tripLeave(trip); } else tripStart('toilet'); });
+        || H(sp.toilet, () => { if (trip && trip.kind === 'toilet') { if (trip.ph === 'do') { trip.ph = 'back'; trip.t = 0; tripLeave(trip); } } else tripStart('toilet'); });
     }
     if (room === 'balcony') {
       const bi = treeAt(x, y); if (bi >= 0) return { fn: () => harvestAt(bi) };
@@ -1385,6 +1386,7 @@ const HOME = (() => {
   // ---------- tools: food & soap ----------
   function startTool(kind, e, id) {
     if (tool || trans || APP.scene !== 'home' || trip) return; AUDIO.init();
+    if (APP.resetRect) APP.resetRect();
     const p = (e && e.clientX !== undefined) ? APP.toLogical(e.clientX, e.clientY) : (id && id.x ? id : { x: 90, y: 160 });
     const from = e && e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : null;
     let home = from ? APP.toLogical(from.left + from.width / 2, from.top + from.height / 2) : { x: p.x, y: p.y };
@@ -1411,8 +1413,9 @@ const HOME = (() => {
   }
   function toolUp(e) {
     if (!tool || tool.back || (tool.pid !== undefined && e && e.pointerId !== undefined && e.pointerId !== tool.pid)) return; unbind();
-    if (tool.kind === 'food') { const m = mouthPos(); const d = Math.hypot(tool.x - m.x, tool.y + tool.dy - m.y); if (d < 24 && feed(tool.id)) { tool = null; return; } }
-    if (tool.kind === 'soap') {
+    const cancelled = !!(e && e.type === 'pointercancel');
+    if (!cancelled && tool.kind === 'food') { const m = mouthPos(); const d = Math.hypot(tool.x - m.x, tool.y + tool.dy - m.y); if (d < 24 && feed(tool.id)) { tool = null; return; } }
+    if (!cancelled && tool.kind === 'soap') {
       if (tool.acc < 3.5) {
         soapTap();
       }
@@ -1458,7 +1461,7 @@ const HOME = (() => {
 
   // ---------- bath: shower ----------
   function shower() {
-    if (room !== 'bath' || showerSt || S().sleeping) return; mk.act = null;
+    if (room !== 'bath' || showerSt || S().sleeping || trip) return false; mk.act = null;
     showerSt = { t: 0, dur: 3.4, foam0: foam.length, snd: 0 }; UI.updateBar(); later(0.4, () => { if (showerSt) say(pick(['Ля-ля-ля!', 'Тёпленькая!', 'Буль-буль!'])); });
   }
   function showerTick(dt) {
@@ -1486,7 +1489,16 @@ const HOME = (() => {
   // ---------- bedroom: sleep ----------
   function toggleLight() {
     const s = S(); if (room !== 'zal') return; AUDIO.play('click');
-    if (s.light) { s.light = false; s.sleeping = true; mk.act = null; mk.talk = null; UI.hideBubble(); bubbleOn = false; mk.snoreT = 2; mk.zT = 0.6; AUDIO.play('yawn'); if (mic.on) micStop(); }
+    if (s.light) {
+      if (trip) {
+        if (trip.kind === 'knob' && trip.got) GAGS.knobFix();
+        if (trip.kind === 'winClose' && trip.D && trip.D.open) trip.D.open();
+        if (trip.kind === 'rack') GAGS.rackSet(0, true);
+        trip = null;
+      }
+      rest.x = MX; rest.y = GY; stopTravel();
+      s.light = false; s.sleeping = true; mk.act = null; mk.talk = null; UI.hideBubble(); bubbleOn = false; mk.snoreT = 2; mk.zT = 0.6; AUDIO.play('yawn'); if (mic.on) micStop();
+    }
     else wakeUp(false);
     UI.updateBar(); GAME.save();
   }
@@ -1596,6 +1608,6 @@ const HOME = (() => {
     sneak, get sneaking() { return sneaking; },     get camY() { return camY; }, get tvOn() { return tvOn && GAME.hasUp('tv'); }, get trip() { return trip ? Object.assign({ kind: trip.kind, ph: trip.ph }, trip.climb ? { climb: true } : {}, trip.kind === 'mirror' ? { pose: trip.pose || null } : {}, trip.kind === 'guitar' ? { gp: trip.gp || null } : {}) : null; },
     phone, toPc, toTv, vacRide, rackLift, get phoneOn() { return phoneOn(); }, guitarHold: () => { const g = gHeld(); return { a: g.a, sc: g.sc, small: gSmall() }; }, ignoreTapUntil,
     _mirror: (id) => { if (trip && trip.kind === 'mirror' && trip.ph === 'do') { trip.t = 0; mirrorPose(trip, id); } },
-    get room() { return room; }, get mk() { return mk; }, get trip() { return trip; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes, soapTap, get tool() { return tool; }, topY: () => topY(),
+    get room() { return room; }, get mk() { return mk; }, get walking() { return !!(trip && trip.kind === 'walk'); }, get rest() { return { x: rest.x, y: rest.y }; }, walkTo, travel, stopTravel, fridgeSnack, watchTv, tvSpot, get lastPhoto() { return lastPhoto; }, fontsReady: () => ALBUM.fontsReady(), get trans() { return !!trans; }, get off() { return off; }, get foam() { return foam; }, clothes, soapTap, get tool() { return tool; }, topY: () => topY(),
   };
 })();

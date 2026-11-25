@@ -269,7 +269,7 @@ const DASHA = (() => {
   }
   function drawLight(c, P) { // the room dims while the candles burn; a warm glow around them
     const k = cake; if (!k || k.dim < 0.01) return;
-    c.save(); c.globalAlpha = k.dim; c.fillStyle = '#140a24'; c.fillRect(0, 0, 180, 320); c.restore();
+    c.save(); c.globalAlpha = k.dim; c.fillStyle = '#140a24'; c.fillRect(0, -100, 180, ((c.canvas && c.canvas.height) || 320) + 120); c.restore();
     const n = lit(); if (!n) return; const a = (0.16 + 0.34 * n / k.n) * Math.min(1, k.dim / 0.5);
     c.save(); c.globalCompositeOperation = 'lighter'; const gx = CK.x, gy = 268, R = 46 + 10 * n / k.n + Math.sin(t * 9) * 1.5;
     const g = c.createRadialGradient(gx, gy, 2, gx, gy, R); g.addColorStop(0, `rgba(255,190,90,${a})`); g.addColorStop(0.5, `rgba(255,140,60,${a * 0.45})`); g.addColorStop(1, 'rgba(255,120,40,0)');
@@ -502,7 +502,7 @@ const DASHA = (() => {
     if (layer === 'back') { if (room === 'zal' && decor()) drawDecor(c, P); drawHearts(c, P, room); return; }
     if (layer === 'top') {
       if (dbg.plain && !busy()) { const h = current(), A = art().mini; if (h && h.room === room) c.drawImage(A, h.x - (A.width >> 1), h.y - (A.height >> 1)); }
-      if (gift) { const k = gift.open ? Math.max(0, 1 - (t - gift.open) / 0.5) : 1; c.save(); c.globalAlpha = 0.5 * k; c.fillStyle = '#140a24'; c.fillRect(0, 0, 180, (c.canvas && c.canvas.height) || 320); c.restore();
+      if (gift) { const k = gift.open ? Math.max(0, 1 - (t - gift.open) / 0.5) : 1; c.save(); c.globalAlpha = 0.5 * k; c.fillStyle = '#140a24'; c.fillRect(0, -100, 180, ((c.canvas && c.canvas.height) || 320) + 120); c.restore();
         if (k > 0) { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(90, 248, 4, 90, 248, 70); g.addColorStop(0, `rgba(255,210,150,${0.42 * k})`); g.addColorStop(1, 'rgba(255,180,120,0)'); c.fillStyle = g; c.fillRect(0, 160, 180, 160); c.restore(); }
         drawGift(c, P); }
       if (cake && room === 'zal') { drawLight(c, P); drawCake(c, P); }

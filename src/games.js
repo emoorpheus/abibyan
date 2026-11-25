@@ -6,7 +6,7 @@ const MINI = (() => {
   const fx = FX.make(); const cache = {}; const once = (k, fn) => cache[k] || (cache[k] = fn());
   const SPX = (w, h, d, dc) => MONKEY.sprite(w, h, d, dc); const IT = MONKEY.K.IT;
   let G = null, st = null, gT = 0, quiet = false;
-  const snd = (n, a) => { if (!quiet) AUDIO.play(n, a); }, msg = (a, b) => { if (!quiet) UI.gmsg(a, b); }, tip = (t) => { if (!quiet) UI.gtip(t); }, flt = (x, y, t, i) => { if (!quiet) UI.float(x, y, t, i); };
+  const snd = (n, a) => { if (!quiet) AUDIO.play(n, a); }, laterSfx = (ms, n, okFn) => { const cur = G; setTimeout(() => { if (G && G === cur && st && !st.paused && !UI.hasModal() && (!okFn || okFn())) snd(n); }, ms); }, msg = (a, b) => { if (!quiet) UI.gmsg(a, b); }, tip = (t) => { if (!quiet) UI.gtip(t); }, flt = (x, y, t, i) => { if (!quiet) UI.float(x, y, t, i); };
   const coinsFor = (L) => 1 + Math.floor((L - 1) / 4);
   const pay = (gid) => (DATA.GAMES.find((g) => g.id === gid) || {}).pay || 1;
   const coinWord = (n) => { const a = n % 10, b = n % 100; return (a === 1 && b !== 11) ? 'монета' : (a >= 2 && a <= 4 && (b < 12 || b > 14)) ? 'монеты' : 'монет'; };
@@ -129,20 +129,11 @@ const MINI = (() => {
       P.r(0, RH, RW, eh, '#b88a58');
       for (let y = RH + 6; y < ch; y += 9) P.hl(0, y, RW, '#a07444');
       for (let k = 0; k < 16; k++) P.vl((k * 37 + (k % 3) * 11) % RW, RH + (k % 6) * 9 + 1, 8, '#a07444');
-    } else if (gid === 'stack') {
-      P.r(0, RH, RW, eh, '#8a6a48');
-      for (let k = 0; k < Math.round(eh * 0.8); k++) {
-        P.p(Math.floor(PX.hash(k, 3, 5) * RW), RH + Math.floor(PX.hash(k, 4, 5) * eh), '#a88a64');
-      }
     } else if (gid === 'balloon') {
       P.r(0, RH, RW, eh, '#6b4423');
       for (let k = 0; k < Math.round(eh * 0.8); k++) {
         P.p(Math.floor(PX.hash(k, 1, 4) * RW), RH + Math.floor(PX.hash(k, 2, 4) * eh), '#8a5a3a');
       }
-    } else if (gid === 'vine') {
-      P.r(0, RH, RW, eh, '#241a34');
-    } else if (gid === 'roofs') {
-      P.r(0, RH, RW, eh, '#141824');
     }
   }
   function render(ctx) {
@@ -331,7 +322,7 @@ const MINI = (() => {
   })); }
   function vineSky(i) { return once('vsky' + i, () => tile(RW, RH, (P) => ROOMS.vgrad(P, 0, 0, RW, RH, VZ[Math.min(VZ.length - 1, i)]))); }
   function Vine() {
-    let m, plats, camTop, maxH, nextY, birds, golds, keys = {}, ptr = null, base, lastBird, lastGold, dead;
+    let m, plats, camTop, maxH, nextY, birds, golds, keys = {}, ptr = null, base, lastBird, lastGold, dead, curH = RH;
     const LH = 900, GR = 1000;
     const v0 = () => 520 * (1 - 0.12 * GAME.fat()), jumpH = () => v0() * v0() / (2 * GR);
     const g = {
@@ -365,12 +356,17 @@ const MINI = (() => {
         for (let i = birds.length - 1; i >= 0; i--) { const b = birds[i]; b.x += b.vx * dt; if (b.x < -30 || b.x > RW + 30 || b.y > camTop + RH + 40) { birds.splice(i, 1); continue; }
           if (!dead && Math.abs(b.x - m.x) < 12 && Math.abs(b.y - (m.y - 28 * GK(0.6))) < 16 * (0.5 + 0.5 * GK(0.6))) { birds.splice(i, 1); snd('flap'); for (let k = 0; k < 6; k++) fx.spawn('crumb', b.x, b.y, { c: b.c, sz: 2, vx: rnd(-40, 40), vy: rnd(-40, 20), g: 200, life: 0.8 }); m.vy = Math.max(m.vy, 160); api.hurt(); } }
         // golden bananas
-        for (let i = golds.length - 1; i >= 0; i--) { const gd = golds[i]; if (Math.abs(gd.x - m.x) < 12 && Math.abs(gd.y - (m.y - 26 * GK(0.6))) < 20) { golds.splice(i, 1); api.bonus(1, gd.x, gd.y - camTop - 10); for (let k = 0; k < 5; k++) fx.spawn('spark', gd.x + rnd(-8, 8), gd.y - camTop + rnd(-8, 8), { life: 0.5 }); } else if (gd.y > camTop + RH + 20) golds.splice(i, 1); }
-        if (!dead && m.y - camTop > RH + 20) { dead = true; api.over(); }
+        for (let i = golds.length - 1; i >= 0; i--) { const gd = golds[i]; if (Math.abs(gd.x - m.x) < 12 && Math.abs(gd.y - (m.y - 26 * GK(0.6))) < 20) { golds.splice(i, 1); api.bonus(1, gd.x, gd.y - camTop - 10); for (let k = 0; k < 5; k++) fx.spawn('spark', gd.x + rnd(-8, 8), gd.y - camTop + rnd(-8, 8), { life: 0.5 }); } else if (gd.y > camTop + 440) golds.splice(i, 1); }
+        if (!dead && m.y - camTop > Math.max(RH, curH) + 20) { dead = true; api.over(); }
       },
       render(ctx, P) {
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH; curH = ch;
         const zone = maxH / (LH * 2), zi = Math.floor(zone), zf = zone - zi;
         ctx.drawImage(vineSky(zi), 0, 0); if (zf > 0.7 && zi + 1 < VZ.length) { ctx.globalAlpha = (zf - 0.7) / 0.3; ctx.drawImage(vineSky(zi + 1), 0, 0); ctx.globalAlpha = 1; }
+        if (ch > RH) {
+          P.r(0, RH, RW, ch - RH, VZ[Math.min(VZ.length - 1, zi)][2]);
+          if (zf > 0.7 && zi + 1 < VZ.length) { ctx.globalAlpha = (zf - 0.7) / 0.3; P.r(0, RH, RW, ch - RH, VZ[Math.min(VZ.length - 1, zi + 1)][2]); ctx.globalAlpha = 1; }
+        }
         decor(ctx, P, zi);
         for (const p of plats) drawPlat(ctx, P, p);
         for (const gd of golds) { ctx.drawImage(ARTG.gold(), Math.round(gd.x - 8), Math.round(gd.y - camTop - 8 + Math.sin(gT * 4 + gd.x) * 2)); }
@@ -573,7 +569,7 @@ const MINI = (() => {
         // reps pips
         for (let i = 0; i < need; i++) { const x = 10 + (i % 10) * 8, y = 44 + Math.floor(i / 10) * 8; P.r(x, y, 6, 6, '#3b2433'); P.r(x + 1, y + 1, 4, 4, i < reps ? '#ffd04a' : '#5a5262'); }
       },
-      down() { if (phase !== 'aim') return; if (cur >= zoneY - 1 && cur <= zoneY + zoneH + 1) { reps++; perfect = Math.abs(cur - (zoneY + zoneH / 2)) < 3; phase = 'lift'; pt = 0; snd('lift'); setTimeout(() => AUDIO.play('clank'), 220); flt(60, 150, perfect ? 'Идеально!' : '+1'); for (let k = 0; k < 4; k++) fx.spawn('drop', 84 + rnd(-14, 14), 190, { c: '#bfe6ff', vx: rnd(-30, 30), vy: rnd(-60, -20), g: 300, life: 0.6 }); api.prog(reps / need); newZone(); }
+      down() { if (phase !== 'aim') return; if (cur >= zoneY - 1 && cur <= zoneY + zoneH + 1) { reps++; perfect = Math.abs(cur - (zoneY + zoneH / 2)) < 3; phase = 'lift'; pt = 0; snd('lift'); laterSfx(220, 'clank'); flt(60, 150, perfect ? 'Идеально!' : '+1'); for (let k = 0; k < 4; k++) fx.spawn('drop', 84 + rnd(-14, 14), 190, { c: '#bfe6ff', vx: rnd(-30, 30), vy: rnd(-60, -20), g: 300, life: 0.6 }); api.prog(reps / need); newZone(); }
         else { phase = 'fail'; pt = 0; snd('nope'); api.hurt(); } },
       key(k, d) { if (d && (k === 'Space' || k === 'Enter' || k === 'ArrowUp')) g.down(); },
     };
@@ -708,7 +704,7 @@ const MINI = (() => {
         }
         else if (phase === 'fwait') { timer -= dt; if (timer <= 0) { phase = 'fturn'; idx = 0; timer = 0.3; msg('Ход Монти…'); } }
         else if (phase === 'fturn') { timer -= dt; if (timer <= 0) {
-          if (idx < seq.length) { const n = seq[idx]; if (rng() < errP(idx)) { errs++; fhit((n + 1 + Math.floor(rng() * 3)) % 4); phase = 'ferr'; timer = 1.3; mPose = 'sad'; mPoseT = 9; snd('nope'); setTimeout(() => snd('mumble'), 350); } else { fhit(n); idx++; timer = iv; } }
+          if (idx < seq.length) { const n = seq[idx]; if (rng() < errP(idx)) { errs++; fhit((n + 1 + Math.floor(rng() * 3)) % 4); phase = 'ferr'; timer = 1.3; mPose = 'sad'; mPoseT = 9; snd('nope'); laterSfx(350, 'mumble'); } else { fhit(n); idx++; timer = iv; } }
           else { phase = 'fadd'; timer = 0.45; } } }
         else if (phase === 'fadd') { timer -= dt; if (timer <= 0) { const n = Math.floor(rng() * 4); seq.push(n); fhit(n); api.duelPts('fr', 1); mPose = 'happy'; mPoseT = 0.6; phase = 'fdone'; timer = 0.7; } }
         else if (phase === 'fdone') { timer -= dt; if (timer <= 0) toInput(); }
@@ -810,7 +806,7 @@ const MINI = (() => {
     function lift(L, who) {
       if (L.cur >= L.zone - 1 && L.cur <= L.zone + ZH + 1) {
         L.perfect = Math.abs(L.cur - (L.zone + ZH / 2)) <= 3; L.phase = 'lift'; L.pt = 0; const n = L.perfect ? 2 : 1;
-        if (who === 'me') { snd('lift'); setTimeout(() => { if (!quiet) AUDIO.play('clank'); }, 200); flt(116, 150, L.perfect ? 'Идеально! +2' : '+1'); for (let k = 0; k < 4; k++) fx.spawn('drop', 110 + rnd(-14, 14), 190, { c: '#bfe6ff', vx: rnd(-30, 30), vy: rnd(-60, -20), g: 300, life: 0.6 }); }
+        if (who === 'me') { snd('lift'); laterSfx(200, 'clank'); flt(116, 150, L.perfect ? 'Идеально! +2' : '+1'); for (let k = 0; k < 4; k++) fx.spawn('drop', 110 + rnd(-14, 14), 190, { c: '#bfe6ff', vx: rnd(-30, 30), vy: rnd(-60, -20), g: 300, life: 0.6 }); }
         else { snd('buzz'); flt(52, 170, L.perfect ? '+2' : '+1'); }
         newZone(L); api.duelPts(who, n);
       } else { L.phase = 'fail'; L.pt = 0; if (who === 'me') snd('nope'); else newAim(L); }
@@ -993,7 +989,7 @@ const MINI = (() => {
       update(dt) {
         cam += (Math.max(0, STOP - top.y) - cam) * Math.min(1, dt * 5);
         if (moodT > 0) moodT -= dt;
-        for (const c of chips) { c.vy += 520 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.rot += c.vr * dt; } chips = chips.filter((c) => c.y + cam < RH + 40);
+        for (const c of chips) { c.vy += 520 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.rot += c.vr * dt; } chips = chips.filter((c) => c.y + cam < 460);
         if (phase === 'aim') { hx += dir * v * dt; const lo = Math.max(18, w / 2 + 4), hi = Math.min(RW - 18, RW - w / 2 - 4); /* he rides the trolley: never off the screen */ if (hx < lo) { hx = lo; dir = 1; } if (hx > hi) { hx = hi; dir = -1; } }
         else if (phase === 'drop') {
           fall.vy += 900 * dt; fall.y += fall.vy * dt;
@@ -1002,12 +998,16 @@ const MINI = (() => {
         } else if (phase === 'wait') { pt += dt; if (pt > 0.35 && !api.over_) { phase = 'aim'; hx = dir > 0 ? Math.max(18, w / 2 + 4) : Math.min(RW - 18, RW - w / 2 - 4); } }
       },
       render(ctx, P) {
-        ctx.drawImage(bgStack(), 0, 0);
-        ctx.drawImage(cityStack(), 0, Math.round(SGND - 64 + cam * 0.35));
         const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
-        const gy = Math.round(SGND + cam); if (gy < ch) { P.r(0, gy, RW, ch - gy, '#8a6a48'); P.r(0, gy, RW, 2, '#6a4a30'); for (let k = 0; k < 30; k++) P.p(Math.floor(PX.hash(k, 3, 5) * RW), gy + 3 + Math.floor(PX.hash(k, 4, 5) * 16), '#a88a64');
+        ctx.drawImage(bgStack(), 0, 0);
+        if (ch > RH) P.r(0, RH, RW, ch - RH, '#f4ead0');
+        const cy = Math.round(SGND - 64 + cam * 0.35);
+        ctx.drawImage(cityStack(), 0, cy);
+        const gy = Math.round(SGND + cam);
+        if (gy > cy + 70) P.r(0, cy + 70, RW, Math.min(ch, gy) - (cy + 70), '#9ab0c8');
+        if (gy < ch) { P.r(0, gy, RW, ch - gy, '#8a6a48'); P.r(0, gy, RW, 2, '#6a4a30'); for (let k = 0; k < 30; k++) P.p(Math.floor(PX.hash(k, 3, 5) * RW), gy + 3 + Math.floor(PX.hash(k, 4, 5) * Math.max(16, ch - gy)), '#a88a64');
           P.r(90 - SBW / 2 - 6, gy - 3, SBW + 12, 4, '#3b2433'); P.r(90 - SBW / 2 - 5, gy - 2, SBW + 10, 2, '#a8aeb8'); } // the foundation
-        for (const b of tower) { const y = b.y + cam; if (y > RH || y < -SCH) continue; if (b.slab) { P.r(Math.round(b.x), Math.round(y), b.w, 4, '#3b2433'); P.r(Math.round(b.x) + 1, Math.round(y) + 1, b.w - 2, 2, '#b4bac4'); } else crate(ctx, P, b.x, y, b.w); }
+        for (const b of tower) { const y = b.y + cam; if (y > ch || y < -SCH) continue; if (b.slab) { P.r(Math.round(b.x), Math.round(y), b.w, 4, '#3b2433'); P.r(Math.round(b.x) + 1, Math.round(y) + 1, b.w - 2, 2, '#b4bac4'); } else crate(ctx, P, b.x, y, b.w); }
         for (const c of chips) crate(ctx, P, c.x, c.y + cam, c.w, c.rot);
         // the crane: a lattice jib at SBEAM across the screen, the trolley at hx, the rope and the hook
         P.r(0, SBEAM - 4, RW, 9, '#3b2433'); P.r(0, SBEAM - 3, RW, 2, '#ffc22a'); P.r(0, SBEAM + 2, RW, 2, '#ffc22a');
@@ -1044,13 +1044,13 @@ const MINI = (() => {
       } else {
         const nw = r - l; tower.push({ x: l, w: nw, y }); const cx = x < top.x ? x : r, cw = w - nw; // the overhang goes off with the saw
         chips.push({ x: cx, y, w: cw, vx: x < top.x ? -40 : 40, vy: -60, rot: 0, vr: x < top.x ? -3 : 3 }); top = { x: l, w: nw, y }; streak = 0; mood = 'cut'; moodT = 0.6;
-        snd('crate'); setTimeout(() => snd('saw'), 60);
+        snd('crate'); laterSfx(60, 'saw');
       }
       w = top.w; placed++; api.prog(placed / need); phase = 'wait'; pt = 0; fall = null;
       if (placed >= need) api.levelUp();
     }
     // a full miss: the crate falls past the tower (hurt), the next one keeps the width
-    const _down = g.down; g.down = () => { const was = phase; _down(); if (was === 'aim' && fall && fall.miss) { mood = 'miss'; moodT = 0.9; streak = 0; setTimeout(() => { if (!api.over_) { snd('crate'); } }, 450); api.hurt(); } };
+    const _down = g.down; g.down = () => { const was = phase; _down(); if (was === 'aim' && fall && fall.miss) { mood = 'miss'; moodT = 0.9; streak = 0; laterSfx(450, 'crate', () => !api.over_); api.hurt(); } };
     return g;
   }
 
@@ -1124,6 +1124,8 @@ const MINI = (() => {
       demo() { m.h = 26; m.vy = -40; m.ground = false; m.x = 120; cam = m.x - 52; const p0 = lv.obs.find((o) => o.type === 'pipe'); if (p0) { p0.x = 150; p0.h = SU.TALL; } en.push({ x: 196, vx: -18, alive: 1, flat: 0, step: 0 }); lv.blocks.push({ x: 104, y: SU.BLOCK }); },
       update(dt) {
         const L = api.level; step += dt; if (moodT > 0) moodT -= dt; if (m.inv > 0) m.inv -= dt;
+        for (const b of lv.blocks) if (b.bump > 0) b.bump = Math.max(0, b.bump - dt);
+        for (const c of hop) c.t += dt; hop = hop.filter((c) => c.t < 0.5);
         if (phase === 'dead') { m.vy += SU.G * dt; m.h -= m.vy * dt; return; }
         if (phase === 'flag') { pt += dt; if (m.h > 0) m.h = Math.max(0, m.h - 70 * dt); else { m.x += 40 * dt; m.step += dt; } cam += (m.x - 52 - cam) * Math.min(1, dt * 3);
           if (pt > 1.5 && !api.over_) { phase = 'next'; api.levelUp(); } return; }
@@ -1152,12 +1154,13 @@ const MINI = (() => {
         if (m.x >= lv.flag - 4) { phase = 'flag'; pt = 0; flagH = m.h; const n = m.h >= 40 ? 2 : m.h >= 16 ? 1 : 0; snd('star'); if (n) api.bonus(n, lv.flag - cam, GY - m.h - 30); flt(lv.flag - cam, GY - 70, n === 2 ? 'Высоко!' : 'Флаг!'); m.x = lv.flag - 3; m.vy = 0; }
       },
       render(ctx, P) {
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
         ctx.drawImage(bgSuper(), 0, 0);
+        if (ch > RH) P.r(0, RH, RW, ch - RH, '#dff2fc');
         for (let k = 0; k < 4; k++) { const cx = ((k * 70 + 30 - cam * 0.12) % 280 + 280) % 280 - 50; ROOMS.cloud(P, cx, 40 + (k % 2) * 22 + k * 6, 0.55 + (k % 3) * 0.12); }
         const hx = Math.round(-((cam * 0.3) % 240)); ctx.drawImage(hillsSuper(), hx, GY - 60); ctx.drawImage(hillsSuper(), hx + 240, GY - 60);
         // ground (bricks with a grass lip), with the pits cut out
         const x0 = Math.floor(cam / 12) * 12;
-        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
         for (let x = x0; x < cam + RW + 12; x += 12) { if (!groundTile(x)) continue; const sx = Math.round(x - cam); for (let y = GY; y < ch; y += 12) suBrick(P, sx, y); P.r(sx, GY - 1, 12, 3, '#3f9f2a'); P.r(sx, GY - 1, 12, 1, '#7fdf5a'); for (let k = 0; k < 3; k++) P.p(sx + 2 + k * 4, GY - 2, '#5fbf3a'); if (!groundTile(x - 12)) P.r(sx, GY - 1, 1, ch - GY + 1, '#5a2a0a'); if (!groundTile(x + 12)) P.r(sx + 11, GY - 1, 1, ch - GY + 1, '#5a2a0a'); }
         // the flag and the little castle
         const fx0 = Math.round(lv.flag - cam); if (fx0 > -40 && fx0 < RW + 40) {
@@ -1165,7 +1168,7 @@ const MINI = (() => {
           const fy = Math.round(GY - 88 + (phase === 'flag' || phase === 'next' ? Math.min(70, pt * 70) : 0)); P.r(fx0 - 15, fy, 15, 10, '#ffd23a'); P.r(fx0 - 15, fy, 15, 1, '#fff08a'); P.r(fx0 - 15, fy + 9, 15, 1, '#c89a12'); P.ell(fx0 - 8, fy + 5, 3.5, 2, '#a86a28'); P.p(fx0 - 9, fy + 4, '#f4d8a8');
           const cx = fx0 + 36; for (let y = GY - 36; y < GY; y += 12) for (let x = cx; x < cx + 36; x += 12) suBrick(P, x, y); for (let k = 0; k < 3; k++) suBrick(P, cx + k * 12 + 2, GY - 44); P.r(cx + 14, GY - 18, 8, 18, '#1a0a04'); P.r(cx + 15, GY - 20, 6, 2, '#1a0a04'); }
         for (const o of lv.obs) if (o.type === 'pipe') { const sx = o.x - cam; if (sx > -24 && sx < RW + 4) suPipe(P, sx, GY - o.h, o.h + 2); }
-        for (const b of lv.blocks) { const sx = b.x - cam; if (sx > -14 && sx < RW + 2) suBlock(P, sx, GY - b.y - 12, b.used, b.bump > 0 ? Math.sin(Math.PI * (1 - b.bump / 0.15)) * 3 : 0); if (b.bump > 0) b.bump -= 1 / 60; }
+        for (const b of lv.blocks) { const sx = b.x - cam; if (sx > -14 && sx < RW + 2) suBlock(P, sx, GY - b.y - 12, b.used, b.bump > 0 ? Math.sin(Math.PI * (1 - b.bump / 0.15)) * 3 : 0); }
         for (const e of en) { const sx = e.x - cam; if (sx < -14 || sx > RW + 14) continue; if (e.alive) suShroom(P, sx, GY, e.step, false); else if (e.flat > 0) suShroom(P, sx, GY, 0, true); }
         const bee = ARTG.bee(); for (const b of bees) { const sx = b.x - cam; if (sx > -14 && sx < RW + 14) { ctx.save(); ctx.translate(Math.round(sx) + 8, 0); ctx.scale(-1, 1); ctx.drawImage(bee, 0, Math.round(GY - b.y - 7)); ctx.restore(); if (Math.floor(step * 20) % 2) P.r(Math.round(sx) - 2, Math.round(GY - b.y - 8), 4, 1, '#ffffff'); } }
         // Абибян: run cycle / jump / fall; blinks while hurt; looks ahead
@@ -1180,8 +1183,7 @@ const MINI = (() => {
           drawM(ctx, p, m.x - cam, GY - m.h);
         }
         // the coins popping out of the blocks
-        for (const c of hop) { c.t += 1 / 60; const k = c.t / 0.5; if (k > 1) continue; const img = ARTG.gold(); ctx.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1; ctx.drawImage(img, Math.round(c.x - cam + 6 - img.width / 4), Math.round(GY - c.y - 14 - Math.sin(Math.PI * k) * 22), img.width / 2, img.height / 2); ctx.globalAlpha = 1; }
-        hop = hop.filter((c) => c.t < 0.5);
+        for (const c of hop) { const k = c.t / 0.5; if (k > 1) continue; const img = ARTG.gold(); ctx.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1; ctx.drawImage(img, Math.round(c.x - cam + 6 - img.width / 4), Math.round(GY - c.y - 14 - Math.sin(Math.PI * k) * 22), img.width / 2, img.height / 2); ctx.globalAlpha = 1; }
       },
       down() { if (phase !== 'run') return; tip(null); heldBtn = true; if (m.ground || coy > 0) jump(); else buf = 0.12; },
       up() { heldBtn = false; if (m.vy < -SU.CUT) m.vy = -SU.CUT; },
@@ -1560,7 +1562,7 @@ const MINI = (() => {
       c.tw = Math.ceil(x.measureText(t).width) + 2; const id = x.getImageData(0, 0, c.width, c.height), dd = id.data; for (let i = 3; i < dd.length; i += 4) dd[i] = dd[i] >= 110 ? 255 : 0; x.putImageData(id, 0, 0); return c; }; return ok ? once(k, mk) : mk(); }
   const rfBan = () => once('rfBan', () => { const s = ART.food('banana'), c = PX.canvas(8, 8), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(s, 0, 0, 8, 8); return c; });
   const rfGold = () => once('rfGold', () => { const s = ARTG.gold(), c = PX.canvas(12, 12), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(s, 0, 0, 12, 12); return c; });
-  function rfFacade(q, d) { if (q.cv) return q.cv; const C = RFP[d], [b, dk, lt] = C.fac[q.k % C.fac.length], w = Math.max(2, Math.round(q.w)), H = q.top + (RH - RF.BASE) + 2, kk = q.k;
+  function rfFacade(q, d, ch = RH) { if (q.cv && q.cvH === ch) return q.cv; q.cvH = ch; const C = RFP[d], [b, dk, lt] = C.fac[q.k % C.fac.length], w = Math.max(2, Math.round(q.w)), H = q.top + (ch - RF.BASE) + 2, kk = q.k;
     q.cv = tile(w, H, (P) => { P.r(0, 0, w, H, b);
       if (d === 0) { if (kk % 3 !== 1) { const mo = PX.shade(b, 0.9); for (let y = 6, j = 0; y < H; y += 4, j++) { P.r(0, y, w, 1, mo); for (let x = (j % 2) * 4 + 2; x < w; x += 8) P.r(x, y + 1, 1, 3, mo); } }
         else { for (let y = 18; y < H; y += 14) P.r(0, y, w, 1, lt); for (let x = 15; x < w - 2; x += 16) P.r(x, 5, 1, H, lt); }
@@ -1654,6 +1656,7 @@ const MINI = (() => {
       demo() { const a = lv.roofs[0], b = lv.roofs[1]; phase = 'demo'; m.x = a.x + a.w + 4; m.h = Math.max(a.top, b.top) + 28; m.vy = -30; m.ground = false; cam = Math.max(0, m.x - 70); },
       update(dt) {
         step += dt; T += dt; if (moodT > 0) moodT -= dt; if (m.inv > 0) m.inv -= dt; if (flapT > 0) flapT -= dt; if (cooT > 0) cooT -= dt; if (awnT > 0) awnT -= dt;
+        for (const p of pops) p.t += dt; pops = pops.filter((p) => p.t < 0.35);
         if (dmsg && (dmsg.t -= dt) <= 0) { msg(dmsg.a, dmsg.b); dmsg = null; }
         birdsUpdate(dt);
         if (phase === 'demo') return;
@@ -1721,18 +1724,20 @@ const MINI = (() => {
       else { b.x += b.vx * dt; b.h += b.up * dt; b.up += 30 * dt; b.f += dt * 12; } } }
     // ---------- drawing ----------
     function draw(ctx, P) {
-      const d = lv.d, C = RFP[d];
-      ctx.drawImage(rfSky(d), 0, 0);
+      const d = lv.d, C = RFP[d], cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH;
+      ctx.drawImage(rfSky(d), 0, 0); if (ch > RH) P.r(0, RH, RW, ch - RH, C.sky[3]);
       if (d <= 3) for (let k = 0; k < 3; k++) { const cx = ((k * 90 + 40 - cam * 0.05) % 270 + 270) % 270 - 45; ctx.globalAlpha = d === 3 ? 0.45 : d === 2 ? 0.7 : 0.95; ROOMS.cloud(P, cx, 30 + k * 18 + (k % 2) * 8, 0.5 + (k % 2) * 0.15); ctx.globalAlpha = 1; }
       rfTower(P, d, Math.round(150 - cam * 0.02), 196);
       const far = rfFar(d), fx0 = Math.round(-((cam * 0.08) % 240)); ctx.drawImage(far, fx0, RH - far.height); ctx.drawImage(far, fx0 + 240, RH - far.height);
+      if (ch > RH) P.r(0, RH, RW, ch - RH, C.far);
       const mid = rfMid(d), mx0 = Math.round(-((cam * 0.3) % 200)); ctx.drawImage(mid, mx0, RH - mid.height); ctx.drawImage(mid, mx0 + 200, RH - mid.height);
+      if (ch > RH) P.r(0, RH, RW, ch - RH, C.mid);
       // girders on crane cables (behind the houses' fronts)
       for (const b of lv.beams) { const sx = Math.round(b.x - cam); if (sx < -40 || sx > RW + 4) continue; const sy = Math.round(BASE - beamY(b, T));
         P.r(sx + 6, 0, 1, sy - 12, '#3a3a40'); P.line(sx + 7, sy - 12, sx + 2, sy - 1, '#3a3a40'); P.line(sx + 7, sy - 12, sx + 31, sy - 1, '#3a3a40'); P.r(sx + 5, sy - 14, 3, 3, '#5a5a62');
         P.r(sx, sy, 34, 5, '#8a6a10'); P.r(sx, sy, 34, 1, '#ffe060'); P.r(sx + 1, sy + 1, 32, 3, '#f2c21a'); for (let x = 2; x < 32; x += 6) { P.line(sx + x, sy + 1, sx + x + 3, sy + 3, '#a07a10'); P.line(sx + x + 3, sy + 1, sx + x + 6, sy + 3, '#a07a10'); } }
       // the houses
-      for (const q of lv.roofs) { const sx = Math.round(q.x - cam); if (sx > RW || sx + q.w < 0) continue; const sy = BASE - q.top; ctx.drawImage(rfFacade(q, d), sx, sy);
+      for (const q of lv.roofs) { const sx = Math.round(q.x - cam); if (sx > RW || sx + q.w < 0) continue; const sy = BASE - q.top; ctx.drawImage(rfFacade(q, d, ch), sx, sy);
         if (q.awning) { const ax = sx + q.w - RF.AWN, dip = awnT > 0 && Math.abs(awnX - (q.x + q.w - RF.AWN / 2)) < 30 ? Math.round(Math.sin(awnT / 0.3 * Math.PI) * 2) : 0;
           for (let x = 0; x < RF.AWN + 3; x++) { const c = Math.floor(x / 3) % 2 ? '#f4f4ec' : '#e8453c', y = sy + dip + Math.floor(x / 10); P.r(ax + x, y, 1, 4, c); if (x % 3 === 1) P.p(ax + x, y + 4, c); }
           P.r(ax, sy + dip, RF.AWN + 3, 1, '#ffd0c8'); P.r(ax + 2, sy + 5, 1, 8, '#6a6a72'); P.r(ax + RF.AWN - 1, sy + 7, 1, 7, '#6a6a72'); } }
@@ -1760,8 +1765,7 @@ const MINI = (() => {
       // bananas
       const bb = rfBan(), gg = rfGold();
       for (const b of lv.ban) { if (b.got) continue; const sx = Math.round(b.x - cam); if (sx < -12 || sx > RW + 12) continue; const bob = Math.round(Math.sin(step * 4 + b.x * 0.1)); if (b.gold) { ctx.drawImage(gg, sx - 6, BASE - b.h - 6 + bob); if (Math.floor(step * 6) % 3 === 0) P.p(sx + 4, BASE - b.h - 6 + bob, '#ffffff'); } else ctx.drawImage(bb, sx - 4, BASE - b.h - 4 + bob); }
-      for (const p of pops) { p.t += 1 / 60; const k = p.t / 0.35; if (k > 1) continue; ctx.globalAlpha = 1 - k; ctx.drawImage(p.gold ? gg : bb, Math.round(p.x - cam - (p.gold ? 6 : 4)), Math.round(BASE - p.h - (p.gold ? 6 : 4) - k * 14)); ctx.globalAlpha = 1; }
-      pops = pops.filter((p) => p.t < 0.35);
+      for (const p of pops) { const k = p.t / 0.35; if (k > 1) continue; ctx.globalAlpha = 1 - k; ctx.drawImage(p.gold ? gg : bb, Math.round(p.x - cam - (p.gold ? 6 : 4)), Math.round(BASE - p.h - (p.gold ? 6 : 4) - k * 14)); ctx.globalAlpha = 1; }
       // pigeons (gulls by the river)
       for (const b of lv.birds) { const sx = Math.round(b.x - cam), sy = Math.round(BASE - b.h); if (sx < -8 || sx > RW + 8 || sy < -8) continue; const gull = d === 3, body = gull ? '#f4f4f4' : '#8a8a9a', wing = gull ? '#b8bcc8' : '#6a6a7a', head = gull ? '#f4f4f4' : '#5a5a6a';
         if (!b.st) { const pk = Math.floor(step * 2 + b.f) % 7 === 0; P.r(sx - 2, sy - 3, 5, 3, body); P.r(sx - 1, sy - 3, 3, 1, wing); P.r(sx + 2, sy - (pk ? 3 : 5), 2, 2, head); P.p(sx + 4, sy - (pk ? 2 : 4), gull ? '#f2a020' : '#d8b070'); if (!gull) P.p(sx + 2, sy - 3, '#5a9a7a'); P.p(sx - 1, sy, '#d07a6a'); P.p(sx + 1, sy, '#d07a6a'); }

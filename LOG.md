@@ -1717,3 +1717,39 @@
   - `test/verify_r60_scroll.js`: ALL TESTS PASSED.
   - `test/verify_r59_catch.js`: ALL TESTS PASSED.
   - `test/verify_r58_comprehensive.js`: ALL TESTS PASSED.
+
+
+## Round 64 — Comprehensive Bug Hunt & Systematic Debugging (Version 64)
+- **Skills installed & applied:** Downloaded 9 bug-hunting, debugging, code-review, and testing skills into `.agents/skills/` (tracked in `skills-lock.json`): `find-bugs` (`getsentry/skills`), `diagnosing-bugs` (`mattpocock/skills`), `debugging-and-error-recovery` & `code-review-and-quality` (`addyosmani/agent-skills`), `debugging-strategies`, `parallel-debugging`, `code-review-excellence`, `javascript-testing-patterns`, and `ai-debt-detector` (`wshobson/agents`); combined with local `systematic-debugging`, `test-driven-development`, `ub-mode`, `game-qa`, `probing-web-game-mechanics`, `ios-safari-quirks`, and `verification-before-completion`.
+- **Root causes fixed:**
+  - **Lifecycle, timers & sleep interrupts (`src/home.js`, `src/seasons.js`, `src/audio.js`, `src/games.js`):**
+    - `toggleLight()` on sleep now cleans up active `trip` interactions (`knobFix`, `winClose`, `rackSet`, `rest.x = MX`, `stopTravel()`).
+    - `seasons.js`: Replaced raw `setTimeout` calls in `begin()` and `gag()` with `later()` ticked inside `update(dt)`, guarded by `APP.scene === 'home' && !S().sleeping` (and `HOME.room === 'zal'` for sill prop gags).
+    - `audio.js`: Set `v1Done = true` in `voiceDone(g)`; added `!suspended && st.sfx && !document.hidden` check in async `clip(...).then(...)` callbacks of `say()` and `fx()`.
+    - `games.js`: Added `laterSfx()` canceling delayed mini-game SFX (`Gym`, `DuelBongo`, `DuelGym`, `Stack`) on exit/pause; moved pause-advancing state mutations (`b.bump`/`hop` in `Super`, `pops` in `Roofs`) from `render()` into `update()`.
+  - **Touch, multi-touch, modal clicks & viewport bounds (`src/main.js`, `src/home.js`, `src/ui.js`, `src/friends.js`, `src/style.css`):**
+    - `main.js`: Guarded `capId` against secondary-finger overwrite on `pointerdown`/`pointermove`; added `window` `blur` capture cleanup; exported `resetRect`.
+    - `home.js`: Added `pointercancel` early return in `up()` and `toolUp()`; called `APP.resetRect()` in `startTool()`.
+    - `ui.js` & `friends.js`: Updated Settings sound/music toggles in place without recreating the modal; scoped pre-modal click guards (`guardClick`, `[data-close]`, friend `card()`) using `pointerdown` inside `.mbox` + `e.isTrusted` so rapid taps/switches work cleanly while blocking ghost clicks; bumped UI version label to `Версия 64 · Большая отладка: полноэкранные игры, тапы, меню и таймеры`.
+    - `style.css`: Fixed `.mbox` `max-height` on short viewports (`min(290u, calc(100vh - 16u - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)))`); added `env(safe-area-inset-top, 0px)` offset for `#tut`, `#ui.tutting #toasts`, `#ui.tutting #roomt`, and `#blow`.
+  - **Bath / interaction guards & API hygiene (`src/home.js`):**
+    - Blocked `soapTap()`, `shower()` (returns `false`), and bath `mirror` while `trip` is active; restricted double-tap toilet exit to `trip.ph === 'do'`; removed duplicate `get trip()` leak returning internal state.
+  - **Fullscreen ceiling/floor lighting & mini-game rendering (`src/home.js`, `src/dasha.js`, `src/games.js`):**
+    - `home.js`: Removed double multiply `#1c1e3a` on lowered ceiling in `zal` night (`applyCeilAmbient`); added `lastPh` tracking on `balcony` in `update(dt)` to refresh `updateCeilColor('balcony')`.
+    - `dasha.js`: Extended birthday `drawLight` and `gift` dim overlay to cover lowered ceiling (`y = -100`) and full dynamic canvas height (`ch + 120`).
+    - `games.js`: Removed destructive `'stack'`, `'vine'`, `'roofs'` overrides in `drawFloorExt`; updated `Stack` (`chips` cull `< 460`, sky extension, tower cull `> ch`), `Vine` (`curH` tracking, jungle sky extension to `ch`), `Super` (`#dff2fc` sky below `RH` in pits), and `Roofs` (`rfFacade` cached per `ch`, `RFP[d].sky[3]`/buildings extended to `ch`).
+- **Build & verification:**
+  - Updated `build.py` to `v=64` (`abibyan-v64-bug-hunt-%s`), rebuilt `dist/index.html`, `dist/site/`, `dist/moy-abibyan-site.zip`, and synced repo root PWA files.
+  - Relaxed hardcoded `'Версия 63'` check in `test/verify_r63_bongo_sounds.js` to `'Версия'`.
+  - Created `test/verify_r64_bug_hunt.js` covering all 20 bug-hunt and regression checks (`Summary: 20/20 passed, 0 failed`, 0 console/page errors).
+  - Verified clean execution of:
+    - `node tools/compat.js` (`28 files, 0 problems`)
+    - `node test/test_drum_synthesis.js` (PASS)
+    - `node test/verify_r64_bug_hunt.js` (`20/20 passed, 0 failed`)
+    - `node test/verify_r63_bongo_sounds.js` (ALL PASSED)
+    - `node test/verify_r62_single_stage_gold.js` (ALL PASSED)
+    - `node test/verify_r61_ach_contrast.js` (ALL PASSED)
+    - `node test/verify_r60_scroll.js` (ALL PASSED)
+    - `node test/verify_r59_catch.js` (ALL PASSED)
+    - `node test/verify_r58_comprehensive.js` (ALL TESTS PASSED, 0 errors)
+    - `test/speech.js` against `dist/index.html` (`ok: 1007, bad: [], missing: [], no errors`)

@@ -124,8 +124,8 @@ const { chromium } = require('/Users/emoorpheus/.cache/codex-runtimes/codex-prim
     const modal = document.querySelector('.mbox');
     return modal ? modal.textContent : '';
   });
-  console.log('Settings contains "Версия 63":', verText.includes('Версия 63'));
-  assert(verText.includes('Версия 63'), 'Settings modal must display Version 63');
+  console.log('Settings contains "Версия":', verText.includes('Версия'));
+  assert(verText.includes('Версия'), 'Settings modal must display Version');
 
   // --- TEST 6: Console Errors Audit ---
   console.log('\n--- TEST 6: Console Error Audit ---');

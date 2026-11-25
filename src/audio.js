@@ -420,7 +420,7 @@ const AUDIO = (() => {
   }
   let v1Done = false;
   // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 25 s; its bubble is shown already)
-  function voiceDone(g) { SPEECH.ready |= g; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 25000) say(p.text, p.o); }
+  function voiceDone(g) { if (g & 1) v1Done = true; SPEECH.ready |= g; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 25000) say(p.text, p.o); }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
   function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
     const rev = (typeof window !== 'undefined' && window.ABI_REV) || ('v36_' + Date.now());
@@ -587,7 +587,7 @@ const AUDIO = (() => {
     const tok = ++SP.tok, t0 = now(), res = { dur: t + 0.08, lag: 0.06, env: null };
     res.env = (x) => { x -= res.lag; for (const it of items) if (x >= it.t0 && x < it.t0 + it.wall) { if (!it.c) return 0.3; const k = Math.floor((x - it.t0) / it.wall * it.len / 0.025); return it.c.env[Math.min(it.c.env.length - 1, k)] || 0; } return 0; };
     Promise.all(items.map((it) => clip(it.s.id, it.s.e[0]).then((c) => { it.c = c; }, () => { }))).then(() => {
-      if (tok !== SP.tok) return;
+      if (tok !== SP.tok || suspended || !st.sfx || (typeof document !== 'undefined' && document.hidden)) return;
       const s0 = Math.max(t0 + 0.06, now() + 0.015);
       res.lag = s0 - t0;
       let playedAny = false;
@@ -609,7 +609,7 @@ const AUDIO = (() => {
   const free = () => now() > SP.busy;
   function fx(kind, rate, o = {}) {
     const L = SPEECH.fx[kind]; if (!L || !L.length) return false; const i = Math.floor(Math.random() * L.length), e = L[i], t0 = now(), r = rate * SP.rate * TTS_UP, tok = SP.tok;
-    clip('F' + kind + i, e[0]).then((c) => { if (tok === SP.tok && now() - t0 < 0.5) SP.busy = now() + vsrc(c, Math.max(now() + 0.01, t0 + 0.02), r, o); }, () => { });
+    clip('F' + kind + i, e[0]).then((c) => { if (tok === SP.tok && !suspended && st.sfx && !(typeof document !== 'undefined' && document.hidden) && now() - t0 < 0.5) SP.busy = now() + vsrc(c, Math.max(now() + 0.01, t0 + 0.02), r, o); }, () => { });
     SP.busy = t0 + e[1] / r + 0.05; return true;
   }
   const VOX = {

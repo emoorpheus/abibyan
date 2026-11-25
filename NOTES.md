@@ -529,3 +529,10 @@
   - Synthesized whole-phrase neural voice clips for all new toilet, tap, and massage dialogues into `src/speech.js` and `voice1.txt`.
   - Embedded into `PRIORITY_KEYS` in `build.py` for frame-0 instant playback without syllable/phoneme spelling fallback.
 
+
+### Round 64 / Version 64 — Bug Hunt & Debugging (2026-11-25)
+- Downloaded bug-hunting & debugging skills into `.agents/skills/` (`skills-lock.json`) and ran a systematic codebase + Playwright QA pass.
+- Fixed active-trip cleanup on sleep (`home.js`), raw `setTimeout` leaks in seasonal ambient SFX (`seasons.js`), `v1Done` and hidden/muted callback guards in `audio.js`, delayed SFX cancellation + pause/render isolation in mini-games (`games.js`).
+- Fixed multi-touch `capId` hijack & `blur` capture cleanup (`main.js`), `pointercancel` drag completion & bath trip collisions (`home.js`), in-place Settings toggles & `pointerdown`-scoped click guards (`ui.js`, `friends.js`), short-viewport modal clipping & Dynamic Island safe-area offsets (`style.css`).
+- Fixed fullscreen visuals across `zal` night ceiling multiply & `balcony` lighting (`home.js`), birthday cake/gift dim coverage (`dasha.js`), and `Stack` / `Vine` / `Super` / `Roofs` fullscreen sky extensions (`games.js`).
+- Rebuilt Version 64 (`v=64`, `abibyan-v64-bug-hunt-%s`); added `test/verify_r64_bug_hunt.js` (20/20 passed) and verified `tools/compat.js`, `test_drum_synthesis.js`, `verify_r58`..`r63`, and `test/speech.js`.

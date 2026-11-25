@@ -860,7 +860,9 @@ const FRIENDS = (() => {
       <button class="btn g" id="fr-party" style="${pl > 0 ? 'filter:grayscale(.6)' : ''}">${UI.im(UI.I('balloon'))}Все вместе!<small>· ${pl > 0 ? 'через ' + spLeftTxt(pl) : 'позвать всех друзей'}</small></button></div>
       <p class="fsc">Дуэли: побед ${st.w || 0} · поражений ${st.l || 0} · Пухлость: ${Math.round((st.fat || 0) * 100)}%</p>${fs.lv ? `<p class="fsc">Бонус: ${fs.perk}</p>` : ''}<button class="btn w sm" data-close>Пока!</button>`, { dismiss: true });
     const openT = performance.now();
-    const b = (sel, fn) => { const el = w.querySelector(sel); if (el) el.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (performance.now() - openT < 350) return; AUDIO.play('click'); UI.closeModal(w); if (typeof HOME !== 'undefined' && HOME.ignoreTapUntil) HOME.ignoreTapUntil(performance.now() + 350); fn(); }; };
+    let down = false;
+    w.addEventListener('pointerdown', () => { down = true; }, true);
+    const b = (sel, fn) => { const el = w.querySelector(sel); if (el) el.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (e && e.isTrusted && !down && performance.now() - openT < 350) return; AUDIO.play('click'); UI.closeModal(w); if (typeof HOME !== 'undefined' && HOME.ignoreTapUntil) HOME.ignoreTapUntil(performance.now() + 350); fn(); }; };
     b('#fr-chat', () => chat(id)); b('#fr-sp', () => special(id)); b('#fr-duel', () => MINI.duelIntro(id)); b('#fr-feed', () => feedPick(id));
     b('#fr-heist', () => { if (!startHeist('card')) { AUDIO.play('nope'); const q = heistLeft(); UI.toast(q > 0 ? 'Вылазка — через ' + spLeftTxt(q) : F.pusya.mode !== 'home' ? 'Пуси нет дома — вылазка отменяется' : 'Сейчас не получится', UI.F('icecream')); } });
     b('#fr-party', () => { if (!startParty()) { AUDIO.play('nope'); const q = partyLeft(); UI.toast(q > 0 ? 'Все вместе — через ' + spLeftTxt(q) : 'Сейчас не получится', UI.I('balloon')); } });

@@ -99,7 +99,7 @@ const APP = (() => {
     const homeIn = () => scene === 'home' || (scene === 'boot' && DASHA.giftOn()); // Round 22: the gift box is tapped before the game starts
     const clampP = (p) => ({ x: Math.max(0, Math.min(180, p.x)), y: Math.max(0, Math.min((cv && cv.height) || 320, p.y)) });
     stage.addEventListener('pointerdown', (e) => {
-      if (!ok(e) || UI.hasModal()) return;
+      if (!ok(e) || UI.hasModal() || (capId !== null && capId !== e.pointerId)) return;
       if (e.cancelable) e.preventDefault();
       AUDIO.init();
       if (cv) cvRect = cv.getBoundingClientRect();
@@ -110,8 +110,8 @@ const APP = (() => {
     stage.addEventListener('pointermove', (e) => {
       if (e.cancelable && (scene === 'game' || capId === e.pointerId)) e.preventDefault();
       const p = toLogical(e.clientX, e.clientY);
-      if (homeIn()) { if (capId === e.pointerId || e.pointerType !== 'mouse') HOME.move(p.x, p.y, e); else if (ok(e) && inside(p)) HOME.hover(p.x, p.y); else HOME.hover(-99, -99); }
-      else if (scene === 'game') { const q = clampP(p); MINI.move(q.x, q.y); }
+      if (homeIn()) { if (capId === e.pointerId || (capId === null && e.pointerType !== 'mouse')) HOME.move(p.x, p.y, e); else if (capId === null && ok(e) && inside(p)) HOME.hover(p.x, p.y); else if (capId === null) HOME.hover(-99, -99); }
+      else if (scene === 'game' && (capId === e.pointerId || (capId === null && e.pointerType === 'mouse'))) { const q = clampP(p); MINI.move(q.x, q.y); }
     }, { passive: false });
     stage.addEventListener('touchmove', (e) => {
       if (scene === 'game' && e.cancelable) {
@@ -121,6 +121,7 @@ const APP = (() => {
     }, { passive: false });
     const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; if (e.cancelable) e.preventDefault(); const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+    window.addEventListener('blur', () => { if (capId !== null) { capId = null; if (homeIn()) HOME.up(0, 0, { type: 'pointercancel' }); else if (scene === 'game') MINI.up(90, 160); } });
     document.addEventListener('selectionchange', () => {
       const a = document.activeElement;
       if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'TEXTAREA' && !a.isContentEditable)) {
@@ -280,7 +281,7 @@ const APP = (() => {
     if (scene === 'home' && typeof GAGS !== 'undefined') o.gags = GAGS.info();
     return JSON.stringify(o);
   }
-  return { fps: () => ({ target: fpsT, renders }), boot, fit, setScreenMode: () => {}, get screenMode() { return 'stretch'; }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
+  return { fps: () => ({ target: fpsT, renders }), boot, fit, resetRect: () => { cvRect = null; }, setScreenMode: () => {}, get screenMode() { return 'stretch'; }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
 })();
 window.__game = { GAME, HOME, MINI, UI, AUDIO, APP, SPR, DATA, ROOMS, FILL, SPEECH: typeof SPEECH !== 'undefined' ? SPEECH : null, FART: typeof FART !== 'undefined' ? FART : null, FRIENDS: typeof FRIENDS !== 'undefined' ? FRIENDS : null, GAGS: typeof GAGS !== 'undefined' ? GAGS : null, ALBUM: typeof ALBUM !== 'undefined' ? ALBUM : null, TUT: typeof TUT !== 'undefined' ? TUT : null, ZAL: typeof ZAL !== 'undefined' ? ZAL : null, HALL: typeof HALL !== 'undefined' ? HALL : null, DUCKS: typeof DUCKS !== 'undefined' ? DUCKS : null, ROUTINE: typeof ROUTINE !== 'undefined' ? ROUTINE : null, ART, TOUR: typeof TOUR !== 'undefined' ? TOUR : null, DASHA };
 window.advanceTime = (ms) => APP.advance(ms); window.render_game_to_text = () => APP.textState();

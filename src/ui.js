@@ -369,8 +369,10 @@ const UI = (() => {
     const w = el('div', '', ''); w.id = 'modal'; w.innerHTML = `<div class="mbox notch2">${html}</div>`; modalEl.appendChild(w); modalStack.push(w);
     const openTime = performance.now();
     w.dataset.opened = String(openTime);
+    let boxDown = false;
+    w.addEventListener('pointerdown', (e) => { if (e.target !== w) boxDown = true; }, true);
     const guardClick = (e) => {
-      if (performance.now() - openTime < 350) {
+      if (e.isTrusted && !boxDown && performance.now() - openTime < 350) {
         e.preventDefault();
         e.stopPropagation();
       }
@@ -378,10 +380,10 @@ const UI = (() => {
     w.addEventListener('click', guardClick, true);
     w.addEventListener('pointerup', guardClick, true);
     if (opts.dismiss) w.addEventListener('pointerdown', (e) => {
-      if (e.target === w && performance.now() - openTime >= 350) closeModal(w);
+      if (e.target === w && performance.now() - openTime >= 150) closeModal(w);
     });
     w.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', (e) => {
-      if (performance.now() - openTime < 350) { e.preventDefault(); e.stopPropagation(); return; }
+      if (e && e.isTrusted && !boxDown && performance.now() - openTime < 350) { e.preventDefault(); e.stopPropagation(); return; }
       click(); closeModal(w);
     }));
     return w;
@@ -408,9 +410,9 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 63 · Узнаваемый индивидуальный звук для каждой бочки в бонго</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 64 · Большая отладка: полноэкранные игры, тапы, меню и таймеры</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
-    const tg = (id, key) => { $('#' + id, w).onclick = () => { s.settings[key] = !s.settings[key]; AUDIO.set(key, s.settings[key]); AUDIO.play('click'); GAME.save(true); closeModal(w); openSettings(); }; };
+    const tg = (id, key) => { const b = $('#' + id, w); b.onclick = () => { const v = (s.settings[key] = !s.settings[key]); AUDIO.set(key, v); AUDIO.play('click'); GAME.save(true); b.className = 'btn sm ' + (v ? 'g' : 'w'); b.textContent = v ? 'Вкл' : 'Выкл'; }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
     $('#t-name', w).onclick = () => { click(); closeModal(w); askName(); };
     $('#t-help', w).onclick = () => { click(); closeModal(w); help(); };

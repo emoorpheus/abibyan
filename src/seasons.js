@@ -16,7 +16,8 @@ const SEASONS = (() => {
   const BY = Object.fromEntries(LIST.map((e) => [e.id, e])), FIRST = 7, WEEK = 7;
   const at = (days) => (days >= FIRST ? LIST[Math.floor((days - FIRST) / WEEK) % LIST.length].id : null);
   const left = (days) => (days < FIRST ? FIRST - days : WEEK - ((days - FIRST) % WEEK)); // care days until the next event begins
-  let ovr = null, t = 0, last = null; const V = { jump: 0, ghost: -1, lights: 0, bird: -1, fast: 0, popped: -1, popT: 0 };
+  let ovr = null, t = 0, last = null; const V = { jump: 0, ghost: -1, lights: 0, bird: -1, fast: 0, popped: -1, popT: 0 }, timers = [];
+  const later = (s, fn) => timers.push({ at: t + s, fn });
   try { const m = /season=([a-z]+)/.exec(location.hash || ''); if (m && BY[m[1]]) ovr = m[1]; } catch (e) { }
   const cur = () => ovr || (S() && S().season && BY[S().season.id] ? S().season.id : null);
   const rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -33,12 +34,16 @@ const SEASONS = (() => {
     GAME.addCoins(e.gift, 'season'); AUDIO.play('season');
     UI.toast(`${e.verb} ${e.name}! Подарок: +${e.gift}`, UI.I('gift'), 'gold');
     try { HOME.fx.spawn && confetti(14); } catch (er) { }
-    setTimeout(() => { try { if (APP.scene === 'home') say('s_' + e.id, 'happy'); } catch (er) { } }, 1400);
+    later(1.4, () => { try { if (APP.scene === 'home' && !S().sleeping) say('s_' + e.id, 'happy'); } catch (er) { } });
     GAME.save(true);
   }
   function set(id) { ovr = BY[id] ? id : null; resetV(); return cur(); } // preview (tests, #season=…): not saved
-  function resetV() { Object.assign(V, { jump: 0, ghost: -1, lights: 0, bird: -1, fast: 0, popped: -1, popT: 0 }); }
-  function update(dt) { t += dt; V.jump = Math.max(0, V.jump - dt); V.lights = Math.max(0, V.lights - dt); V.fast = Math.max(0, V.fast - dt); if (V.ghost >= 0) { V.ghost += dt; if (V.ghost > 1.8) V.ghost = -1; } if (V.bird >= 0) { V.bird += dt; if (V.bird > 3.2) V.bird = -1; } if (V.popped >= 0) { V.popT -= dt; if (V.popT <= 0) V.popped = -1; } }
+  function resetV() { timers.length = 0; Object.assign(V, { jump: 0, ghost: -1, lights: 0, bird: -1, fast: 0, popped: -1, popT: 0 }); }
+  function update(dt) {
+    t += dt;
+    for (let i = timers.length - 1; i >= 0; i--) if (t >= timers[i].at) { const fn = timers[i].fn; timers.splice(i, 1); try { fn(); } catch (er) { } }
+    V.jump = Math.max(0, V.jump - dt); V.lights = Math.max(0, V.lights - dt); V.fast = Math.max(0, V.fast - dt); if (V.ghost >= 0) { V.ghost += dt; if (V.ghost > 1.8) V.ghost = -1; } if (V.bird >= 0) { V.bird += dt; if (V.bird > 3.2) V.bird = -1; } if (V.popped >= 0) { V.popT -= dt; if (V.popT <= 0) V.popped = -1; }
+  }
   function confetti(n) { const cs = ['#ff5c6c', '#ffd23a', '#3fdc7a', '#59c1ff', '#b48cff', '#ffffff']; for (let i = 0; i < n; i++) HOME.fx.spawn('confetti', rnd(70, 130), rnd(70, 110), { c: pick(cs), vx: rnd(-40, 40), vy: rnd(-60, -10), g: 120, life: rnd(1.2, 2) }); }
 
   // ---------- weather behind the glass ----------
@@ -129,11 +134,12 @@ const SEASONS = (() => {
   function hit(room, x, y) { const sp = spots(room); if (!sp) return null; const r = sp.decor; return x >= r[0] - 2 && x < r[0] + r[2] + 2 && y >= r[1] - 2 && y < r[1] + r[3] + 2 ? () => gag(cur()) : null; }
   function gag(id) { // the event's thing does its own trick
     last = id; AUDIO.play(BY[id].snd);
-    if (id === 'halloween') { V.jump = 0.6; V.ghost = 0; HOME.face('wide', 'o', 1.4); setTimeout(() => say('g_boo', 'happy'), 700); }
-    else if (id === 'newyear') { V.lights = 2.4; AUDIO.play('star'); for (let i = 0; i < 8; i++) HOME.fx.spawn('spark', SILL[0] + rnd(-9, 9), SILL[1] - rnd(4, 28), { vy: rnd(-20, -6), life: 0.9 }); setTimeout(() => say('g_newyear', 'happy'), 400); }
-    else if (id === 'spring') { V.bird = 0; setTimeout(() => AUDIO.play('chirp'), 1300); setTimeout(() => say('g_spring', 'happy'), 900); }
-    else if (id === 'summer') { V.fast = 2.2; HOME.face('happy', 'smile', 2); setTimeout(() => say('g_summer', 'happy'), 500); }
-    else if (id === 'bday') { V.popped = Math.floor(Math.random() * 3); V.popT = 4; const bx = SILL[0] + [-8, 0, 7][V.popped], by = SILL[1] + [-36, -44, -34][V.popped]; for (let i = 0; i < 16; i++) HOME.fx.spawn('confetti', bx + rnd(-3, 3), by + rnd(-3, 3), { c: pick(CONF), vx: rnd(-50, 50), vy: rnd(-60, 10), g: 140, life: rnd(1, 1.6) }); HOME.face('wide', 'laugh', 1.2); setTimeout(() => say('g_bday', 'happy'), 600); }
+    const inZal = () => APP.scene === 'home' && HOME.room === 'zal' && !S().sleeping;
+    if (id === 'halloween') { V.jump = 0.6; V.ghost = 0; HOME.face('wide', 'o', 1.4); later(0.7, () => { if (inZal()) say('g_boo', 'happy'); }); }
+    else if (id === 'newyear') { V.lights = 2.4; AUDIO.play('star'); for (let i = 0; i < 8; i++) HOME.fx.spawn('spark', SILL[0] + rnd(-9, 9), SILL[1] - rnd(4, 28), { vy: rnd(-20, -6), life: 0.9 }); later(0.4, () => { if (inZal()) say('g_newyear', 'happy'); }); }
+    else if (id === 'spring') { V.bird = 0; later(1.3, () => { if (inZal()) AUDIO.play('chirp'); }); later(0.9, () => { if (inZal()) say('g_spring', 'happy'); }); }
+    else if (id === 'summer') { V.fast = 2.2; HOME.face('happy', 'smile', 2); later(0.5, () => { if (inZal()) say('g_summer', 'happy'); }); }
+    else if (id === 'bday') { V.popped = Math.floor(Math.random() * 3); V.popT = 4; const bx = SILL[0] + [-8, 0, 7][V.popped], by = SILL[1] + [-36, -44, -34][V.popped]; for (let i = 0; i < 16; i++) HOME.fx.spawn('confetti', bx + rnd(-3, 3), by + rnd(-3, 3), { c: pick(CONF), vx: rnd(-50, 50), vy: rnd(-60, 10), g: 140, life: rnd(1, 1.6) }); HOME.face('wide', 'laugh', 1.2); later(0.6, () => { if (inZal()) say('g_bday', 'happy'); }); }
   }
   function thumb(id) { // for the growth sheet
     if (!thumb.c) thumb.c = {}; if (thumb.c[id]) return thumb.c[id];
