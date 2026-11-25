@@ -554,3 +554,8 @@
 ### Round 67 / Version 67 — Sharp HUD Below iOS 26 Blur & Top Phone/Shop (2026-11-25)
 - **Root fix for real-device blur & button placement:** Measured the iPhone 17 PWA blur zone (`0..~92 CSS px`), moved the entire `.mode-stretch #hud` & `#ghud` cleanly below it (`top >= 94px`), extended solid `#topcap` to `154px` (`92px` in `#ui.ingame`/`#ui.sheeting`), and moved `#h-phone` and `#h-shop` back up to Row 1 top-right alongside `#h-coins` while restoring `#h-name`, `#h-kg`, and full-width `#bar`.
 - **Verification:** Rebuilt `v=67` (`abibyan-v67-sharp-hud-%s`), fixed `#hud.hidden` CSS specificity so HUD stays hidden during sheets/games, updated mini-game overlay offsets (`games.js`), and verified `verify_r67.js` (`7/7`) + full regression suite.
+
+
+### Round 68 / Version 68 — Compact 1-Row Sharp HUD (`y = 82..110px`, `#topcap = 112px`) (2026-11-25)
+- Collapsed `.mode-stretch #hud` from the tall `154px` 2-row slab down into a compact `27px` single horizontal row (`#h-di` lvl/xp/coins on left, 4 stats in center, all 5 buttons `📱🛍🌱🏆⚙` on right) at `y = 82..109px` (`#topcap = 112px`, `topY = 50`, `safeTop = 36` / `80px` in sheets & mini-games), freeing `42 CSS px` for rooms.
+- Rebuilt `v=68` (`abibyan-v68-compact-hud-%s`), replaced `verify_r67.js` with `test/verify_r68.js` (`4/4` incl. 6-digit coins check & room/sheet/game screenshots), and verified all checks cleanly.

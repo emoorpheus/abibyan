@@ -1803,3 +1803,15 @@
   - Restored full-width sleeker Kitchen bottom `#bar` (`height: 30u`, `.flabel bottom: 27u`) clearing monkey feet above Home Indicator.
   - Updated `safeTop()` (`>= 41` / `42`), `topY()` (`69` logical px), `render()` (`curHeaderY()`), and mini-game `#ghud` (`94px`) / overlay offsets in `src/games.js` (`Balloon topCap: 62`, `Gym py0: 64`, `Stack bY: 102 / pipY: 63`, `Race clockY: 63`, `Roofs banY: 64`).
   - Rebuilt Version 67 (`Версия 67 · Чёткий HUD ниже зоны размытия iOS и кнопки наверху`, `v=67`, `abibyan-v67-sharp-hud-%s`); added `test/verify_r67.js` (`7/7`).
+
+
+## Round 68 — Compact Single-Row Sharp Top HUD (`y = 82..110px`, `#topcap = 112px`) (Version 68)
+- **Why:** In Round 67, the 2-row lowered header reached `154 CSS px` (`0..154px`), looking overly tall on iPhone 17.
+- **Changes (`src/style.css`, `src/home.js`, `src/games.js`, `src/ui.js`, `build.py`):**
+  - Collapsed `.mode-stretch #hud` into a crisp single horizontal row (`y = 82..109px`, `height: 27px`) right below the Dynamic Island edge-blur margin (`#topcap` shrunk from `154px` to `112px`; `80px` in `#ui.ingame`, `#ui.sheeting`, `#ui.gifting`, `#ui.bday`):
+    - Left (`#h-di`, clickable for Profile): `#h-lvl` (`24×24px`), `#h-xp` (`26×8px`), `#h-coins` (`22px` tall, tested cleanly even with 6-digit coins).
+    - Center (`#h-wl`): 4 compact stat squares (`22×22px`).
+    - Right (`#h-phone`, `#h-shop`, `#h-wr`): all 5 action buttons (`27×27px`) lined up together (`📱 🛍 🌱 🏆 ⚙`).
+  - Lowered `safeTop()` to `36` (`~80 CSS px`) and `topY()` to `50` (`~112 CSS px`), restoring `+42 CSS px` of room height while keeping `#hud` and `#ghud` (`82px`) crisp and bottom corners free.
+  - Tuned mini-game overlay Y offsets (`Balloon topCap: 56`, `Gym py0: 56`, `Stack bY: 96 / pipY: 55`, `Race clockY: 56`, `Roofs banY: 56`).
+  - Rebuilt Version 68 (`Версия 68 · Компактный чёткий HUD в 1 строку и все кнопки наверху`, `v=68`, `abibyan-v68-compact-hud-%s`), replaced `verify_r67.js` with `test/verify_r68.js`, and ran the full test suite.

@@ -118,7 +118,7 @@ function pwa() {{
     navigator.serviceWorker.addEventListener('controllerchange', function () {{
       if (!refreshing) {{ refreshing = true; window.location.reload(); }}
     }});
-    navigator.serviceWorker.register('sw.js?v=67').then(function (reg) {{
+    navigator.serviceWorker.register('sw.js?v=68').then(function (reg) {{
       try {{ reg.update(); }} catch (e) {{}}
     }}).catch(function () {{}});
   }}
@@ -204,7 +204,7 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v67-sharp-hud-%s';
+sw = '''const CACHE = 'abibyan-v68-compact-hud-%s';
 const CORE = ['./', './index.html', './manifest.webmanifest', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

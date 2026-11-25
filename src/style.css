@@ -363,27 +363,26 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .mode-stretch #ext{display:none!important}
 .mode-stretch #ui #gift{top:0!important;height:100%!important}
 
-.mode-stretch #topcap{display:block;position:fixed;top:0;left:0;right:0;height:max(calc(env(safe-area-inset-top,0px) + 92px),154px);background:#1d1622;border-bottom:2px solid #4e3750;box-shadow:0 2px 0 #3b2433}
-.mode-stretch #ui.ingame #topcap,.mode-stretch #ui.sheeting #topcap,.mode-stretch #ui.gifting #topcap,.mode-stretch #ui.bday #topcap{height:max(calc(env(safe-area-inset-top,0px) + 30px),92px)}
-.mode-stretch #hud{top:max(calc(env(safe-area-inset-top,0px) + 32px),94px)!important;left:max(6px,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(6px,calc(env(safe-area-inset-right,0px) + 4px))!important;bottom:auto!important;display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:3px 4px}
-.mode-stretch #h-di{grid-row:1;grid-column:1 / 3;justify-self:stretch;position:static;transform:none;height:27px;padding:0;background:none;border:none;box-shadow:none;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.mode-stretch #h-di .lvl{width:26px;height:26px;padding:0;font-size:11px;color:var(--ink)!important}
-.mode-stretch #h-di .lvl img{width:26px;height:26px}
-.mode-stretch #h-di .xp{width:44px;height:8px;padding:2px;background:#140d18;outline:1px solid #6b4b63}
-.mode-stretch #h-di .name{display:block!important;font-size:13px;max-width:110px}
-.mode-stretch #h-di #h-coins{margin-left:auto;height:22px;padding:0 7px;font-size:12px;background:rgba(45,26,40,.92)}
-.mode-stretch #h-di #h-coins img{width:14px;height:14px}
-.mode-stretch #h-phone,.mode-stretch #h-shop{position:static!important;bottom:auto!important;left:auto!important;right:auto!important;width:28px;height:28px}
-.mode-stretch #h-phone{grid-row:1;grid-column:3;justify-self:end}
-.mode-stretch #h-shop{grid-row:1;grid-column:4;justify-self:end}
-.mode-stretch #h-wl{grid-row:2;grid-column:1;position:static;display:flex;align-items:center;gap:3px}
-.mode-stretch #hud .stat{width:26px;height:26px}
-.mode-stretch #hud .stat img{left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px}
-.mode-stretch #h-wr{grid-row:2;grid-column:2 / 5;justify-self:end;position:static;display:flex;align-items:center;gap:4px}
-.mode-stretch #h-kg{order:-1;display:flex!important;height:22px;padding:0 6px;font-size:11px;margin-right:2px;background:rgba(45,26,40,.92)}
-.mode-stretch #h-kg img{width:13px;height:13px}
-.mode-stretch #h-wr .ibtn{width:28px;height:28px}
-.mode-stretch #hud .ibtn img{width:19px;height:19px}
+.mode-stretch #topcap{display:block;position:fixed;top:0;left:0;right:0;height:max(calc(env(safe-area-inset-top,0px) + 50px),112px);background:#1d1622;border-bottom:2px solid #4e3750;box-shadow:0 2px 0 #3b2433}
+.mode-stretch #ui.ingame #topcap,.mode-stretch #ui.sheeting #topcap,.mode-stretch #ui.gifting #topcap,.mode-stretch #ui.bday #topcap{height:max(calc(env(safe-area-inset-top,0px) + 18px),80px)}
+.mode-stretch #hud{top:max(calc(env(safe-area-inset-top,0px) + 20px),82px)!important;left:max(6px,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(6px,calc(env(safe-area-inset-right,0px) + 4px))!important;bottom:auto!important;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:3px}
+.mode-stretch #h-di{order:1;margin-right:auto;position:static;transform:none;height:27px;padding:0;background:none;border:none;box-shadow:none;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.mode-stretch #h-di .lvl{width:24px;height:24px;padding:0;font-size:10px;color:var(--ink)!important}
+.mode-stretch #h-di .lvl img{width:24px;height:24px}
+.mode-stretch #h-di .xp{width:26px;height:8px;padding:2px;background:#140d18;outline:1px solid #6b4b63}
+.mode-stretch #h-di .name{display:none!important}
+.mode-stretch #h-di #h-coins{height:22px;padding:0 5px;gap:3px;font-size:11px;background:rgba(45,26,40,.92)}
+.mode-stretch #h-di #h-coins img{width:13px;height:13px}
+.mode-stretch #h-wl{order:2;position:static;display:flex;align-items:center;gap:2px}
+.mode-stretch #hud .stat{width:22px;height:22px}
+.mode-stretch #hud .stat img{left:50%;top:50%;transform:translate(-50%,-50%);width:14px;height:14px}
+.mode-stretch #h-phone,.mode-stretch #h-shop{position:static!important;bottom:auto!important;left:auto!important;right:auto!important;width:27px;height:27px}
+.mode-stretch #h-phone{order:3;margin-left:auto}
+.mode-stretch #h-shop{order:4}
+.mode-stretch #h-wr{order:5;position:static;display:flex;align-items:center;gap:3px}
+.mode-stretch #h-kg{display:none!important}
+.mode-stretch #h-wr .ibtn{width:27px;height:27px}
+.mode-stretch #hud .ibtn img{width:18px;height:18px}
 .mode-stretch #bar{bottom:max(calc(env(safe-area-inset-bottom,0px) + 2px),36px)!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important;height:30u}
 .mode-stretch #bar .abtn{width:26u;height:26u}
 .mode-stretch #bar .nav{width:20u;height:26u}
@@ -391,14 +390,14 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .mode-stretch #bar .carousel .slot img{width:22u;height:22u}
 .mode-stretch #bar .carousel .arr{width:13u;height:18u}
 .mode-stretch #bar .flabel{bottom:27u;font-size:6.5u}
-.mode-stretch #ghud{top:max(calc(env(safe-area-inset-top,0px) + 32px),94px)!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
-.mode-stretch #ghud .ibtn{width:max(15u,34px);height:max(15u,34px)}
+.mode-stretch #ghud{top:max(calc(env(safe-area-inset-top,0px) + 20px),82px)!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
+.mode-stretch #ghud .ibtn{width:max(15u,32px);height:max(15u,32px)}
 .mode-stretch .gbtns{bottom:max(calc(env(safe-area-inset-bottom,0px) + 4px),38px)!important}
 .mode-stretch #sheet{padding-bottom:max(env(safe-area-inset-bottom,0px),16px)!important}
-.mode-stretch #toasts,.mode-stretch #roomt{top:max(72u,calc(env(safe-area-inset-top,0px) + 98px),160px)!important}
-.mode-stretch #tut{top:max(72u,calc(env(safe-area-inset-top,0px) + 98px),160px)!important}
-.mode-stretch #ui.tutting #toasts,.mode-stretch #ui.tutting #roomt{top:calc(max(72u,calc(env(safe-area-inset-top,0px) + 98px),160px) + 3u + var(--tuth,0px))!important}
-.mode-stretch #blow{top:max(calc(34px + env(safe-area-inset-top,0px)),96px)}
+.mode-stretch #toasts,.mode-stretch #roomt{top:max(53u,calc(env(safe-area-inset-top,0px) + 56px),118px)!important}
+.mode-stretch #tut{top:max(53u,calc(env(safe-area-inset-top,0px) + 56px),118px)!important}
+.mode-stretch #ui.tutting #toasts,.mode-stretch #ui.tutting #roomt{top:calc(max(53u,calc(env(safe-area-inset-top,0px) + 56px),118px) + 3u + var(--tuth,0px))!important}
+.mode-stretch #blow{top:max(calc(22px + env(safe-area-inset-top,0px)),84px)}
 .is-desktop #topcap{display:none!important}
 .mode-stretch .mbox{max-height:min(290u,calc(var(--vh,100vh) - 16u - max(env(safe-area-inset-top,0px),62px) - max(env(safe-area-inset-bottom,0px),34px)))}
 

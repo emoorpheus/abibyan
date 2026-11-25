@@ -98,7 +98,7 @@ const fs = require('fs');
   });
 
   console.log('Geometry:', geom);
-  assert(geom.topY >= 64 && geom.topY <= 72, 'HOME.topY() must sit cleanly below lowered sharp HUD (64..72), got ' + geom.topY);
+  assert(geom.topY >= 48 && geom.topY <= 54, 'HOME.topY() must sit cleanly below compact single-row HUD (48..54), got ' + geom.topY);
 
   // 3. Verify ceiling extension pixels with light ON (16 rows from geom.topY should be light ceiling plaster)
   const topPixelsLightOn = await page.evaluate((ty) => {

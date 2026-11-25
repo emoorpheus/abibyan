@@ -56,7 +56,7 @@ const assert = require('assert');
   });
   console.log('Geometry:', geom);
   assert.strictEqual(geom.canvasH, 391, 'Canvas height on iPhone 17 must be 391');
-  assert.ok(geom.topY >= 64, 'HOME.topY() must be >= 64 (below Dynamic Island + blur zone + HUD) on iPhone 17, got ' + geom.topY);
+  assert.ok(geom.topY >= 48, 'HOME.topY() must be >= 48 (below compact top HUD) on iPhone 17, got ' + geom.topY);
 
   // -------------------------------------------------------------
   // TEST 2: Kitchen Light Off - Uniform Darkening (NO bottom stripe)

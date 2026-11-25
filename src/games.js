@@ -474,7 +474,7 @@ const MINI = (() => {
           if (hitR(x0, -50, x1, top) || hitR(x0, bot, x1, RH) || bodyHit(-50, top - 2) || bodyHit(bot + 3, RH)) { crash(); break; }
         }
         if (m.y > 300) crash();
-        const topCap = (typeof cv !== 'undefined' && cv && cv.height > RH) ? 62 : 34;
+        const topCap = (typeof cv !== 'undefined' && cv && cv.height > RH) ? 56 : 34;
         if (m.y - 53 * BK - 29 < topCap) { m.y = topCap + 29 + 53 * BK; m.vy = Math.max(0, m.vy); }
       },
       render(ctx, P) {
@@ -582,7 +582,7 @@ const MINI = (() => {
         if (faceT > 0) faceT -= dt;
       },
       render(ctx, P) {
-        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH, py0 = ch > RH ? 64 : 44;
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH, py0 = ch > RH ? 56 : 44;
         ctx.drawImage(bgGym(), 0, 0); P.shadow(84, 268, 34 * GK(1), 6, 0.32);
         let pose = 'liftLow', shake = 0; const p = mp(1.0, { pose }); p.eyes = { mode: 'open', look: [1, 0] }; p.mouth = 'flat';
         if (phase === 'lift') { const k = pt; p.pose = k < 0.12 ? 'liftLow' : k < 0.6 ? 'liftHigh' : 'liftLow'; p.eyes = { mode: 'closed' }; p.mouth = k < 0.6 ? 'flat' : 'laugh'; if (k > 0.6) p.eyes = { mode: 'happy' }; p.sweat = GAME.fat() > 0.3 ? 1 : 0; }
@@ -1010,7 +1010,7 @@ const MINI = (() => {
   function Stack() {
     let tower, top, w, hx, dir, v, phase, pt, fall, chips, cam, placed, need, perf, streak, mood, moodT;
     const tall = typeof cv !== 'undefined' && cv && cv.height > RH;
-    const bY = tall ? 102 : SBEAM, hY = bY + 26, stopY = tall ? 248 : STOP;
+    const bY = tall ? 96 : SBEAM, hY = bY + 26, stopY = tall ? 248 : STOP;
     const g = {
       snapY: 150,
       init(L) { tower = []; top = { x: 90 - SBW / 2, w: SBW, y: SGND }; chips = []; cam = 0; streak = 0; setup(L); },
@@ -1057,7 +1057,7 @@ const MINI = (() => {
         if (api.over_) { p.pose = 'idle'; p.eyes = { mode: 'dizzy' }; p.mouth = 'wavy'; }
         drawM(ctx, p, tx, bY - 3);
         // storey counter on the left (kept cleanly below #ghud on iPhone 17)
-        const pipY = ch > RH ? 63 : 22;
+        const pipY = ch > RH ? 55 : 22;
         for (let i = 0; i < need; i++) { const x = 6 + (i % 12) * 7, y = pipY + Math.floor(i / 12) * 7; P.r(x, y, 5, 5, '#3b2433'); P.r(x + 1, y + 1, 3, 3, i < placed ? '#ffd23a' : '#6a7484'); }
       },
       down() { if (phase !== 'aim') return; phase = 'drop'; fall = { x: hx - w / 2, y: hY - cam, w, vy: 0, miss: false };
@@ -1426,7 +1426,7 @@ const MINI = (() => {
         L.sort((a, b) => b.d - a.d);
         for (const e of L) { if (e.me) { drawMe(ctx, P); continue; } if (e.gate) { gate(P, e.q, e.gate); continue; } spr(ctx, P, e); }
         // the clock (red and pulsing for the last five seconds, green for a moment after a banana)
-        const clockY = ch > RH ? 63 : 17;
+        const clockY = ch > RH ? 56 : 17;
         const tS = String(Math.max(0, Math.ceil(time - 1e-6))), low = time <= 5 && phase === 'race', k = 2, w = tS.length * 4 * k - k + 12;
         ctx.globalAlpha = 0.82; P.r(90 - w / 2 - 4, clockY, w + 8, 16, '#2a1a28'); P.r(90 - w / 2 - 3, clockY - 1, w + 6, 18, '#2a1a28'); ctx.globalAlpha = 1;
         const cx0 = Math.round(90 - w / 2); P.circ(cx0 + 4, clockY + 8, 4, '#f4f4f4'); P.circ(cx0 + 4, clockY + 8, 3, low ? '#ff8a96' : '#59c1ff'); P.r(cx0 + 4, clockY + 5, 1, 3, '#2a1a28'); P.r(cx0 + 4, clockY + 8, 2, 1, '#2a1a28');
@@ -1808,7 +1808,7 @@ const MINI = (() => {
       if (phase === 'run' && !m.ground) { const fl = floorAt(m.x, T, m.h + 0.5); if (fl && m.h - fl.y < 80) { const k = (m.h - fl.y) / 80; P.shadow(Math.round(m.x - cam), BASE - fl.y, Math.max(2, 6 - k * 4), 1.5, 0.28 * (1 - k)); } }
       drawMe(ctx, P);
       // the banana counter (every 10 = a coin), safely below #g-pause on iPhone 17
-      const banY = ch > RH ? 64 : 38;
+      const banY = ch > RH ? 56 : 38;
       ctx.drawImage(bb, 4, banY); for (let k = 0; k < 10; k++) P.r(14 + k * 4, banY + 3, 3, 3, k < nban % 10 ? '#ffd23a' : 'rgba(20,16,40,0.35)');
     }
     function drawMe(ctx, P) {

@@ -100,15 +100,15 @@ const HOME = (() => {
     if (curH <= RH) return 0;
     const u = (typeof APP !== 'undefined' && APP.lay && APP.lay.u) || (402 / 180);
     const saT = (typeof APP !== 'undefined' && APP.lay && APP.lay.saTopPx) || 62;
-    return Math.max(41, Math.ceil((saT + 30) / u));
+    return Math.max(36, Math.ceil((saT + 18) / u));
   };
   const topY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
     if (extraH <= 0) return 0;
-    // Full anti-blur zone (~92px) + 2-row sharp HUD (94..152px) -> room starts cleanly below HUD at 69 logical px
-    return Math.min(extraH, Math.max(69, safeTop() + 27));
+    // Compact single-row sharp HUD below blur zone (82..110px) -> room starts cleanly at 50 logical px (112 CSS px)
+    return Math.min(extraH, Math.max(50, safeTop() + 14));
   };
   const curHeaderY = () => {
     const ty = topY();
