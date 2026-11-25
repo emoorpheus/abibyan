@@ -118,6 +118,7 @@ const APP = (() => {
     const preventCanvasTouch = (e) => {
       if (!e.cancelable || UI.hasModal()) return;
       if (allowTouch(e.target)) return;
+      if ((e.type === 'touchstart' || e.type === 'touchend') && scene !== 'game') return;
       if (scene === 'game' || e.target === cv || e.target === stage) e.preventDefault();
     };
     stage.addEventListener('touchstart', preventCanvasTouch, { passive: false });
@@ -148,11 +149,10 @@ const APP = (() => {
       else if (scene === 'home') { if (e.code === 'Escape') { if (UI.hasModal()) UI.closeModal(); else if (UI.sheetOpen) UI.closeSheet(); return; } if (!UI.hasModal() && !UI.sheetOpen) HOME.key(e.code); }
     });
     window.addEventListener('keyup', (e) => { if (scene === 'game') MINI.key(e.code, false); });
-    // Round 20 (ios-safari-quirks): unlock AudioContext and AudioSession on every user gesture
+    // Round 20 (ios-safari-quirks): unlock AudioContext and AudioSession on activating user gestures
     const unlockGest = () => AUDIO.init();
-    for (const ev of ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'click']) {
+    for (const ev of ['touchend', 'pointerup', 'click', 'pointerdown', 'touchstart']) {
       document.addEventListener(ev, unlockGest, { capture: true, passive: true });
-      window.addEventListener(ev, unlockGest, { capture: true, passive: true });
     }
     const poke = () => { lastIn = performance.now(); };
     for (const ev of ['pointermove', 'wheel', 'touchstart', 'keydown']) document.addEventListener(ev, poke, { capture: true, passive: true });

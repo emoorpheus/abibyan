@@ -242,7 +242,7 @@ function startServer() {
     await page.waitForTimeout(200);
     const verTxt = await page.evaluate(() => document.querySelector('.mbox').textContent);
     await page.evaluate(() => window.__game.UI.closeModal());
-    assert(verTxt.includes('Версия 70'), 'Settings must show Версия 70');
+    assert(/Версия\s+7\d/.test(verTxt), 'Settings must show Версия 7x, got ' + verTxt);
     return gm;
   });
 

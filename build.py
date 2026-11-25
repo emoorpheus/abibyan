@@ -115,10 +115,11 @@ function pwa() {{
   var i = document.createElement('link'); i.rel = 'icon'; i.href = 'icon-192.png'; document.head.appendChild(i);
   if ('serviceWorker' in navigator) {{
     var refreshing = false;
+    var hadCtrl = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', function () {{
-      if (!refreshing) {{ refreshing = true; window.location.reload(); }}
+      if (hadCtrl && !refreshing) {{ refreshing = true; window.location.reload(); }}
     }});
-    navigator.serviceWorker.register('sw.js?v=70').then(function (reg) {{
+    navigator.serviceWorker.register('sw.js?v=71').then(function (reg) {{
       try {{ reg.update(); }} catch (e) {{}}
     }}).catch(function () {{}});
   }}
@@ -204,21 +205,23 @@ manifest = {
             {'src': 'icon-maskable-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'}]}
 (site / 'manifest.webmanifest').write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
 ver = hashlib.sha1(html.encode()).hexdigest()[:10] # the one-file html holds the voice too → a new voice is a new version
-sw = '''const CACHE = 'abibyan-v70-big-icons-%s';
+voice_ver = hashlib.sha1(('\n'.join(V1) + '\n' + '\n'.join(V2)).encode()).hexdigest()[:10]
+sw = '''const CACHE = 'abibyan-v71-voice-fix-%s';
+const VOICE_CACHE = 'abibyan-voice-%s';
 const CORE = ['./', './index.html', './manifest.webmanifest', %s];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE && k !== VOICE_CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const r = e.request; if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
   if (r.url.includes('voice1.txt') || r.url.includes('voice2.txt')) {
     e.respondWith(
-      caches.match(r, { ignoreSearch: true }).then((cached) => {
+      caches.open(VOICE_CACHE).then((vc) => vc.match(r, { ignoreSearch: true }).then((cached) => {
         if (cached) return cached;
-        return fetch(r.url).then((res) => {
-          if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(r, copy)); }
+        return fetch(r).then((res) => {
+          if (res && res.status === 200) { const copy = res.clone(); vc.put(r, copy); }
           return res;
         });
-      }).catch(() => fetch(r.url))
+      })).catch(() => fetch(r.url))
     );
     return;
   }
@@ -229,7 +232,7 @@ self.addEventListener('fetch', (e) => {
     return res;
   }).catch(() => caches.match(r, { ignoreSearch: true })));
 });
-''' % (ver, ', '.join("'./%s'" % n for n in icons))
+''' % (ver, voice_ver, ', '.join("'./%s'" % n for n in icons))
 (site / 'sw.js').write_text(sw)
 (site / '.nojekyll').write_text('')
 zp = root / 'dist' / 'moy-abibyan-site.zip'

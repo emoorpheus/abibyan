@@ -412,7 +412,7 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 70 · Большие значки HUD 1.5-2x и бесшовный балкон</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 71 · Фикс озвучки и пробуждения звука на iPhone</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { const b = $('#' + id, w); b.onclick = () => { const v = (s.settings[key] = !s.settings[key]); AUDIO.set(key, v); AUDIO.play('click'); GAME.save(true); b.className = 'btn sm ' + (v ? 'g' : 'w'); b.textContent = v ? 'Вкл' : 'Выкл'; }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');

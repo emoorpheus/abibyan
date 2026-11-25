@@ -1843,3 +1843,21 @@
     - Raised mini-game `#ghud` icons (`#ghud .ibtn` `40×40px` / `26×26px` img, `.pill` `34px`) and shifted `#toasts`/`#roomt`/`#tut` to `top: 162px`.
 - **Build & Verification (`src/ui.js`, `build.py`, `test/verify_r70.js`):**
   - Rebuilt Version 70 (`Версия 70 · Большие значки HUD 1.5-2x и бесшовный балкон`, `v=70`, `abibyan-v70-big-icons-%s`), replaced `verify_r69.js` with `test/verify_r70.js`, updated `verify_r53` and `verify_r65` header bounds, and ran full verification.
+
+
+## Round 71 — iPhone Voice, Gesture Activation & Service Worker Voice Cache Fix (Version 71)
+- **Root causes fixed:**
+  1. **`src/main.js` (Round 66 regression on Home touches):** `preventCanvasTouch` called `e.preventDefault()` on `touchstart` and `touchend` even in `scene === 'home'`, suppressing `click` events and firing `pointerup` (`HOME.up` → `say()` / `play()`) before `touchend` could activate `AudioContext` on iOS WebKit. Scoped `touchstart`/`touchend` prevention strictly to `scene === 'game'` (`Catch`), leaving `touchend` and `click` intact at home while keeping `touchmove` scroll lock and game anti-loupe protection.
+  2. **`src/audio.js` (`pageshow`, silent switch unlock, and suspended speech loss):**
+     - Stopped `AUDIO.resume()` (`pageshow`/`visibilitychange`/`focus`) from creating a pre-gesture `AudioContext` when `!ac`, eliminating browser autoplay warnings and pre-gesture WebKit suspension.
+     - Fixed `unlockSilentSwitch()` (`isActivatingEvent()`, non-empty 2-sample silent PCM WAV, `unlockedSession = false` inside `suspend()` so returning from background re-unlocks playback bypass cleanly).
+     - Added `SP.pendWake` and `SP.pendFx` queuing when `say()` or `fx()` runs while `!ac || ac.state !== 'running'` (including inside `pointerup` before `touchend` unlocks WebKit, or during `voiceDone(1)` before first tap), flushed immediately in `flushWake()` via `ac.resume()` promise and `ac` `statechange`.
+     - Matched `voiceFetch()` request options (`mode: 'cors', credentials: 'same-origin'`) with `<link rel="preload" as="fetch" crossorigin>` to prevent duplicate 7.2 MB downloads.
+  3. **`build.py` & `src/ui.js` (SW `VOICE_CACHE` + `#t-update` double reload):**
+     - Split `sw.js` voice caching into persistent `VOICE_CACHE` (`abibyan-voice-<voice_hash>`) preserved on app updates (`k !== CACHE && k !== VOICE_CACHE`) and cached only `status === 200` `fetch(r)` responses.
+     - Guarded `pwa()` `controllerchange` auto-reload with `hadCtrl` (`!!navigator.serviceWorker.controller`) so initial claims after `#t-update` do not trigger a second mid-fetch reload.
+     - Bumped version to `Версия 71 · Фикс озвучки и пробуждения звука на iPhone` (`v=71`, `abibyan-v71-voice-fix-%s`) and relaxed exact version check in `test/verify_r70.js`.
+- **Verification (strict `--autoplay-policy=document-user-activation-required` + full regression suite):**
+  - `node tools/compat.js`: `28 files, 0 problems`
+  - `node test/verify_r71_voice.js`: `7/7 passed, 0 failed` (0 console warnings/errors, strict WebKit `touchend`-only unlock, `SP.pendWake` flush on tap, single `voice1`/`voice2` fetch, persistent `VOICE_CACHE`, suspend/wake recovery, `#t-update` single reload, slow `voice1.txt` queue)
+  - Full regression suite (`verify_r70`, `verify_r66`, `verify_r65_iphone17`, `verify_r64_bug_hunt`, `verify_r63_bongo_sounds`, `verify_r62_single_stage_gold`, `verify_r61_ach_contrast`, `verify_r60_scroll`, `verify_r59_catch`, `verify_r58_comprehensive`, `verify_r53_dropped_ceiling_and_hearts`, `verify_r36`, `test_drum_synthesis`): all exited `0`.

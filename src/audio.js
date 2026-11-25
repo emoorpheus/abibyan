@@ -8,9 +8,22 @@ try {
 
 const AUDIO = (() => {
   let ac = null, master, sfxG, musG, voxG, noiseBuf; const st = { sfx: true, music: true };
-  let unlockedSession = false, suspended = false;
+  let unlockedSession = false, suspended = false, silEl = null;
 
-  function unlockSilentSwitch() {
+  function isActivatingEvent() {
+    try {
+      if (typeof window !== 'undefined' && window.event) {
+        const tp = window.event.type;
+        return tp === 'touchend' || tp === 'click' || tp === 'pointerup' || tp === 'keydown' || tp === 'mouseup';
+      }
+      if (typeof navigator !== 'undefined' && navigator.userActivation) {
+        return !!navigator.userActivation.isActive;
+      }
+    } catch (e) { }
+    return true;
+  }
+
+  function unlockSilentSwitch(canPlay) {
     try {
       if (typeof navigator !== 'undefined' && navigator.audioSession) {
         if (navigator.audioSession.type !== 'playback') {
@@ -18,23 +31,24 @@ const AUDIO = (() => {
         }
       }
     } catch (e) { }
-    if (!unlockedSession && typeof document !== 'undefined') {
-      try {
-        const a = document.createElement('audio');
-        a.setAttribute('playsinline', '');
-        a.setAttribute('webkit-playsinline', '');
-        a.setAttribute('x-webkit-airplay', 'deny');
-        a.preload = 'auto';
-        a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-        a.volume = 0.01;
-        const p = a.play();
-        if (p && p.then) {
-          p.then(() => { unlockedSession = true; }).catch(() => { });
-        } else {
-          unlockedSession = true;
-        }
-      } catch (e) { }
-    }
+    if (!canPlay || unlockedSession || typeof document === 'undefined') return;
+    try {
+      if (!silEl) {
+        silEl = document.createElement('audio');
+        silEl.setAttribute('playsinline', '');
+        silEl.setAttribute('webkit-playsinline', '');
+        silEl.setAttribute('x-webkit-airplay', 'deny');
+        silEl.preload = 'auto';
+        silEl.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
+        silEl.volume = 0.01;
+      }
+      const p = silEl.play();
+      if (p && p.then) {
+        p.then(() => { unlockedSession = true; }).catch(() => { });
+      } else {
+        unlockedSession = true;
+      }
+    } catch (e) { }
   }
 
   // Round 20 (ios-safari-quirks): main.js calls init() on pointerdown AND on pointerup / touchend / click / keys — on a phone only the
@@ -52,10 +66,21 @@ const AUDIO = (() => {
     } catch (e) { }
   }
 
+  function flushWake() {
+    if (!ac || ac.state !== 'running' || suspended || !st.sfx || (typeof document !== 'undefined' && document.hidden)) return;
+    const pw = SP.pendWake, pf = SP.pendFx, nowT = performance.now();
+    SP.pendWake = null; SP.pendFx = null;
+    if (pw && nowT - pw.t <= 3500 && (!pf || pw.t >= pf.t)) say(pw.text, pw.o);
+    else if (pf && nowT - pf.t <= 2000) fx(pf.kind, pf.rate, pf.o);
+    if (st.music && !music.running()) music.start();
+    if (SP.ok && !SP.warm) warm();
+  }
+
   function init() {
     if (typeof document !== 'undefined' && document.hidden) return false;
     suspended = false;
-    unlockSilentSwitch();
+    const act = isActivatingEvent();
+    unlockSilentSwitch(act);
     if (ac) {
       if (master) {
         try {
@@ -65,8 +90,13 @@ const AUDIO = (() => {
         try { master.gain.value = 0.8; } catch (e) { }
       }
       if (ac.state !== 'running' && ac.state !== 'closed') {
-        try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { }
+        try {
+          const p = ac.resume();
+          if (p && p.then) p.then(flushWake).catch(() => { });
+        } catch (e) { }
         silent();
+      } else {
+        flushWake();
       }
       if (sfxG) sfxG.gain.value = st.sfx ? 0.55 : 0;
       if (voxG) voxG.gain.value = st.sfx ? 0.65 : 0;
@@ -79,7 +109,17 @@ const AUDIO = (() => {
       return true;
     } // iOS: 'interrupted' after calls/background
     try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return false; }
-    try { const p = ac.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { } // iOS: a fresh context starts 'suspended'
+    try {
+      if (ac.addEventListener) {
+        ac.addEventListener('statechange', () => {
+          if (ac && ac.state === 'running') flushWake();
+        });
+      }
+    } catch (e) { }
+    try {
+      const p = ac.resume();
+      if (p && p.then) p.then(flushWake).catch(() => { });
+    } catch (e) { } // iOS: a fresh context starts 'suspended'
     silent();
     master = ac.createGain(); master.gain.value = 0.8; master.connect(ac.destination);
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(master);
@@ -98,6 +138,8 @@ const AUDIO = (() => {
   function suspend() {
     if (suspended) return;
     suspended = true;
+    unlockedSession = false;
+    SP.pendWake = null;
     try {
       if (typeof navigator !== 'undefined' && navigator.audioSession) {
         navigator.audioSession.type = 'ambient';
@@ -127,33 +169,33 @@ const AUDIO = (() => {
   function resume() {
     if (typeof document !== 'undefined' && document.hidden) return false;
     suspended = false;
-    unlockSilentSwitch();
-    if (ac) {
-      if (master) {
-        try {
-          master.gain.cancelScheduledValues(ac.currentTime);
-          master.gain.setValueAtTime(0.8, ac.currentTime);
-        } catch (e) { }
-        try { master.gain.value = 0.8; } catch (e) { }
-      }
-      if (ac.state !== 'running' && ac.state !== 'closed') {
-        try {
-          const p = ac.resume();
-          if (p && p.catch) p.catch(() => { });
-        } catch (e) { }
-        silent();
-      }
-      if (sfxG) sfxG.gain.value = st.sfx ? 0.55 : 0;
-      if (voxG) voxG.gain.value = st.sfx ? 0.65 : 0;
-      if (musG) {
-        const mv = (st.music && !quietF && !duckF) ? 0.16 : 0;
-        try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { }
-        musG.gain.value = mv;
-      }
-      if (st.music && !music.running()) music.start();
-      return true;
+    unlockSilentSwitch(isActivatingEvent());
+    if (!ac) return false;
+    if (master) {
+      try {
+        master.gain.cancelScheduledValues(ac.currentTime);
+        master.gain.setValueAtTime(0.8, ac.currentTime);
+      } catch (e) { }
+      try { master.gain.value = 0.8; } catch (e) { }
     }
-    return init();
+    if (ac.state !== 'running' && ac.state !== 'closed') {
+      try {
+        const p = ac.resume();
+        if (p && p.then) p.then(flushWake).catch(() => { });
+      } catch (e) { }
+      silent();
+    } else {
+      flushWake();
+    }
+    if (sfxG) sfxG.gain.value = st.sfx ? 0.55 : 0;
+    if (voxG) voxG.gain.value = st.sfx ? 0.65 : 0;
+    if (musG) {
+      const mv = (st.music && !quietF && !duckF) ? 0.16 : 0;
+      try { musG.gain.cancelScheduledValues(ac.currentTime); } catch (e) { }
+      musG.gain.value = mv;
+    }
+    if (st.music && !music.running()) music.start();
+    return true;
   }
 
   const now = () => ac.currentTime;
@@ -407,7 +449,7 @@ const AUDIO = (() => {
   function play(name, a) { if (!ac || suspended || (typeof document !== 'undefined' && document.hidden)) return; try { if (SP.ok && st.sfx && VOX[name]) { if (VOX[name](a)) return; } SFX[name] && SFX[name](a); } catch (e) { } }
 
   // ---------- voice: SPEECH (built by tools/tts.py) — every line pre-spoken in the monkey's voice + word/syllable bank for typed text ----------
-  const SP = { ok: typeof SPEECH !== 'undefined', cache: new Map(), rate: 1, active: [], busy: 0, tok: 0, pend: null, played: 0, warm: 0 };
+  const SP = { ok: typeof SPEECH !== 'undefined', cache: new Map(), rate: 1, active: [], busy: 0, tok: 0, pend: null, pendWake: null, played: 0, warm: 0 };
   // Round 19: the bank arrives after the first frame (src/voicebank.js, build.py) — parse its text into SPEECH (substrings, no copies)
   function voiceText(txt) {
     let sec = null, fx = false;
@@ -420,11 +462,19 @@ const AUDIO = (() => {
   }
   let v1Done = false;
   // a line said before the voice came is spoken when group 1 arrives (if it waited ≤ 25 s; its bubble is shown already)
-  function voiceDone(g) { if (g & 1) v1Done = true; SPEECH.ready |= g; warm(); const p = SP.pend; SP.pend = null; if (p && performance.now() - p.t <= 25000) say(p.text, p.o); }
+  function voiceDone(g) {
+    if (g & 1) v1Done = true;
+    SPEECH.ready |= g; warm();
+    const p = SP.pend; SP.pend = null;
+    if (p && performance.now() - p.t <= 25000) {
+      if (ac && ac.state === 'running') say(p.text, p.o);
+      else SP.pendWake = { text: p.text, o: p.o, t: performance.now() };
+    }
+  }
   function voiceInline(g) { for (const b of document.querySelectorAll('script.vb[data-g="' + g + '"]')) { voiceText(b.textContent); b.remove(); } voiceDone(g); }
   function voiceFetch(n = 0) { // the website: voice1.txt (lines, reactions), then voice2.txt (words, syllables)
     const rev = (typeof window !== 'undefined' && window.ABI_REV) || ('v36_' + Date.now());
-    const get = (f) => fetch(f + '?v=' + rev).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
+    const get = (f) => fetch(f + '?v=' + rev, { mode: 'cors', credentials: 'same-origin' }).then((r) => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); });
     const step = v1Done ? Promise.resolve() : get('voice1.txt').then((t) => { voiceText(t); v1Done = true; voiceDone(1); });
     step.then(() => { if (!(SPEECH.ready & 2)) return get('voice2.txt').then((t) => { voiceText(t); voiceDone(2); }); }).catch(() => { if (n < 4) setTimeout(() => voiceFetch(n + 1), 1500 * (n + 1)); else SP.failed = 1; }); // no voice files at all → the synth babble
   }
@@ -457,7 +507,6 @@ const AUDIO = (() => {
       const bad = (e) => { if (done) return; done = true; SP.cache.delete(id); rej(e); };
       try {
         if (!ac) { rej(new Error('no ac')); return; }
-        if (ac.state !== 'running' && ac.state !== 'closed') { try { ac.resume().catch(() => {}); } catch (e) {} }
         const pr = ac.decodeAudioData(b2u(b64).buffer, ok, bad);
         if (pr && pr.then) pr.then(ok, bad);
       } catch (e) { bad(e); }
@@ -508,7 +557,7 @@ const AUDIO = (() => {
     SP.active.push(src); src.onended = () => { const k = SP.active.indexOf(src); if (k >= 0) SP.active.splice(k, 1); };
     return wall;
   }
-  function hush() { SP.tok++; for (const x of SP.active.splice(0)) { try { x.stop(); } catch (e) { } } SP.busy = 0; }
+  function hush() { SP.tok++; SP.pendWake = null; SP.pendFx = null; for (const x of SP.active.splice(0)) { try { x.stop(); } catch (e) { } } SP.busy = 0; }
   // ----- text -> clips: a whole pre-spoken line if we have it, otherwise word by word (unknown words by syllables) -----
   const VOW = 'аоуыэяёюие', CON = 'бвгджзйклмнпрстфхцчшщ', IOT = { а: 'я', о: 'ё', у: 'ю', э: 'е', ы: 'и' };
   const U = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять', 'десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
@@ -563,8 +612,13 @@ const AUDIO = (() => {
   // speak a bubble line / typed text; returns {dur, env(t)} for lip sync (t = seconds since the call)
   const lisp = (s) => String(s).replace(/с/g, 'ш').replace(/С/g, 'Ш');
   function say(text, o = {}) {
-    if (!ac || !st.sfx || suspended || (typeof document !== 'undefined' && document.hidden)) return null;
+    if (!st.sfx || suspended || (typeof document !== 'undefined' && document.hidden)) return null;
     text = lisp(text);
+    if (!ac || ac.state !== 'running') {
+      SP.pendWake = { text, o, t: performance.now() };
+      return null;
+    }
+    SP.pendWake = null;
     if (!SP.ok) { const d = voice(text, SP.rate * (o.rate || 1)); return d ? { dur: d } : null; }
     hush();
     const mood = o.mood || '';
@@ -588,6 +642,10 @@ const AUDIO = (() => {
     res.env = (x) => { x -= res.lag; for (const it of items) if (x >= it.t0 && x < it.t0 + it.wall) { if (!it.c) return 0.3; const k = Math.floor((x - it.t0) / it.wall * it.len / 0.025); return it.c.env[Math.min(it.c.env.length - 1, k)] || 0; } return 0; };
     Promise.all(items.map((it) => clip(it.s.id, it.s.e[0]).then((c) => { it.c = c; }, () => { }))).then(() => {
       if (tok !== SP.tok || suspended || !st.sfx || (typeof document !== 'undefined' && document.hidden)) return;
+      if (!ac || ac.state !== 'running') {
+        SP.pendWake = { text, o, t: performance.now() };
+        return;
+      }
       const s0 = Math.max(t0 + 0.06, now() + 0.015);
       res.lag = s0 - t0;
       let playedAny = false;
@@ -608,8 +666,17 @@ const AUDIO = (() => {
   // short non-verbal reactions (giggle, squeal, sigh, yawn, "ой"); return true when handled (otherwise the synth SFX plays)
   const free = () => now() > SP.busy;
   function fx(kind, rate, o = {}) {
-    const L = SPEECH.fx[kind]; if (!L || !L.length) return false; const i = Math.floor(Math.random() * L.length), e = L[i], t0 = now(), r = rate * SP.rate * TTS_UP, tok = SP.tok;
-    clip('F' + kind + i, e[0]).then((c) => { if (tok === SP.tok && !suspended && st.sfx && !(typeof document !== 'undefined' && document.hidden) && now() - t0 < 0.5) SP.busy = now() + vsrc(c, Math.max(now() + 0.01, t0 + 0.02), r, o); }, () => { });
+    const L = SPEECH.fx[kind]; if (!L || !L.length) return false;
+    if (!ac || ac.state !== 'running') {
+      if (st.sfx && !suspended && !(typeof document !== 'undefined' && document.hidden)) SP.pendFx = { kind, rate, o, t: performance.now() };
+      return true;
+    }
+    const i = Math.floor(Math.random() * L.length), e = L[i], t0 = now(), r = rate * SP.rate * TTS_UP, tok = SP.tok;
+    clip('F' + kind + i, e[0]).then((c) => {
+      if (tok === SP.tok && ac && ac.state === 'running' && !suspended && st.sfx && !(typeof document !== 'undefined' && document.hidden) && now() - t0 < 0.5) {
+        SP.busy = now() + vsrc(c, Math.max(now() + 0.01, t0 + 0.02), r, o);
+      }
+    }, () => { });
     SP.busy = t0 + e[1] / r + 0.05; return true;
   }
   const VOX = {
