@@ -1815,3 +1815,17 @@
   - Lowered `safeTop()` to `36` (`~80 CSS px`) and `topY()` to `50` (`~112 CSS px`), restoring `+42 CSS px` of room height while keeping `#hud` and `#ghud` (`82px`) crisp and bottom corners free.
   - Tuned mini-game overlay Y offsets (`Balloon topCap: 56`, `Gym py0: 56`, `Stack bY: 96 / pipY: 55`, `Race clockY: 56`, `Roofs banY: 56`).
   - Rebuilt Version 68 (`Версия 68 · Компактный чёткий HUD в 1 строку и все кнопки наверху`, `v=68`, `abibyan-v68-compact-hud-%s`), replaced `verify_r67.js` with `test/verify_r68.js`, and ran the full test suite.
+
+
+## Round 69 — Enlarged Native Top HUD Raised Toward Dynamic Island & Full Lower-Floor Walking (Version 69)
+- **Raised & enlarged single-row HUD (`src/style.css`, `src/home.js`):**
+  - Raised `.mode-stretch #hud` and `#ghud` to `top: max(calc(env(safe-area-inset-top,0px) + 2px), 64px)` (just under Dynamic Island `50px` / `safe-area-inset-top = 62px`), adjusting `safeTop()` (`>= 28`) and `topY()` (`45` logical px ≈ `100.5 CSS px`).
+  - Enlarged all 5 HUD action buttons (`#h-phone`, `#h-shop`, `#h-grow`, `#h-ach`, `#h-set`) to `clamp(28px, 7.96vw, 32px)` (`21×21px` icons, `32×32px` on `402px` iPhone 17), enlarged stat squares (`#h-wl .stat`) to `clamp(21px, 5.97vw, 24px)` (`15×15px` icons), `#h-lvl` to `25×25px`, `#h-xp` to `22×9px`, and `#h-coins` to `24px` tall — verified zero wrap/overflow even with 6-digit (`100000`) coins.
+- **Native room-blended HUD & continuous ceiling extension (`src/home.js`, `src/style.css`):**
+  - Removed the opaque `#1d1622` slab (`drawTopPanel` now renders only when `camY > 0 || giftOn`; `.mode-stretch #topcap` uses zero border and a soft translucent room-matched gradient `--hud-scrim` fading to transparent at `96px`, keeping the white iOS status-bar clock crisp without leaving a grey veil over light ceilings; mini-games `#ui.ingame #topcap` use a matching sky-navy gradient).
+  - Extended every room's own ceiling/plaster/wood seamlessly to `y = 0` (`pad = topY()`): seamless plaster+slats in `zal`, `#e6e0d9` / `#efebe6` unstreaked ceiling in `kitchen` / `bath`, `#3e2416` mahogany in `hall`, and tiled `14..20` cedar planks in `balcony`, all shaded uniformly by `ROOMS.ambient` / `ROOMS.night`.
+  - Added per-room / lighting `ROOM_HUD` theme palettes updating `--ceil-bg`, `<meta name="theme-color">`, `--hud-rgb`, `--hud-pill`, `--hud-scrim`, and `--hud-scrim-tight` across `setRoom`, `toggleLight`, `wakeUp`, and kitchen lamp toggles.
+- **Full lower-floor tap-to-walk (`src/home.js`):**
+  - Removed the `Math.min(WALK.y1, ...)` / `-56` cap inside `maxWalkY()` so tall fullscreen rooms walk down to `curCv.height - topY() - (room === 'kitchen' ? 46 : 18)` (`~328` in `zal`/`bath`/`hall`/`balcony`, `~300` above `#bar` in `kitchen`).
+- **Build & Verification (`src/ui.js`, `build.py`, `test/verify_*.js`):**
+  - Rebuilt Version 69 (`Версия 69 · Крупный нативный HUD выше к острову и ходьба по всему полу`, `v=69`, `abibyan-v69-native-hud-%s`), added `test/verify_r69.js` (`5/5` incl. real lower-floor clicks & room-palette/6-digit coin checks), visually inspected all room/night/sheet/game screenshots, and updated header bounds in `verify_r53`, `verify_r58`, `verify_r65`.

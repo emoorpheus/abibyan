@@ -100,15 +100,15 @@ const HOME = (() => {
     if (curH <= RH) return 0;
     const u = (typeof APP !== 'undefined' && APP.lay && APP.lay.u) || (402 / 180);
     const saT = (typeof APP !== 'undefined' && APP.lay && APP.lay.saTopPx) || 62;
-    return Math.max(36, Math.ceil((saT + 18) / u));
+    return Math.max(28, Math.ceil((saT + 2) / u));
   };
   const topY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
     if (extraH <= 0) return 0;
-    // Compact single-row sharp HUD below blur zone (82..110px) -> room starts cleanly at 50 logical px (112 CSS px)
-    return Math.min(extraH, Math.max(50, safeTop() + 14));
+    // Enlarged single-row native HUD (y=64..96px) -> room starts cleanly right below at 45 logical px (100.5 CSS px)
+    return Math.min(extraH, Math.max(45, safeTop() + 16));
   };
   const curHeaderY = () => {
     const ty = topY();
@@ -118,12 +118,11 @@ const HOME = (() => {
   };
   function drawTopPanel(c, hdrH) {
     if (hdrH <= 0) return;
-    c.fillStyle = '#1d1622';
+    const th = curRoomTheme();
+    c.fillStyle = th.hdr;
     c.fillRect(0, 0, RW, hdrH);
     if (hdrH >= 3) {
-      c.fillStyle = '#4e3750';
-      c.fillRect(0, hdrH - 2, RW, 1);
-      c.fillStyle = '#3b2433';
+      c.fillStyle = 'rgba(' + th.rgb + ',.5)';
       c.fillRect(0, hdrH - 1, RW, 1);
     }
   }
@@ -202,12 +201,55 @@ const HOME = (() => {
       return ph === 'night' ? '#181828' : ph === 'evening' ? '#e89078' : '#9ed2ea';
     }
   };
+  const ROOM_HUD = {
+    zal: () => {
+      const lgt = !(typeof GAME !== 'undefined' && GAME.S && GAME.S.light === false);
+      if (!lgt) return { rgb: '14,18,42', ceil: '#131630', hdr: '#12152d' };
+      const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
+      return ph === 'night'
+        ? { rgb: '24,26,48', ceil: '#25263c', hdr: '#24253a' }
+        : ph === 'evening'
+          ? { rgb: '62,38,24', ceil: '#5a3a26', hdr: '#4e3120' }
+          : { rgb: '56,36,24', ceil: '#4c3424', hdr: '#442e20' };
+    },
+    kitchen: () => {
+      const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
+      if (kitchenLamp === false) return { rgb: '38,34,48', ceil: '#343043', hdr: '#2e2a3c' };
+      return ph === 'night'
+        ? { rgb: '30,28,46', ceil: '#2b293f', hdr: '#27253a' }
+        : { rgb: '66,46,28', ceil: '#573f2a', hdr: '#4b3624' };
+    },
+    bath: () => {
+      const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
+      return ph === 'night'
+        ? { rgb: '26,34,52', ceil: '#253147', hdr: '#212c40' }
+        : { rgb: '44,58,74', ceil: '#3c4c5d', hdr: '#344252' };
+    },
+    hall: () => ({ rgb: '46,26,16', ceil: '#331d12', hdr: '#311c11' }),
+    balcony: () => {
+      const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
+      return ph === 'night'
+        ? { rgb: '20,24,46', ceil: '#1c2038', hdr: '#1a1e34' }
+        : { rgb: '58,32,18', ceil: '#432617', hdr: '#3d2214' };
+    }
+  };
+  function curRoomTheme(r) {
+    const fn = ROOM_HUD[r || room] || ROOM_HUD.zal;
+    return fn();
+  }
   function updateCeilColor(r) {
-    const col = topY() > 0 ? '#1d1622' : (() => {
+    const th = curRoomTheme(r);
+    const stretch = topY() > 0;
+    const col = stretch ? th.ceil : (() => {
       const c = CEIL_COLS[r || room];
       return typeof c === 'function' ? c() : (c || '#ece7e0');
     })();
-    document.documentElement.style.setProperty('--ceil-bg', col);
+    const rs = document.documentElement.style;
+    rs.setProperty('--ceil-bg', col);
+    rs.setProperty('--hud-rgb', th.rgb);
+    rs.setProperty('--hud-pill', 'rgba(' + th.rgb + ',.76)');
+    rs.setProperty('--hud-scrim', 'linear-gradient(180deg, rgba(' + th.rgb + ',.64) 0%, rgba(' + th.rgb + ',.42) 44%, rgba(' + th.rgb + ',.12) 76%, rgba(' + th.rgb + ',0) 100%)');
+    rs.setProperty('--hud-scrim-tight', 'linear-gradient(180deg, rgba(' + th.rgb + ',.82) 0%, rgba(' + th.rgb + ',.44) 66%, rgba(' + th.rgb + ',0) 100%)');
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', col);
   }
@@ -409,13 +451,14 @@ const HOME = (() => {
     } else {
       const cy = Math.round(camY);
       if (cy) {
-        ctx.fillStyle = '#1d1622';
+        ctx.fillStyle = curRoomTheme().hdr;
         ctx.fillRect(0, curH - cy, RW, cy);
       }
       ctx.drawImage(off, 0, -cy);
     }
     const hdrH = curHeaderY();
-    if (hdrH > 0) drawTopPanel(ctx, hdrH);
+    const gift = typeof DASHA !== 'undefined' && DASHA.giftOn && DASHA.giftOn();
+    if (hdrH > 0 && (camY > 0 || gift)) drawTopPanel(ctx, hdrH);
     if (flash > 0) {
       ctx.globalAlpha = Math.min(1, flash);
       ctx.fillStyle = '#ffffff';
@@ -434,16 +477,21 @@ const HOME = (() => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     ensureOffH(curH);
-    const ty = topY(), st = safeTop(), pad = Math.max(0, ty - st);
+    const ty = topY(), pad = ty;
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
-    if (st > 0) c.clearRect(0, 0, RW, st);
     c.save();
     if (ty > 0) c.translate(0, ty);
     const roomH = curH - ty;
     const bgCv = ROOMS.build(room, H, roomH);
     if (pad > 0) {
       if (room === 'balcony') {
-        for (let yy = -pad; yy < 0; yy++) c.drawImage(bgCv, 0, ((yy % 7) + 7) % 7, RW, 1, 0, yy, RW, 1);
+        for (let yy = -pad; yy < 0; yy++) c.drawImage(bgCv, 0, 14 + (((yy % 7) + 7) % 7), RW, 1, 0, yy, RW, 1);
+      } else if (room === 'kitchen') {
+        c.fillStyle = '#e6e0d9'; c.fillRect(0, -pad, RW, pad);
+      } else if (room === 'bath') {
+        c.fillStyle = '#efebe6'; c.fillRect(0, -pad, RW, pad);
+      } else if (room === 'hall') {
+        c.fillStyle = '#3e2416'; c.fillRect(0, -pad, RW, pad);
       } else {
         c.drawImage(bgCv, 0, 0, RW, 1, 0, -pad, RW, pad);
       }
@@ -581,7 +629,8 @@ const HOME = (() => {
   }
   const maxWalkY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
-    return curCv && curCv.height > 320 ? Math.min(WALK.y1, Math.max(WALK.y0, curCv.height - topY() - 56)) : WALK.y1;
+    const padBot = room === 'kitchen' ? 46 : 18;
+    return curCv && curCv.height > 320 ? Math.max(WALK.y0, curCv.height - topY() - padBot) : WALK.y1;
   };
   function walkTo(x, y, then) { // Round 10 #4: tap on the floor → he walks over there (in scene coords); Round 11 #6: then() when he is there
     const s = S(); if (s.sleeping || trans || tool || APP.scene !== 'home' || mk.eat) return false;
@@ -1258,9 +1307,9 @@ const HOME = (() => {
         || H(sp.micro, () => microTap(sp.micro))
         || H(sp.fridge, () => { if (trip && trip.kind === 'fridge') tripOpen(); else tripStart('fridge'); })
         || (it.disco ? H(sp.disco, () => { AUDIO.play('star'); act('dance'); }) : null)
-        || (it.lamp ? H(sp.lamp, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; }) : null)
-        || H(sp.ceilingLight, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; })
-        || H(sp.light, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; });
+        || (it.lamp ? H(sp.lamp, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; updateCeilColor(room); }) : null)
+        || H(sp.ceilingLight, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; updateCeilColor(room); })
+        || H(sp.light, () => { AUDIO.play('switch'); kitchenLamp = !kitchenLamp; updateCeilColor(room); });
     }
     if (room === 'bath') {
       return (it.duck ? H(sp.duck, () => { AUDIO.play('boop'); const [dx, dy] = sp.duck; fx.spawn('ring', dx + 9, dy + 9, { r0: 2, r1: 8, life: 0.3 }); fx.spawn('note', dx + 9, dy - 2, { vy: -14, life: 1, c: 1 }); }) : null)
@@ -1471,10 +1520,10 @@ const HOME = (() => {
       s.light = false; s.sleeping = true; mk.act = null; mk.talk = null; UI.hideBubble(); bubbleOn = false; mk.snoreT = 2; mk.zT = 0.6; AUDIO.play('yawn'); if (mic.on) micStop();
     }
     else wakeUp(false);
-    UI.updateBar(); GAME.save();
+    updateCeilColor(room); UI.updateBar(); GAME.save();
   }
   function wakeUp(auto, silent) {
-    const s = S(); s.sleeping = false; s.light = true; GAME.checkAch(); UI.updateBar(); GAME.save(true);
+    const s = S(); s.sleeping = false; s.light = true; GAME.checkAch(); updateCeilColor(room); UI.updateBar(); GAME.save(true);
     if (silent) return; act('stretch');
     if (auto) later(1.6, () => say(pick(['Вышпалшя!', 'Доброе утро!', 'Я полон шил!']), 'happy')); else if (s.st.energy < 60) later(1.6, () => say('Ну вот, разбудили...', 'sad'));
   }

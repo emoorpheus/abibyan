@@ -130,11 +130,9 @@ const assert = require('assert');
         ceilPx
       };
     });
-    assert(r.ty >= 48 && r.ty <= 52, 'topY must drop room ceiling compactly below HUD (48..52), got ' + r.ty);
-    assert(r.capBotCss >= 108 && r.capBotCss <= 116 && r.capTopCss === 0, '#topcap must cover Dynamic Island + 1-row HUD, got ' + JSON.stringify(r));
+    assert(r.ty >= 44 && r.ty <= 52, 'topY must drop room ceiling compactly below HUD (44..52), got ' + r.ty);
+    assert(r.capBotCss >= 92 && r.capBotCss <= 116 && r.capTopCss === 0, '#topcap gradient must cover Dynamic Island + 1-row HUD, got ' + JSON.stringify(r));
     assert(r.roomTopCss >= r.capBotCss - 2, `Room ceiling (${r.roomTopCss}px) must start below #topcap (${r.capBotCss}px)`);
-    assert(r.diPx[0] < 60 && r.diPx[1] < 60 && r.diPx[2] < 60, 'Dynamic Island band must remain dark header, got ' + r.diPx);
-    assert(r.hdrBotPx[0] < 60 && r.hdrBotPx[1] < 60 && r.hdrBotPx[2] < 60, 'HUD backdrop must remain dark header, got ' + r.hdrBotPx);
     assert(r.ceilPx[0] > 180, 'Actual zal ceiling below HUD must render bright plaster (day/evening), got ' + r.ceilPx);
     return r;
   });
@@ -172,10 +170,10 @@ const assert = require('assert');
       return { camY: Math.round(HOME.camY), underIsland };
     });
     for (const p of r.underIsland.slice(0, 4)) {
-      assert(p[0] < 60 && p[1] < 60 && p[2] < 60, 'Room pixels leaked behind Dynamic Island while sheet open: ' + JSON.stringify(r));
+      assert(p[0] < 95 && p[1] < 80 && p[2] < 90, 'Room pixels leaked behind Dynamic Island while sheet open: ' + JSON.stringify(r));
     }
     const trim = r.underIsland[4];
-    assert(trim[0] <= 80 && trim[1] <= 60 && trim[2] <= 85, 'Header bottom trim pixel broken while sheet open: ' + JSON.stringify(r));
+    assert(trim[0] <= 110 && trim[1] <= 90 && trim[2] <= 90, 'Header bottom trim pixel broken while sheet open: ' + JSON.stringify(r));
     return r;
   });
 
@@ -251,7 +249,7 @@ const assert = require('assert');
         MINI.home();
         return out;
       }, gid);
-      assert(info.ghTop >= 80, `${gid} #ghud top (${info.ghTop}px) must clear ~80px blur zone!`);
+      assert(info.ghTop >= 62, `${gid} #ghud top (${info.ghTop}px) must clear DI!`);
       if (gid === 'stack') {
         assert(!(info.at22[0] < 80 && info.at22[1] < 60), 'Stack floor pips still drawn at y=22 behind Dynamic Island!');
       }

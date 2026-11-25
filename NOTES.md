@@ -559,3 +559,10 @@
 ### Round 68 / Version 68 — Compact 1-Row Sharp HUD (`y = 82..110px`, `#topcap = 112px`) (2026-11-25)
 - Collapsed `.mode-stretch #hud` from the tall `154px` 2-row slab down into a compact `27px` single horizontal row (`#h-di` lvl/xp/coins on left, 4 stats in center, all 5 buttons `📱🛍🌱🏆⚙` on right) at `y = 82..109px` (`#topcap = 112px`, `topY = 50`, `safeTop = 36` / `80px` in sheets & mini-games), freeing `42 CSS px` for rooms.
 - Rebuilt `v=68` (`abibyan-v68-compact-hud-%s`), replaced `verify_r67.js` with `test/verify_r68.js` (`4/4` incl. 6-digit coins check & room/sheet/game screenshots), and verified all checks cleanly.
+
+
+### Round 69 / Version 69 — Enlarged Native HUD & Full Lower-Floor Walk (2026-11-25)
+- Raised single-row `.mode-stretch #hud` / `#ghud` to `top = 64px` (`safeTop = 29`, `topY = 45` logical px), enlarged all 5 action buttons (`32×32px`, `21px` icons) and 4 stats (`24×24px`, `15px` icons) plus `25px` level / `22px` XP / `24px` coin pill without wrapping even at `100000` coins.
+- Replaced the opaque `#1d1622` header block with per-room continuous ceiling extensions (`y = -pad..0` with `ROOMS.ambient`/`ROOMS.night`) and a borderless room-matched `#topcap` gradient fade + `--hud-pill` / `--ceil-bg` / `theme-color` palette updates on room switch and lamp/light toggles (plus dedicated sky-navy `#ui.ingame #topcap` fade).
+- Fixed `maxWalkY()` in `src/home.js` (`curCv.height - topY() - (room === 'kitchen' ? 46 : 18)`) so tapping anywhere down the lower floor walks Abibyan down to `y ≈ 322+` (`288` above `#bar` in `kitchen`).
+- Rebuilt `v=69` (`abibyan-v69-native-hud-%s`), added `test/verify_r69.js` (`5/5`), updated `verify_r53` / `verify_r58` / `verify_r65`, and ran full verification.
