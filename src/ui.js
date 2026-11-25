@@ -171,13 +171,13 @@ const UI = (() => {
     sheetKind = kind; sheetTab = tab; HOME.setPreview(true);
     sheet.innerHTML = `<div class="sh-head"><div class="sh-title">${title}</div><div class="pill notch" id="sh-coins">${im(I('coin'))}<span>${S().coins}</span></div><button class="x notch" id="sh-x" aria-label="Закрыть">✕</button></div>
       ${tabs ? `<div class="tabs${tabs.length >= 4 ? ' many' : ''}">${tabs.map((t) => `<button class="tab notch ${t.id === tab ? 'on' : ''}" data-t="${t.id}">${t.icon ? im(t.icon) : ''}${t.name}</button>`).join('')}</div>` : ''}<div class="sh-body" id="sh-body"></div>`;
-    sheet.classList.add('open'); if (!APP.lay.ct) hud.classList.add('hidden'); bar.classList.add('hidden'); if (wantEl) wantEl.style.visibility = 'hidden';
+    sheet.classList.add('open'); root.classList.add('sheeting'); if (!APP.lay.ct) hud.classList.add('hidden'); bar.classList.add('hidden'); if (wantEl) wantEl.style.visibility = 'hidden';
     $('#sh-x').onclick = () => { click(); closeSheet(); };
     sheet.querySelectorAll('.tab').forEach((b) => b.onclick = () => { AUDIO.play('tab'); sheetTab = b.dataset.t; sheet.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b)); HOME.setPreview(true); render(sheetTab); });
     sheet._render = render; render(tab);
   }
   function rerender() { if (sheetKind && sheet._render) { const b = $('#sh-body'), st = b ? b.scrollTop : 0; sheet._render(sheetTab); const b2 = $('#sh-body'); if (b2) b2.scrollTop = st; } }
-  function closeSheet() { if (!sheetKind) return; sheetKind = null; sheet.classList.remove('open'); HOME.setPreview(false); HOME.clearTry(); if (APP.scene === 'home') { hud.classList.remove('hidden'); bar.classList.remove('hidden'); } if (wantEl) wantEl.style.visibility = ''; setBar(barRoom); }
+  function closeSheet() { if (!sheetKind) return; sheetKind = null; sheet.classList.remove('open'); root.classList.remove('sheeting'); HOME.setPreview(false); HOME.clearTry(); if (APP.scene === 'home') { hud.classList.remove('hidden'); bar.classList.remove('hidden'); } if (wantEl) wantEl.style.visibility = ''; setBar(barRoom); }
   // locked by growth stage («с Детёныша») or by level
   const lockTag = (o, al) => al ? `<div class="lock age">${im(I('sprout'))}<b>${DATA.AGES[o.age].name}</b></div>` : (S().lvl < o.lvl ? `<div class="lock">${im(I('lock'))}<b>ур. ${o.lvl}</b></div>` : '');
   const ageToast = (o, name) => toast(`${name} — когда ${S().name} вырастет до этапа «${DATA.AGES[o.age].name}»`, I('sprout'));
@@ -412,7 +412,7 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 66 · Dynamic Island HUD, фикс багов в Бананах и завершение ДР</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 67 · Чёткий HUD ниже зоны размытия iOS и все кнопки наверху</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { const b = $('#' + id, w); b.onclick = () => { const v = (s.settings[key] = !s.settings[key]); AUDIO.set(key, v); AUDIO.play('click'); GAME.save(true); b.className = 'btn sm ' + (v ? 'g' : 'w'); b.textContent = v ? 'Вкл' : 'Выкл'; }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');
@@ -492,7 +492,7 @@ const UI = (() => {
   // ---- game HUD ----
   function gameHud(on, o = {}) {
     const oh = $('#ghint'); if (oh) oh.remove(); gtip(null);
-    ghud.classList.toggle('hidden', !on); homeVisible(!on); if (wantEl) wantEl.style.display = on ? 'none' : '';
+    ghud.classList.toggle('hidden', !on); root.classList.toggle('ingame', !!on); homeVisible(!on); if (wantEl) wantEl.style.display = on ? 'none' : '';
     if (!on) { ghud.innerHTML = ''; return; }
     ghud.innerHTML = `<button class="ibtn notch" id="g-pause" aria-label="Пауза"><span style="font-size:${U(8)}">II</span></button><div class="pill notch" id="g-lvl">Ур. 1</div><div class="prog notch"><i id="g-prog"></i></div><div class="hearts" id="g-hearts"></div><div class="pill notch" id="g-coins">${im(I('coin'))}<span>0</span></div>`;
     if (o.duel) ghud.innerHTML = `<button class="ibtn notch" id="g-pause" aria-label="Пауза"><span style="font-size:${U(8)}">II</span></button><div class="duel"><div class="pill notch me"><span class="nm">${esc(o.duel.a)}</span><b id="g-me">0</b></div><span class="vs">:</span><div class="pill notch fr"><b id="g-fr">0</b><span class="nm">${esc(o.duel.f)}</span></div></div>`;

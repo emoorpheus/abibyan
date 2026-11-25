@@ -1792,3 +1792,14 @@
 - **Build & Test Updates (`build.py`, `src/ui.js`, `test/verify_*.js`):**
   - Updated version label to `Версия 66 · Dynamic Island HUD, фикс багов в Бананах и завершение ДР`, SW query to `v=66`, cache prefix to `abibyan-v66-di-wings-%s`.
   - Added `test/verify_r66.js` and updated Variant 3 / ended-bday assertions in `verify_r36.js`, `verify_r53_dropped_ceiling_and_hearts.js`, `verify_r58_comprehensive.js`, and `verify_r65_iphone17.js`.
+
+
+## Round 67 — Sharp Lowered Top HUD Below iOS 26 Blur & Top Action Buttons (Version 67)
+- **Why (real device photo diagnosis):** Measured the real iPhone 17 PWA screenshot (`470×1024`): UIKit's `black-translucent` Liquid Glass edge blur spans `0..~92 CSS px` (`safe-area-inset-top + ~30px`). Placing `#topcap` boundary (`58px`) and HUD wings (`46..85px`) inside that band caused iOS 26 to feather `#1d1622` and cream walls across icons and text.
+- **UI & anti-blur layout changes (`src/style.css`, `src/home.js`, `src/ui.js`, `src/games.js`):**
+  - Extended `#topcap` to `position: fixed; top: 0; height: max(calc(env(safe-area-inset-top,0px) + 92px), 154px)` (`#1d1622` with `#4e3750` / `#3b2433` bottom trim) so the entire `0..92px` blur zone contains uniform `#1d1622`, eliminating color smear; automatically shrinks to `max(env + 30px, 92px)` (`#ui.ingame`, `#ui.sheeting`, `#ui.gifting`, `#ui.bday`) during sheets and mini-games.
+  - Lowered `.mode-stretch #hud` cleanly below the blur zone (`top: max(calc(env(safe-area-inset-top,0px) + 32px), 94px)`) and removed `!important` from `display: grid` so `.hidden` hides `#hud` reliably during sheets and mini-games.
+  - Moved `#h-phone` and `#h-shop` (`28×28px`) from the bottom corners up to Row 1 right (`94..122px`) next to `[★lvl][XP][#h-name][#h-coins]`, and placed `[#h-kg][#h-grow][#h-ach][#h-set]` on Row 2 right (`125..153px`) opposite `[#h-wl]` 4 stats.
+  - Restored full-width sleeker Kitchen bottom `#bar` (`height: 30u`, `.flabel bottom: 27u`) clearing monkey feet above Home Indicator.
+  - Updated `safeTop()` (`>= 41` / `42`), `topY()` (`69` logical px), `render()` (`curHeaderY()`), and mini-game `#ghud` (`94px`) / overlay offsets in `src/games.js` (`Balloon topCap: 62`, `Gym py0: 64`, `Stack bY: 102 / pipY: 63`, `Race clockY: 63`, `Roofs banY: 64`).
+  - Rebuilt Version 67 (`Версия 67 · Чёткий HUD ниже зоны размытия iOS и кнопки наверху`, `v=67`, `abibyan-v67-sharp-hud-%s`); added `test/verify_r67.js` (`7/7`).

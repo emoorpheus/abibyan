@@ -98,7 +98,7 @@ const fs = require('fs');
   });
 
   console.log('Geometry:', geom);
-  assert(geom.topY >= 26 && geom.topY <= 36, 'HOME.topY() must be compact 26..36 on iPhone (Variant 3), got ' + geom.topY);
+  assert(geom.topY >= 64 && geom.topY <= 72, 'HOME.topY() must sit cleanly below lowered sharp HUD (64..72), got ' + geom.topY);
 
   // 3. Verify ceiling extension pixels with light ON (16 rows from geom.topY should be light ceiling plaster)
   const topPixelsLightOn = await page.evaluate((ty) => {

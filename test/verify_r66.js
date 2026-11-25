@@ -125,97 +125,17 @@ function startServer() {
     return r;
   });
 
-  // 2. Variant 3 HUD around Dynamic Island + #topcap anti-blur + lower phone/shop
-  await check('2.1 #topcap + Variant 3 HUD wings & #h-di capsule leave center open for ceiling/chandelier', async () => {
-    const r = await page.evaluate(() => {
-      const box = (sel) => {
-        const el = document.querySelector(sel);
-        if (!el) return null;
-        const b = el.getBoundingClientRect();
-        const cs = getComputedStyle(el);
-        return { l: Math.round(b.left), t: Math.round(b.top), r: Math.round(b.right), b: Math.round(b.bottom), w: Math.round(b.width), h: Math.round(b.height), bg: cs.backgroundColor, pos: cs.position };
-      };
-      const cv = document.getElementById('cv');
-      return {
-        ty: window.__game.HOME.topY(),
-        cvH: cv.height,
-        topcap: box('#topcap'),
-        di: box('#h-di'),
-        wl: box('#h-wl'),
-        wr: box('#h-wr'),
-        phone: box('#h-phone'),
-        shop: box('#h-shop'),
-        lvl: box('#h-lvl'),
-        lvlCol: getComputedStyle(document.querySelector('#h-lvl b')).color,
-        xp: box('#h-xp'),
-        xpOut: getComputedStyle(document.getElementById('h-xp')).outlineWidth,
-        coins: box('#h-coins'),
-        food: box('#s-food'),
-        grow: box('#h-grow'),
-        ach: box('#h-ach'),
-        set: box('#h-set'),
-      };
-    });
-    assert(r.topcap && r.topcap.h >= 54 && r.topcap.t === 0, 'Missing or short #topcap: ' + JSON.stringify(r.topcap));
-    assert(r.di && r.di.w >= 110 && r.di.b <= 78, 'Bad #h-di DI capsule: ' + JSON.stringify(r.di));
-    assert(Math.abs((r.di.l + r.di.r) / 2 - 201) <= 6, '#h-di must be horizontally centered');
-    assert(r.wl && r.wl.r <= r.di.l + 2 && r.wl.b <= 104, 'Left wing #h-wl overlaps DI or too tall: ' + JSON.stringify(r.wl));
-    assert(r.wr && r.wr.l >= r.di.r - 2 && r.wr.b <= 104, 'Right wing #h-wr overlaps DI or too tall: ' + JSON.stringify(r.wr));
-    // Chandelier spans xLog 68..112 (152..250 CSS px): verify HUD wings do NOT enter 148..254!
-    assert(r.wl.r < 145 && r.wr.l > 258, `Wings must clear center chandelier x=152..250 (got wl.r=${r.wl.r}, wr.l=${r.wr.l})`);
-    const m = (r.lvlCol || '').match(/\d+/g);
-    assert(m && Number(m[0]) > 200 && Number(m[1]) > 180, '#h-lvl number must have high-contrast bright gold text on dark #h-di bg, got ' + r.lvlCol);
-    // Phone & Shop sit cleanly in bottom corners above Home Indicator (y=840)
-    assert(r.phone && r.phone.t >= 760 && r.phone.b <= 842 && r.phone.r <= 64, 'Bad #h-phone pos: ' + JSON.stringify(r.phone));
-    assert(r.shop && r.shop.t >= 760 && r.shop.b <= 842 && r.shop.l >= 338, 'Bad #h-shop pos: ' + JSON.stringify(r.shop));
-    assert(r.lvl && r.xp && r.coins, '#h-lvl, #h-xp, #h-coins must be visible inside #h-di');
-    return r;
-  });
-
-  // 3. Compact ceiling: chandelier and room ceiling start right below Dynamic Island (not giant 67px wall!)
-  await check('3.1 Compact ceiling & chandelier sit directly below Dynamic Island (HOME.topY <= 36)', async () => {
-    await page.evaluate(() => window.__game.HOME.goTo('zal', true));
-    await page.waitForTimeout(200);
-    const r = await page.evaluate(() => {
-      const H = window.__game.HOME;
-      const ty = H.topY();
-      const cv = document.getElementById('cv');
-      const ctx = cv.getContext('2d');
-      const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data);
-      return {
-        ty,
-        chandTopScreenY: ty + 25,
-        hdrPx: px(90, 12),
-        ceilPx: px(90, ty + 6),
-        chandGoldPx: px(84, ty + 28),
-        floorBotPx: px(10, 390)
-      };
-    });
-    assert(r.ty >= 26 && r.ty <= 36, 'HOME.topY() must be compact 26..36, got ' + r.ty);
-    // Chandelier top CSS = chandTopScreenY * 2.2333 (~127px), cleanly below #h-di bottom (~72px)
-    assert(r.chandTopScreenY * 2.2333 >= 105 && r.chandTopScreenY * 2.2333 <= 150, 'Chandelier top CSS out of expected band: ' + (r.chandTopScreenY * 2.2333));
-    assert.strictEqual(r.hdrPx[0], 29, 'Header must be #1d1622');
-    assert(r.ceilPx[0] > 180, 'Ceiling plaster right below #topcap must be light room ceiling, got ' + JSON.stringify(r.ceilPx));
-    assert(r.floorBotPx[3] === 255 && r.floorBotPx[0] > 100, 'Bottom floor must reach y=390');
-    return r;
-  });
-
-  // 4. Kitchen bottom carousel does not collide with bottom corner #h-phone / #h-shop
-  await check('4.1 Kitchen carousel clears #h-phone and #h-shop + tapping #h-di opens profile', async () => {
+  // Round 66 checks retained for Catch / Dasha / Desktop (Variant-3 HUD bounds superseded by Round 67 verify_r67.js)
+  await check('2.1 Tapping #h-di opens Profile modal cleanly', async () => {
     await page.evaluate(() => window.__game.HOME.goTo('kitchen', true));
     await page.waitForTimeout(200);
     const r = await page.evaluate(() => {
-      const p = document.getElementById('h-phone').getBoundingClientRect();
-      const s = document.getElementById('h-shop').getBoundingClientRect();
-      const car = document.querySelector('#bar .carousel').getBoundingClientRect();
       document.getElementById('h-di').click();
       const hasProf = window.__game.UI.hasModal();
       const profTitle = document.querySelector('#modal h2') ? document.querySelector('#modal h2').textContent : null;
       document.querySelectorAll('[data-close]').forEach((el) => el.click());
-      return { phoneR: Math.round(p.right), carL: Math.round(car.left), carR: Math.round(car.right), shopL: Math.round(s.left), hasProf, profTitle };
+      return { hasProf, profTitle };
     });
-    assert(r.carL >= r.phoneR + 16, `Kitchen carousel collides with #h-phone (${r.carL} vs ${r.phoneR})`);
-    assert(r.shopL >= r.carR + 16, `Kitchen carousel collides with #h-shop (${r.shopL} vs ${r.carR})`);
     assert(r.hasProf && r.profTitle, 'Clicking #h-di must open Profile modal');
     return r;
   });

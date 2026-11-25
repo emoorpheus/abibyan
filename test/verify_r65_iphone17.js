@@ -130,9 +130,9 @@ const assert = require('assert');
         ceilPx
       };
     });
-    assert(r.ty >= 26 && r.ty <= 36, 'topY must drop room ceiling compactly below #h-di (26..36), got ' + r.ty);
-    assert(r.capBotCss >= 54 && r.capTopCss === 0, '#topcap must cover Dynamic Island band, got ' + JSON.stringify(r));
-    assert(r.roomTopCss >= r.diBotCss, `Room ceiling (${r.roomTopCss}px) must start below #h-di bottom (${r.diBotCss}px)`);
+    assert(r.ty >= 64, 'topY must drop room ceiling below HUD (>=64), got ' + r.ty);
+    assert(r.capBotCss >= 150 && r.capTopCss === 0, '#topcap must cover Dynamic Island + blur zone + 2-row HUD, got ' + JSON.stringify(r));
+    assert(r.roomTopCss >= r.capBotCss - 2, `Room ceiling (${r.roomTopCss}px) must start below #topcap (${r.capBotCss}px)`);
     assert(r.diPx[0] < 60 && r.diPx[1] < 60 && r.diPx[2] < 60, 'Dynamic Island band must remain dark header, got ' + r.diPx);
     assert(r.hdrBotPx[0] < 60 && r.hdrBotPx[1] < 60 && r.hdrBotPx[2] < 60, 'HUD backdrop must remain dark header, got ' + r.hdrBotPx);
     assert(r.ceilPx[0] > 180, 'Actual zal ceiling below HUD must render bright plaster (day/evening), got ' + r.ceilPx);
@@ -240,23 +240,23 @@ const assert = require('assert');
         } else if (id === 'race') {
           // timer pill must NOT be at y=25 (behind Dynamic Island!)
           const at25 = Array.from(ctx.getImageData(90, 25, 1, 1).data);
-          const at56 = Array.from(ctx.getImageData(90, 56, 1, 1).data);
+          const at68 = Array.from(ctx.getImageData(90, 68, 1, 1).data);
           out.at25 = at25.slice(0, 3);
-          out.at56 = at56.slice(0, 3);
+          out.at68 = at68.slice(0, 3);
         } else if (id === 'roofs') {
           // banana counter must be below #g-pause (~47), NOT at y=38 behind button!
-          const ban54 = Array.from(ctx.getImageData(15, 55, 1, 1).data);
-          out.ban54 = ban54.slice(0, 3);
+          const ban67 = Array.from(ctx.getImageData(15, 67, 1, 1).data);
+          out.ban67 = ban67.slice(0, 3);
         }
         MINI.home();
         return out;
       }, gid);
-      assert(info.ghTop >= 60, `${gid} #ghud top (${info.ghTop}px) overlaps Dynamic Island!`);
+      assert(info.ghTop >= 92, `${gid} #ghud top (${info.ghTop}px) must clear ~92px anti-blur band!`);
       if (gid === 'stack') {
         assert(!(info.at22[0] < 80 && info.at22[1] < 60), 'Stack floor pips still drawn at y=22 behind Dynamic Island!');
       }
       if (gid === 'race') {
-        assert(info.at56[0] < 80 || info.at56[0] > 230, 'Race clock pill missing below #ghud at y=56: ' + JSON.stringify(info));
+        assert(info.at68[0] < 80 || info.at68[0] > 230, 'Race clock pill missing below #ghud at y=68: ' + JSON.stringify(info));
       }
       res[gid] = info;
     }

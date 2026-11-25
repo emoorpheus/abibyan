@@ -100,15 +100,15 @@ const HOME = (() => {
     if (curH <= RH) return 0;
     const u = (typeof APP !== 'undefined' && APP.lay && APP.lay.u) || (402 / 180);
     const saT = (typeof APP !== 'undefined' && APP.lay && APP.lay.saTopPx) || 62;
-    return Math.max(26, Math.ceil((saT - 4) / u));
+    return Math.max(41, Math.ceil((saT + 30) / u));
   };
   const topY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
     if (extraH <= 0) return 0;
-    // Compact ceiling above cornice/chandelier right below iPhone 17 Dynamic Island (#topcap=26 + 8px ceiling pad)
-    return Math.min(extraH, Math.max(34, safeTop() + 8));
+    // Full anti-blur zone (~92px) + 2-row sharp HUD (94..152px) -> room starts cleanly below HUD at 69 logical px
+    return Math.min(extraH, Math.max(69, safeTop() + 27));
   };
   const curHeaderY = () => {
     const ty = topY();
@@ -288,7 +288,7 @@ const HOME = (() => {
     for (let i = timers.length - 1; i >= 0; i--) if (t >= timers[i].at) { const f = timers[i].fn; timers.splice(i, 1); try { f(); } catch (e) { console.error(e); } }
     if (trans) { trans.t += dt; if (trans.t >= trans.dur) trans = null; }
     const shopHome = preview && UI.sheetKind === 'shop' && UI.sheetTab === 'home';
-    const target = preview ? Math.max(0, (shopHome ? Math.max(24, topY() - safeTop() + 16) : 106) - APP.lay.cb) : 0; camY += (target - camY) * Math.min(1, dt * 10); if (Math.abs(target - camY) < 0.6) camY = target; camT = target;
+    const target = preview ? Math.max(0, (shopHome ? Math.max(24, topY() - safeTop()) : 106) - APP.lay.cb) : 0; camY += (target - camY) * Math.min(1, dt * 10); if (Math.abs(target - camY) < 0.6) camY = target; camT = target;
     if (mk.jy < 0 || mk.vy !== 0) { mk.vy += 900 * dt; mk.jy += mk.vy * dt; if (mk.jy >= 0) { mk.jy = 0; mk.vy = 0; } }
     tailPh += dt * ((mk.act && mk.act.def.fast) ? 6 : s.sleeping ? 0.6 : GAME.mood() > 70 ? 2.4 : 1.4);
     mk.blinkT -= dt; if (mk.blinkT <= 0) { mk.blink = 0.13; mk.blinkT = rnd(2.2, 5.5); if (Math.random() < 0.18) later(0.28, () => { mk.blink = 0.12; }); } if (mk.blink > 0) mk.blink -= dt;
@@ -414,7 +414,7 @@ const HOME = (() => {
       }
       ctx.drawImage(off, 0, -cy);
     }
-    const hdrH = safeTop();
+    const hdrH = curHeaderY();
     if (hdrH > 0) drawTopPanel(ctx, hdrH);
     if (flash > 0) {
       ctx.globalAlpha = Math.min(1, flash);
