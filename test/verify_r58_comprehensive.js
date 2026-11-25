@@ -168,7 +168,7 @@ const assert = require('assert');
     return text;
   });
   console.log('Settings version text contains "Версия":', verInfo.includes('Версия'));
-  assert(verInfo.includes('Версия 5') || verInfo.includes('Версия 6'), 'Settings must display Version');
+  assert(/Версия \d+/.test(verInfo), 'Settings must display Version');
 
   // -------------------------------------------------------------
   // TEST 5: Achievements Progressive Tiers

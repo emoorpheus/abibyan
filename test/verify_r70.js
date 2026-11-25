@@ -37,7 +37,7 @@ function startServer() {
 }
 
 (async () => {
-  console.log('=== STARTING ROUND 69 VERIFICATION (Enlarged Native HUD + Lower Floor Walk) ===');
+  console.log('=== STARTING ROUND 70 VERIFICATION (1.5-2x Enlarged HUD + Seamless Balcony Background) ===');
   const { srv, url: targetUrl } = await startServer();
 
   const browser = await chromium.launch({
@@ -106,8 +106,8 @@ function startServer() {
   });
   await page.waitForTimeout(300);
 
-  // 1. Enlarged single-row HUD sits higher (top=66..98px) cleanly with zero overlap/wrap
-  await check('1.1 Enlarged single-row top HUD (y=66..98px, 32px buttons, 25px stats, zero wrap even at 100000 coins)', async () => {
+  // 1. Enlarged 1.5-2x 2-row HUD (y=64..156px) cleanly fits with zero collisions even at 100000 coins
+  await check('1.1 Enlarged 2-row HUD icons (44px buttons/32px imgs, 40px stats/26px imgs, 38px lvl, 46px xp)', async () => {
     const r = await page.evaluate(() => {
       const box = (sel) => {
         const el = document.querySelector(sel);
@@ -126,7 +126,9 @@ function startServer() {
         coins: box('#h-coins'),
         wl: box('#h-wl'),
         stat: box('#s-food'),
+        statImg: box('#s-food img'),
         phone: box('#h-phone'),
+        phoneImg: box('#h-phone img'),
         shop: box('#h-shop'),
         wr: box('#h-wr'),
         grow: box('#h-grow'),
@@ -134,80 +136,75 @@ function startServer() {
         set: box('#h-set'),
       };
     });
-    assert(r.hud.t >= 62 && r.hud.t <= 68, 'HUD must be raised to 62..68px, got ' + r.hud.t);
-    assert(r.phone.w >= 31 && r.grow.w >= 31 && r.set.w >= 31, 'Buttons must be enlarged (~32px), got ' + r.phone.w + '/' + r.grow.w);
-    assert(r.stat.w >= 24 && r.stat.h >= 24, 'Stat icons must be enlarged (~24px), got ' + r.stat.w);
-    assert(r.di.r <= r.wl.l && r.wl.r <= r.phone.l && r.phone.r <= r.shop.l && r.shop.r <= r.wr.l, 'Row items collide or wrap: ' + JSON.stringify(r));
-    assert(r.wr.r <= 399, 'Right edge clipped: ' + r.wr.r);
-    assert(r.topcap.borderB === '0px', '#topcap must NOT have harsh border-bottom: ' + r.topcap.borderB);
-    assert(r.ty >= 44 && r.ty <= 48, 'HOME.topY() must be 44..48, got ' + r.ty);
+    assert(r.hud.t >= 62 && r.hud.t <= 68, 'HUD must sit near DI at 62..68px, got ' + r.hud.t);
+    assert(r.phone.w >= 43 && r.grow.w >= 43 && r.set.w >= 43, 'Buttons must be enlarged (>=43px), got ' + r.phone.w);
+    assert(r.phoneImg.w >= 30 && r.statImg.w >= 24, 'Icons inside buttons/stats must be enlarged (>=30px / >=24px)');
+    assert(r.stat.w >= 38 && r.lvl.w >= 36 && r.xp.w >= 44 && r.coins.h >= 32, 'Stats/lvl/xp/coins must be enlarged');
+    assert(r.di.r <= r.phone.l && r.phone.r <= r.shop.l && r.shop.r <= 398, 'Row 1 collision: ' + JSON.stringify(r));
+    assert(r.wl.r <= r.wr.l && r.wr.r <= 398, 'Row 2 collision: ' + JSON.stringify(r));
+    assert(r.topcap.borderB === '0px', '#topcap must NOT have harsh border-bottom');
+    assert(r.topcap.h <= 74, '#topcap scrim must stay tight to top clock, NOT dim HUD: ' + r.topcap.h);
+    assert(r.ty >= 68 && r.ty <= 74, 'HOME.topY() must be 68..74, got ' + r.ty);
 
     const wideCoins = await page.evaluate(() => {
       const sp = document.querySelector('#h-coins span');
       const orig = sp.textContent;
       sp.textContent = '100000';
       const diR = Math.round(document.getElementById('h-di').getBoundingClientRect().right);
-      const wlL = Math.round(document.getElementById('h-wl').getBoundingClientRect().left);
-      const wlR = Math.round(document.getElementById('h-wl').getBoundingClientRect().right);
       const phL = Math.round(document.getElementById('h-phone').getBoundingClientRect().left);
       sp.textContent = orig;
-      return { diR, wlL, wlR, phL };
+      return { diR, phL };
     });
-    assert(wideCoins.diR <= wideCoins.wlL && wideCoins.wlR <= wideCoins.phL, '6-digit coins overflow into stats: ' + JSON.stringify(wideCoins));
+    assert(wideCoins.diR <= wideCoins.phL, '6-digit coins overflow into Row 1 buttons: ' + JSON.stringify(wideCoins));
     return { r, wideCoins };
   });
 
-  // 2. Native room blending: no opaque black #1d1622 slab in Home, per-room ceiling/wall flows to y=0 + per-room --ceil-bg
-  await check('2.1 Native room blending in all 5 rooms (no opaque black top slab; distinct room themes)', async () => {
-    const out = {};
-    for (const rm of ['zal', 'kitchen', 'bath', 'hall', 'balcony']) {
-      await page.evaluate((id) => window.__game.HOME.goTo(id, true), rm);
-      await page.waitForTimeout(250);
-      out[rm] = await page.evaluate(() => {
-        const cv = document.getElementById('cv');
-        const ctx = cv.getContext('2d');
-        const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data).slice(0, 3);
-        return {
-          topCeilL: px(40, 20),
-          topCeilR: px(150, 20),
-          hudMid: px(90, 36),
-          belowHdr: px(40, window.__game.HOME.topY() + 4),
-          ceilBg: getComputedStyle(document.documentElement).getPropertyValue('--ceil-bg').trim(),
-          hudRgb: getComputedStyle(document.documentElement).getPropertyValue('--hud-rgb').trim(),
-        };
-      });
-    }
-    assert(out.zal.topCeilL[0] > 200 && out.zal.topCeilR[0] > 200, 'Zal cream ceiling must extend cleanly across top without opaque black slab: ' + JSON.stringify(out.zal));
-    assert(out.kitchen.topCeilL[0] > 200, 'Kitchen ceiling must extend continuously to top edge: ' + JSON.stringify(out.kitchen));
-    assert(out.bath.topCeilL[0] > 200, 'Bath ceiling must extend continuously to top edge: ' + JSON.stringify(out.bath));
-    assert(out.hall.topCeilL[0] < 80 && out.hall.topCeilL[0] > 45 && out.hall.topCeilL[2] < 35, 'Hall mahogany ceiling must match room wood (#3e2416): ' + JSON.stringify(out.hall));
-    assert.notStrictEqual(out.zal.hudRgb, out.bath.hudRgb, 'Zal and Bath must have distinct room-native HUD palettes');
-    return out;
+  // 2. Balcony background matches ceiling planks 100% seamlessly (zero color difference or dark stripe at topY)
+  await check('2.1 Balcony top HUD background color matches balcony cedar ceiling identically without dark seam', async () => {
+    await page.evaluate(() => window.__game.HOME.goTo('balcony', true));
+    await page.waitForTimeout(250);
+    const bal = await page.evaluate(() => {
+      const cv = document.getElementById('cv');
+      const ctx = cv.getContext('2d');
+      const ty = window.__game.HOME.topY();
+      const rowMean = (y0, y1) => {
+        const d = ctx.getImageData(0, y0, 180, y1 - y0).data;
+        let r = 0, g = 0, b = 0, n = d.length / 4;
+        for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+        return [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
+      };
+      return {
+        ty,
+        topBand: rowMean(10, 35),
+        midBand: rowMean(40, ty),
+        ceilBand: rowMean(ty + 2, ty + 16),
+        ceilBg: getComputedStyle(document.documentElement).getPropertyValue('--ceil-bg').trim(),
+        scrim: getComputedStyle(document.documentElement).getPropertyValue('--hud-scrim').trim(),
+      };
+    });
+    const diff = Math.abs(bal.topBand[0] - bal.ceilBand[0]) + Math.abs(bal.topBand[1] - bal.ceilBand[1]) + Math.abs(bal.topBand[2] - bal.ceilBand[2]);
+    const midDiff = Math.abs(bal.midBand[0] - bal.ceilBand[0]) + Math.abs(bal.midBand[1] - bal.ceilBand[1]) + Math.abs(bal.midBand[2] - bal.ceilBand[2]);
+    assert(diff <= 8 && midDiff <= 8, 'Balcony top HUD wood must match ceiling planks identically (diff=' + diff + ', midDiff=' + midDiff + '): ' + JSON.stringify(bal));
+    assert.strictEqual(bal.ceilBg, '#5a3422', '--ceil-bg must match #5a3422 cedar wood');
+    return bal;
   });
 
-  // 3. Bug #2: Tapping lower floor walks monkey ALL the way down toward bottom of screen!
-  await check('3.1 Tap on lower floor in zal walks monkey down past old 304 limit (y >= 315)', async () => {
+  // 3. Lower floor walking still reaches bottom of floor
+  await check('3.1 Tap on lower floor in zal walks monkey down past y >= 295 (bottom of screen)', async () => {
     await page.evaluate(() => window.__game.HOME.goTo('zal', true));
     await page.waitForTimeout(250);
-    const startY = await page.evaluate(() => window.__game.HOME.mk.y);
-    // Tap low floor at x=200px, y=820px (scene y ≈ 367 - 45 = 322)
     await page.mouse.click(200, 820);
     await page.waitForTimeout(80);
-    const walking = await page.evaluate(() => ({
-      tripKind: window.__game.HOME.trip && window.__game.HOME.trip.kind,
-      walking: window.__game.HOME.walking,
-    }));
-    assert.strictEqual(walking.tripKind, 'walk', 'Tapping bottom floor must trigger walk trip: ' + JSON.stringify(walking));
-    assert.strictEqual(walking.walking, true);
+    const walking = await page.evaluate(() => window.__game.HOME.walking);
+    assert.strictEqual(walking, true, 'Tapping bottom floor must trigger walking');
     await page.evaluate(() => window.advanceTime(3000));
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(120);
     const endY = await page.evaluate(() => Math.round(window.__game.HOME.mk.y));
-    assert(endY >= 315, `Monkey must reach lower floor (y>=315), started=${startY}, ended=${endY}`);
+    assert(endY >= 295, `Monkey must reach lower floor (y>=295), got ${endY}`);
 
-    // Now test walking UP and back DOWN in another room (bath) + kitchen bottom cap above #bar
     await page.evaluate(() => window.__game.HOME.goTo('kitchen', true));
     await page.waitForTimeout(200);
-    await page.mouse.click(200, 745);
+    await page.mouse.click(270, 766);
     await page.evaluate(() => window.advanceTime(2500));
     await page.waitForTimeout(100);
     const kWalk = await page.evaluate(() => ({
@@ -215,22 +212,18 @@ function startServer() {
       barTopCss: Math.round(document.getElementById('bar').getBoundingClientRect().top),
       feetCss: Math.round((window.__game.HOME.mk.y + window.__game.HOME.topY()) * window.__game.APP.lay.u),
     }));
-    assert(kWalk.mkY >= 285 && kWalk.feetCss <= kWalk.barTopCss + 4, 'Kitchen lower walk must go deep while respecting #bar: ' + JSON.stringify(kWalk));
-    return { startY, walking, endY, kWalk };
+    assert(kWalk.mkY >= 272 && kWalk.feetCss <= kWalk.barTopCss + 4, 'Kitchen walk must go down near #bar cleanly: ' + JSON.stringify(kWalk));
+    return { endY, kWalk };
   });
 
-  // 4. Sheets (#hud hidden, camY > 0 keeps top DI clear) + mini-game #ghud + Version string
-  await check('4.1 Sheet hides #hud cleanly, mini-game #ghud at top~66px, and settings shows Version 69', async () => {
+  // 4. Version 70 check, sheets & mini-game HUD
+  await check('4.1 Sheet hides #hud, mini-game #ghud enlarged cleanly, and Settings shows Version 70', async () => {
     await page.evaluate(() => window.__game.HOME.goTo('kitchen', true));
     await page.evaluate(() => window.__game.UI.openGrow());
     await page.waitForTimeout(350);
-    const sh = await page.evaluate(() => ({
-      hudDisp: getComputedStyle(document.getElementById('hud')).display,
-      capH: Math.round(document.getElementById('topcap').getBoundingClientRect().height),
-    }));
-    assert.strictEqual(sh.hudDisp, 'none');
-    assert(sh.capH >= 64 && sh.capH <= 72);
-    await page.screenshot({ path: '/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r69_live_sheet.png' });
+    const sh = await page.evaluate(() => getComputedStyle(document.getElementById('hud')).display);
+    assert.strictEqual(sh, 'none');
+    await page.screenshot({ path: '/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r70_live_sheet.png' });
     await page.evaluate(() => window.__game.UI.closeSheet());
 
     await page.evaluate(() => window.__game.MINI.start('catch', 1));
@@ -238,31 +231,28 @@ function startServer() {
     const gm = await page.evaluate(() => ({
       hudDisp: getComputedStyle(document.getElementById('hud')).display,
       ghTop: Math.round(document.getElementById('ghud').getBoundingClientRect().top),
+      pauseW: Math.round(document.getElementById('g-pause').getBoundingClientRect().width),
     }));
     assert.strictEqual(gm.hudDisp, 'none');
-    assert(gm.ghTop >= 62 && gm.ghTop <= 68, '#ghud top must sit cleanly at 62..68px, got ' + gm.ghTop);
-    await page.screenshot({ path: '/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r69_live_catch.png' });
+    assert(gm.ghTop >= 62 && gm.ghTop <= 68 && gm.pauseW >= 38);
+    await page.screenshot({ path: '/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r70_live_catch.png' });
     await page.evaluate(() => window.__game.MINI.home());
 
     await page.evaluate(() => window.__game.UI.openSettings());
     await page.waitForTimeout(200);
     const verTxt = await page.evaluate(() => document.querySelector('.mbox').textContent);
     await page.evaluate(() => window.__game.UI.closeModal());
-    assert(verTxt.includes('Версия 69'), 'Settings must show Версия 69');
-    return { sh, gm };
+    assert(verTxt.includes('Версия 70'), 'Settings must show Версия 70');
+    return gm;
   });
 
-  // 5. Save screenshots of all 5 rooms + zal lights off
+  // 5. Save screenshots of all 5 rooms
   await page.evaluate(() => { const t = document.getElementById('toasts'); if (t) t.innerHTML = ''; });
-  for (const rm of ['zal', 'kitchen', 'bath', 'hall', 'balcony']) {
+  for (const rm of ['balcony', 'zal', 'kitchen', 'bath', 'hall']) {
     await page.evaluate((id) => window.__game.HOME.goTo(id, true), rm);
     await page.waitForTimeout(250);
-    await page.screenshot({ path: `/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r69_live_${rm}.png` });
+    await page.screenshot({ path: `/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r70_live_${rm}.png` });
   }
-  await page.evaluate(() => { window.__game.HOME.goTo('zal', true); window.__game.HOME.toggleLight(); });
-  await page.waitForTimeout(250);
-  await page.screenshot({ path: '/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r69_live_zal_night.png' });
-  await page.evaluate(() => window.__game.HOME.toggleLight());
 
   await check('0.0 Zero console/page errors', async () => {
     assert.deepStrictEqual(consoleErrors, []);

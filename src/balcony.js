@@ -158,7 +158,8 @@ const BALCONY = (() => {
   }
   function drawRoom(ctx, P, H, ph, curH = RH) {
     const it = H.items, lvl = pcLvl(it);
-    boards(P, 0, 0, RW, CEIL, '#5a3422', 3); for (let j = 0; j < 8; j++) { ctx.globalAlpha = 0.3 * (1 - j / 8); P.r(0, j, RW, 1, '#1a0c06'); } ctx.globalAlpha = 1;
+    const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0;
+    boards(P, 0, 0, RW, CEIL, '#5a3422', 3); if (ty <= 0) for (let j = 0; j < 8; j++) { ctx.globalAlpha = 0.3 * (1 - j / 8); P.r(0, j, RW, 1, '#1a0c06'); } ctx.globalAlpha = 1;
     P.r(0, CEIL, RW, 1, '#3a2014'); boards(P, 0, CEIL + 1, RW, 5, '#7b4a2e', 4); P.r(0, 27, RW, 1, '#4e2a18');
     windowFrame(ctx, P);
     if (it.flowers) R.sprAt(ctx, spr('flowers'), FLO[0], SILL - 20);

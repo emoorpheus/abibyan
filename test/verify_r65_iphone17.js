@@ -130,9 +130,9 @@ const assert = require('assert');
         ceilPx
       };
     });
-    assert(r.ty >= 44 && r.ty <= 52, 'topY must drop room ceiling compactly below HUD (44..52), got ' + r.ty);
-    assert(r.capBotCss >= 92 && r.capBotCss <= 116 && r.capTopCss === 0, '#topcap gradient must cover Dynamic Island + 1-row HUD, got ' + JSON.stringify(r));
-    assert(r.roomTopCss >= r.capBotCss - 2, `Room ceiling (${r.roomTopCss}px) must start below #topcap (${r.capBotCss}px)`);
+    assert(r.ty >= 64 && r.ty <= 74, 'topY must drop room ceiling cleanly below 2-row enlarged HUD (64..74), got ' + r.ty);
+    assert(r.capBotCss >= 62 && r.capBotCss <= 76 && r.capTopCss === 0, '#topcap status-bar scrim must cover top status bar without dark slab over HUD, got ' + JSON.stringify(r));
+    assert(r.roomTopCss >= 150, `Room molding/objects (${r.roomTopCss}px) must start cleanly below HUD`);
     assert(r.ceilPx[0] > 180, 'Actual zal ceiling below HUD must render bright plaster (day/evening), got ' + r.ceilPx);
     return r;
   });

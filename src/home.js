@@ -107,8 +107,8 @@ const HOME = (() => {
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
     if (extraH <= 0) return 0;
-    // Enlarged single-row native HUD (y=64..96px) -> room starts cleanly right below at 45 logical px (100.5 CSS px)
-    return Math.min(extraH, Math.max(45, safeTop() + 16));
+    // 2 compact enlarged HUD rows (y=64..156px) -> room starts cleanly right below at 70 logical px (156.3 CSS px)
+    return Math.min(extraH, Math.max(70, safeTop() + 41));
   };
   const curHeaderY = () => {
     const ty = topY();
@@ -204,33 +204,35 @@ const HOME = (() => {
   const ROOM_HUD = {
     zal: () => {
       const lgt = !(typeof GAME !== 'undefined' && GAME.S && GAME.S.light === false);
-      if (!lgt) return { rgb: '14,18,42', ceil: '#131630', hdr: '#12152d' };
+      if (!lgt) return { rgb: '14,18,42', pill: 'rgba(18,22,50,.86)', ceil: '#131630', hdr: '#12152d', topA: 0.72 };
       const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
       return ph === 'night'
-        ? { rgb: '24,26,48', ceil: '#25263c', hdr: '#24253a' }
+        ? { rgb: '24,26,48', pill: 'rgba(30,32,58,.82)', ceil: '#25263c', hdr: '#24253a', topA: 0.64 }
         : ph === 'evening'
-          ? { rgb: '62,38,24', ceil: '#5a3a26', hdr: '#4e3120' }
-          : { rgb: '56,36,24', ceil: '#4c3424', hdr: '#442e20' };
+          ? { rgb: '62,38,24', pill: 'rgba(72,44,28,.80)', ceil: '#5a3a26', hdr: '#4e3120', topA: 0.60 }
+          : { rgb: '56,36,24', pill: 'rgba(68,42,28,.80)', ceil: '#4c3424', hdr: '#442e20', topA: 0.60 };
     },
     kitchen: () => {
       const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
-      if (kitchenLamp === false) return { rgb: '38,34,48', ceil: '#343043', hdr: '#2e2a3c' };
+      if (kitchenLamp === false) return { rgb: '38,34,48', pill: 'rgba(46,40,58,.84)', ceil: '#343043', hdr: '#2e2a3c', topA: 0.64 };
       return ph === 'night'
-        ? { rgb: '30,28,46', ceil: '#2b293f', hdr: '#27253a' }
-        : { rgb: '66,46,28', ceil: '#573f2a', hdr: '#4b3624' };
+        ? { rgb: '30,28,46', pill: 'rgba(38,36,56,.82)', ceil: '#2b293f', hdr: '#27253a', topA: 0.64 }
+        : { rgb: '66,46,28', pill: 'rgba(84,56,34,.80)', ceil: '#573f2a', hdr: '#4b3624', topA: 0.60 };
     },
     bath: () => {
       const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
       return ph === 'night'
-        ? { rgb: '26,34,52', ceil: '#253147', hdr: '#212c40' }
-        : { rgb: '44,58,74', ceil: '#3c4c5d', hdr: '#344252' };
+        ? { rgb: '26,34,52', pill: 'rgba(36,48,70,.84)', ceil: '#253147', hdr: '#212c40', topA: 0.64 }
+        : { rgb: '44,58,74', pill: 'rgba(56,74,94,.82)', ceil: '#3c4c5d', hdr: '#344252', topA: 0.60 };
     },
-    hall: () => ({ rgb: '46,26,16', ceil: '#331d12', hdr: '#311c11' }),
+    hall: () => ({ rgb: '62,36,22', pill: 'rgba(48,26,16,.80)', ceil: '#3e2416', hdr: '#382014', topA: 0.16 }),
     balcony: () => {
       const ph = (typeof ROOMS !== 'undefined' && ROOMS.phase) ? ROOMS.phase() : 'day';
       return ph === 'night'
-        ? { rgb: '20,24,46', ceil: '#1c2038', hdr: '#1a1e34' }
-        : { rgb: '58,32,18', ceil: '#432617', hdr: '#3d2214' };
+        ? { rgb: '78,44,32', pill: 'rgba(54,30,22,.80)', ceil: '#4e2c20', hdr: '#46261a', topA: 0.16 }
+        : ph === 'evening'
+          ? { rgb: '90,49,29', pill: 'rgba(66,36,22,.80)', ceil: '#5a311d', hdr: '#4e2a18', topA: 0.16 }
+          : { rgb: '90,52,34', pill: 'rgba(66,36,22,.80)', ceil: '#5a3422', hdr: '#4e2a18', topA: 0.16 };
     }
   };
   function curRoomTheme(r) {
@@ -247,8 +249,8 @@ const HOME = (() => {
     const rs = document.documentElement.style;
     rs.setProperty('--ceil-bg', col);
     rs.setProperty('--hud-rgb', th.rgb);
-    rs.setProperty('--hud-pill', 'rgba(' + th.rgb + ',.76)');
-    rs.setProperty('--hud-scrim', 'linear-gradient(180deg, rgba(' + th.rgb + ',.64) 0%, rgba(' + th.rgb + ',.42) 44%, rgba(' + th.rgb + ',.12) 76%, rgba(' + th.rgb + ',0) 100%)');
+    rs.setProperty('--hud-pill', th.pill);
+    rs.setProperty('--hud-scrim', 'linear-gradient(180deg, rgba(' + th.rgb + ',' + th.topA + ') 0%, rgba(' + th.rgb + ',' + (th.topA * 0.62).toFixed(2) + ') 55%, rgba(' + th.rgb + ',0) 100%)');
     rs.setProperty('--hud-scrim-tight', 'linear-gradient(180deg, rgba(' + th.rgb + ',.82) 0%, rgba(' + th.rgb + ',.44) 66%, rgba(' + th.rgb + ',0) 100%)');
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', col);
@@ -481,12 +483,12 @@ const HOME = (() => {
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
     c.save();
     if (ty > 0) c.translate(0, ty);
+    c.clearRect(0, -ty, RW, curH);
     const roomH = curH - ty;
     const bgCv = ROOMS.build(room, H, roomH);
-    if (pad > 0) {
-      if (room === 'balcony') {
-        for (let yy = -pad; yy < 0; yy++) c.drawImage(bgCv, 0, 14 + (((yy % 7) + 7) % 7), RW, 1, 0, yy, RW, 1);
-      } else if (room === 'kitchen') {
+    c.drawImage(bgCv, 0, 0);
+    if (pad > 0 && room !== 'balcony') {
+      if (room === 'kitchen') {
         c.fillStyle = '#e6e0d9'; c.fillRect(0, -pad, RW, pad);
       } else if (room === 'bath') {
         c.fillStyle = '#efebe6'; c.fillRect(0, -pad, RW, pad);
@@ -496,9 +498,11 @@ const HOME = (() => {
         c.drawImage(bgCv, 0, 0, RW, 1, 0, -pad, RW, pad);
       }
     }
-    c.drawImage(bgCv, 0, 0);
     const pp = params(), sp = mk.sp = SPR.get(pp);
     ROOMS.dyn(c, room, H, t, { me: room === 'hall' ? mirrorMe(pp, sp) : null, tvOn, light: s.light, treeSlots: tree, front: GAGS.front(), g: GAGS.view(), lamp: kitchenLamp, sleeping: s.sleeping, th, balLamp: balLampOn(), radio: !!th.radio, guitar: guitarCase(), bagDx: bagDx(), sbOn: sbOn(), tvGame: tvGame(), con: trip && trip.con, sconces: th.sconces, fridge: trip && trip.kind === 'fridge' ? trip.door : 0, chairDx });
+    if (pad > 0 && room === 'balcony') {
+      for (let yy = -pad; yy < 0; yy++) c.drawImage(off, 0, ty + 14 + (((yy % 7) + 7) % 7), RW, 1, 0, yy, RW, 1);
+    }
     if (room === 'balcony') drawYardBack(c);
     DASHA.draw(c, P, 'back'); // Round 22: her birthday decor in the zal, the hidden hearts
     FRIENDS.render(c, P, 'back');

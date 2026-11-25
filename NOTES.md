@@ -566,3 +566,9 @@
 - Replaced the opaque `#1d1622` header block with per-room continuous ceiling extensions (`y = -pad..0` with `ROOMS.ambient`/`ROOMS.night`) and a borderless room-matched `#topcap` gradient fade + `--hud-pill` / `--ceil-bg` / `theme-color` palette updates on room switch and lamp/light toggles (plus dedicated sky-navy `#ui.ingame #topcap` fade).
 - Fixed `maxWalkY()` in `src/home.js` (`curCv.height - topY() - (room === 'kitchen' ? 46 : 18)`) so tapping anywhere down the lower floor walks Abibyan down to `y ≈ 322+` (`288` above `#bar` in `kitchen`).
 - Rebuilt `v=69` (`abibyan-v69-native-hud-%s`), added `test/verify_r69.js` (`5/5`), updated `verify_r53` / `verify_r58` / `verify_r65`, and ran full verification.
+
+
+### Round 70 / Version 70 — 1.5–2× Enlarged HUD & Seamless Balcony Wood (2026-11-25)
+- Fixed balcony HUD background seam: cleared `off` per frame in `renderScene()`, moved `balcony` cedar board tiling (`rows 14..20`) after `ROOMS.dyn()` (`roomLayer`), bypassed the internal `0..7` shadow stripe when `topY() > 0`, shrunk `#topcap` scrim to `0..68px` (and `topA: 0.16` on `balcony`/`hall`), and matched `ROOM_HUD.balcony` `--ceil-bg` / `theme-color` (`#5a3422` day, `#5a311d` evening, `#4e2c20` night).
+- Enlarged `.mode-stretch #hud` icons 1.5×–2× across 2 balanced native rows (`y = 64..156px`, `topY = 70`): `44×44px` buttons (`32px` imgs), `40×40px` stats (`26px` imgs), `38px` level star, `46×12px` XP bar, `34px`-tall coins pill (`#ghud` `40px` pause / `34px` pill), keeping 6-digit coins and Kitchen `#bar` clearance intact.
+- Rebuilt `v=70` (`abibyan-v70-big-icons-%s`), replaced `verify_r69.js` with `test/verify_r70.js`, and ran the full 13-test verification suite.

@@ -1829,3 +1829,17 @@
   - Removed the `Math.min(WALK.y1, ...)` / `-56` cap inside `maxWalkY()` so tall fullscreen rooms walk down to `curCv.height - topY() - (room === 'kitchen' ? 46 : 18)` (`~328` in `zal`/`bath`/`hall`/`balcony`, `~300` above `#bar` in `kitchen`).
 - **Build & Verification (`src/ui.js`, `build.py`, `test/verify_*.js`):**
   - Rebuilt Version 69 (`Версия 69 · Крупный нативный HUD выше к острову и ходьба по всему полу`, `v=69`, `abibyan-v69-native-hud-%s`), added `test/verify_r69.js` (`5/5` incl. real lower-floor clicks & room-palette/6-digit coin checks), visually inspected all room/night/sheet/game screenshots, and updated header bounds in `verify_r53`, `verify_r58`, `verify_r65`.
+
+
+## Round 70 — 1.5–2× Enlarged HUD Icons & Seamless Balcony Ceiling Blending (Version 70)
+- **Fixed balcony top background mismatch (`src/home.js`, `src/balcony.js`):**
+  - Found root cause: in `balcony.js`, `bg()` only paints outside sky/city below `y = 32` (leaving `0..31` transparent), while wooden planks (`boards(..., '#5a3422', 3)`) live in `roomLayer()` drawn by `ROOMS.dyn()`, and `balcony.js:161` painted a top-edge shadow across `y = 0..7`. As a result, `renderScene()` left the previous room's upper ceiling pixels in `-pad..0` AND `#topcap`'s heavy scrim darkened the wood below.
+  - Cleared `off` cleanly on `renderScene()` (`c.clearRect(0, -ty, RW, curH)`), skipped `balcony.js:161`'s `0..7` top-edge vignette when `topY() > 0`, tiled real rendered `off` rows `14..20` smoothly across `-pad..0` after `ROOMS.dyn()`, tightened `ROOM_HUD.balcony` / `hall` (`ceil: '#5a3422'` / `'#3e2416'` matching ambient phase, soft `topA: 0.16`), and restricted `#topcap` scrim to `0..68px` (zero darkening over the HUD rows themselves). Verified `[87, 50, 33]` exact RGB match across top/mid/ceiling bands on balcony.
+- **Enlarged HUD icons 1.5×–2× (`src/style.css`, `src/home.js`):**
+  - Switched `.mode-stretch #hud` to a balanced 2-row native grid (`y = 64..156px`, `topY() = 70` logical px):
+    - Action buttons (`#h-phone`, `#h-shop`, `#h-grow`, `#h-ach`, `#h-set`): `clamp(40px,10.95vw,44px)` (`44×44px` on iPhone 17, icons `32×32px` vs `21px` — `1.52×` linear / `2.3×` area).
+    - Stat boxes (`#h-wl .stat`): `clamp(35px,9.95vw,40px)` (`40×40px`, icons `26×26px` vs `15px` — `1.73×` linear).
+    - Level star `#h-lvl` `38×38px`, XP `#h-xp` `46×12px` (`2.09×` wider), `#h-coins` `34px` tall (`21×21px` icon, `15px` text).
+    - Raised mini-game `#ghud` icons (`#ghud .ibtn` `40×40px` / `26×26px` img, `.pill` `34px`) and shifted `#toasts`/`#roomt`/`#tut` to `top: 162px`.
+- **Build & Verification (`src/ui.js`, `build.py`, `test/verify_r70.js`):**
+  - Rebuilt Version 70 (`Версия 70 · Большие значки HUD 1.5-2x и бесшовный балкон`, `v=70`, `abibyan-v70-big-icons-%s`), replaced `verify_r69.js` with `test/verify_r70.js`, updated `verify_r53` and `verify_r65` header bounds, and ran full verification.
