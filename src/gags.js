@@ -210,7 +210,7 @@ const GAGS = (() => {
   function cookPh(c, ph) { c.ph = ph; c.t = 0; }
   function pancakeDone(c) {
     const s = S(); c.n++; s.inv.pancake = (s.inv.pancake || 0) + 1; s.stats.pancakes = (s.stats.pancakes || 0) + 1; GAME.emit('inv');
-    const pn = panXY(); fxs('img', pn[0], pn[1] - 5, { img: ART.food('pancake'), vx: rnd(10, 30), vy: -90, g: 120, life: 0.9 }); UI.float(pn[0] + 8, pn[1] - 21 - HOME.camY, '+1', UI.F('pancake')); sfx('pop');
+    const pn = panXY(), ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0; fxs('img', pn[0], pn[1] - 5, { img: ART.food('pancake'), vx: rnd(10, 30), vy: -90, g: 120, life: 0.9 }); UI.float(pn[0] + 8, pn[1] + ty - 21 - HOME.camY, '+1', UI.F('pancake')); sfx('pop');
     if (c.n >= 2) cookPh(c, 'done'); else { cookPh(c, 'pour'); c.spread = 0; c.done = 0; c.head = false; sfx('fry'); }
   }
   const panXY = () => { const p = (spots('kitchen') || {}).pan || [94, 152, 20, 12]; return [p[0] + 10, p[1] + 3]; }; // Round 14b #9: from the kitchen's spots (the unit is lower now)
@@ -480,7 +480,7 @@ const GAGS = (() => {
   }
   function sofaTap() {
     sfx('rustle'); const g = G(), sp = spots('kitchen');
-    if (g.sofa !== today()) { g.sofa = today(); later(0.4, () => { GAME.addCoins(3, 'sofa'); sfx('coin'); UI.float(12, 192 - HOME.camY, '+3', UI.I('coin')); line('g_sofaCoin', 'happy'); }); return; }
+    if (g.sofa !== today()) { g.sofa = today(); later(0.4, () => { GAME.addCoins(3, 'sofa'); sfx('coin'); const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0; UI.float(12, 192 + ty - HOME.camY, '+3', UI.I('coin')); line('g_sofaCoin', 'happy'); }); return; }
     for (let i = 0; i < 4; i++) fxs('crumb', 12 + rnd(-6, 6), 202, { c: '#d8a860', vx: rnd(-20, 20), vy: rnd(-50, -20), g: 200, life: 0.8, floor: 232 });
     later(0.3, () => line('g_sofa'));
   }

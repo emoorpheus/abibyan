@@ -446,7 +446,9 @@ const MINI = (() => {
           const bodyHit = (ry0, ry1) => m.x + 9 * BK > x0 + 2 && m.x - 9 * BK < x1 - 2 && m.y - 4 > ry0 && m.y - 46 * BK < ry1;
           if (hitR(x0, -50, x1, top) || hitR(x0, bot, x1, RH) || bodyHit(-50, top - 2) || bodyHit(bot + 3, RH)) { crash(); break; }
         }
-        if (m.y > 300) crash(); if (m.y - 53 * BK - 29 < 34) { m.y = 63 + 53 * BK; m.vy = Math.max(0, m.vy); }
+        if (m.y > 300) crash();
+        const topCap = (typeof cv !== 'undefined' && cv && cv.height > RH) ? 48 : 34;
+        if (m.y - 53 * BK - 29 < topCap) { m.y = topCap + 29 + 53 * BK; m.vy = Math.max(0, m.vy); }
       },
       render(ctx, P) {
         ctx.drawImage(bgBalloon(), 0, 0);
@@ -553,6 +555,7 @@ const MINI = (() => {
         if (faceT > 0) faceT -= dt;
       },
       render(ctx, P) {
+        const cvEl = ctx.canvas, ch = (cvEl && cvEl.height) || RH, py0 = ch > RH ? 52 : 44;
         ctx.drawImage(bgGym(), 0, 0); P.shadow(84, 268, 34 * GK(1), 6, 0.32);
         let pose = 'liftLow', shake = 0; const p = mp(1.0, { pose }); p.eyes = { mode: 'open', look: [1, 0] }; p.mouth = 'flat';
         if (phase === 'lift') { const k = pt; p.pose = k < 0.12 ? 'liftLow' : k < 0.6 ? 'liftHigh' : 'liftLow'; p.eyes = { mode: 'closed' }; p.mouth = k < 0.6 ? 'flat' : 'laugh'; if (k > 0.6) p.eyes = { mode: 'happy' }; p.sweat = GAME.fat() > 0.3 ? 1 : 0; }
@@ -567,7 +570,7 @@ const MINI = (() => {
         P.r(MX0 + 1, Math.round(zoneY), 12, Math.round(zoneH), '#3b2433'); P.r(MX0 + 2, Math.round(zoneY) + 1, 10, Math.round(zoneH) - 2, '#6cc24a'); P.hl(MX0 + 2, Math.round(zoneY) + 1, 10, '#a8e888'); P.hl(MX0 + 2, Math.round(zoneY + zoneH / 2), 10, '#3f8f3a');
         const cy = Math.round(cur); P.r(MX0 - 6, cy - 2, 6, 5, '#3b2433'); P.r(MX0 - 5, cy - 1, 5, 3, '#ffffff'); P.p(MX0 - 7, cy, '#3b2433'); P.r(MX0 + 15, cy - 1, 2, 3, '#3b2433');
         // reps pips
-        for (let i = 0; i < need; i++) { const x = 10 + (i % 10) * 8, y = 44 + Math.floor(i / 10) * 8; P.r(x, y, 6, 6, '#3b2433'); P.r(x + 1, y + 1, 4, 4, i < reps ? '#ffd04a' : '#5a5262'); }
+        for (let i = 0; i < need; i++) { const x = 10 + (i % 10) * 8, y = py0 + Math.floor(i / 10) * 8; P.r(x, y, 6, 6, '#3b2433'); P.r(x + 1, y + 1, 4, 4, i < reps ? '#ffd04a' : '#5a5262'); }
       },
       down() { if (phase !== 'aim') return; if (cur >= zoneY - 1 && cur <= zoneY + zoneH + 1) { reps++; perfect = Math.abs(cur - (zoneY + zoneH / 2)) < 3; phase = 'lift'; pt = 0; snd('lift'); laterSfx(220, 'clank'); flt(60, 150, perfect ? 'Идеально!' : '+1'); for (let k = 0; k < 4; k++) fx.spawn('drop', 84 + rnd(-14, 14), 190, { c: '#bfe6ff', vx: rnd(-30, 30), vy: rnd(-60, -20), g: 300, life: 0.6 }); api.prog(reps / need); newZone(); }
         else { phase = 'fail'; pt = 0; snd('nope'); api.hurt(); } },
@@ -979,15 +982,17 @@ const MINI = (() => {
   }
   function Stack() {
     let tower, top, w, hx, dir, v, phase, pt, fall, chips, cam, placed, need, perf, streak, mood, moodT;
+    const tall = typeof cv !== 'undefined' && cv && cv.height > RH;
+    const bY = tall ? 92 : SBEAM, hY = bY + 26, stopY = tall ? 248 : STOP;
     const g = {
       snapY: 150,
       init(L) { tower = []; top = { x: 90 - SBW / 2, w: SBW, y: SGND }; chips = []; cam = 0; streak = 0; setup(L); },
       onLevel(L) { // the storey is done: a concrete slab on top, full width again
         const sx = 90 - SBW / 2 - 2; tower.push({ x: sx, w: SBW + 4, y: top.y - 4, slab: 1 }); top = { x: 90 - SBW / 2, w: SBW, y: top.y - 4 }; setup(L); flt(90, 150, 'Этаж готов!'); snd('clank');
       },
-      demo() { for (let i = 0; i < 6; i++) { const x = top.x + (i % 3 - 1) * 3, ov = top.w - 3 * (i % 2); tower.push({ x, w: ov, y: top.y - SCH }); top = { x, w: ov, y: top.y - SCH }; } w = top.w; cam = Math.max(0, STOP - top.y); },
+      demo() { for (let i = 0; i < 6; i++) { const x = top.x + (i % 3 - 1) * 3, ov = top.w - 3 * (i % 2); tower.push({ x, w: ov, y: top.y - SCH }); top = { x, w: ov, y: top.y - SCH }; } w = top.w; cam = Math.max(0, stopY - top.y); },
       update(dt) {
-        cam += (Math.max(0, STOP - top.y) - cam) * Math.min(1, dt * 5);
+        cam += (Math.max(0, stopY - top.y) - cam) * Math.min(1, dt * 5);
         if (moodT > 0) moodT -= dt;
         for (const c of chips) { c.vy += 520 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.rot += c.vr * dt; } chips = chips.filter((c) => c.y + cam < 460);
         if (phase === 'aim') { hx += dir * v * dt; const lo = Math.max(18, w / 2 + 4), hi = Math.min(RW - 18, RW - w / 2 - 4); /* he rides the trolley: never off the screen */ if (hx < lo) { hx = lo; dir = 1; } if (hx > hi) { hx = hi; dir = -1; } }
@@ -1009,12 +1014,12 @@ const MINI = (() => {
           P.r(90 - SBW / 2 - 6, gy - 3, SBW + 12, 4, '#3b2433'); P.r(90 - SBW / 2 - 5, gy - 2, SBW + 10, 2, '#a8aeb8'); } // the foundation
         for (const b of tower) { const y = b.y + cam; if (y > ch || y < -SCH) continue; if (b.slab) { P.r(Math.round(b.x), Math.round(y), b.w, 4, '#3b2433'); P.r(Math.round(b.x) + 1, Math.round(y) + 1, b.w - 2, 2, '#b4bac4'); } else crate(ctx, P, b.x, y, b.w); }
         for (const c of chips) crate(ctx, P, c.x, c.y + cam, c.w, c.rot);
-        // the crane: a lattice jib at SBEAM across the screen, the trolley at hx, the rope and the hook
-        P.r(0, SBEAM - 4, RW, 9, '#3b2433'); P.r(0, SBEAM - 3, RW, 2, '#ffc22a'); P.r(0, SBEAM + 2, RW, 2, '#ffc22a');
-        for (let x = 0; x < RW; x += 8) { P.line(x, SBEAM - 1, x + 4, SBEAM + 1, '#e8a810'); P.line(x + 4, SBEAM + 1, x + 8, SBEAM - 1, '#e8a810'); }
-        const tx = Math.round(hx); P.r(tx - 7, SBEAM + 4, 14, 4, '#3b2433'); P.r(tx - 6, SBEAM + 5, 12, 2, '#5a6270');
-        if (phase === 'aim') { P.vl(tx, SBEAM + 8, SHANG - SBEAM - 10, '#3b3742'); P.r(tx - 2, SHANG - 3, 5, 3, '#3b2433'); crate(ctx, P, hx - w / 2, SHANG, w); }
-        else { P.vl(tx, SBEAM + 8, SHANG - SBEAM - 14, '#3b3742'); P.r(tx - 2, SHANG - 7, 5, 3, '#3b2433'); }
+        // the crane: a lattice jib at bY across the screen, the trolley at hx, the rope and the hook
+        P.r(0, bY - 4, RW, 9, '#3b2433'); P.r(0, bY - 3, RW, 2, '#ffc22a'); P.r(0, bY + 2, RW, 2, '#ffc22a');
+        for (let x = 0; x < RW; x += 8) { P.line(x, bY - 1, x + 4, bY + 1, '#e8a810'); P.line(x + 4, bY + 1, x + 8, bY - 1, '#e8a810'); }
+        const tx = Math.round(hx); P.r(tx - 7, bY + 4, 14, 4, '#3b2433'); P.r(tx - 6, bY + 5, 12, 2, '#5a6270');
+        if (phase === 'aim') { P.vl(tx, bY + 8, hY - bY - 10, '#3b3742'); P.r(tx - 2, hY - 3, 5, 3, '#3b2433'); crate(ctx, P, hx - w / 2, hY, w); }
+        else { P.vl(tx, bY + 8, hY - bY - 14, '#3b3742'); P.r(tx - 2, hY - 7, 5, 3, '#3b2433'); }
         if (phase === 'drop' && fall) crate(ctx, P, fall.x, fall.y + cam, fall.w);
         // Абибян on the trolley, legs tucked, one hand on the lever
         const p = mp(0.5, { legs: 'tuck', pose: 'idle' }); p.eyes = { mode: 'open', look: [0, 1] };
@@ -1023,11 +1028,12 @@ const MINI = (() => {
         else if (moodT > 0 && mood === 'miss') { p.pose = 'cover'; p.mouth = 'wavy'; }
         else if (phase === 'aim') { p.armR = [14, -34]; }
         if (api.over_) { p.pose = 'idle'; p.eyes = { mode: 'dizzy' }; p.mouth = 'wavy'; }
-        drawM(ctx, p, tx, SBEAM - 3);
-        // storey counter on the left
-        for (let i = 0; i < need; i++) { const x = 6 + (i % 12) * 7, y = 22 + Math.floor(i / 12) * 7; P.r(x, y, 5, 5, '#3b2433'); P.r(x + 1, y + 1, 3, 3, i < placed ? '#ffd23a' : '#6a7484'); }
+        drawM(ctx, p, tx, bY - 3);
+        // storey counter on the left (kept cleanly below #ghud on iPhone 17)
+        const pipY = ch > RH ? 50 : 22;
+        for (let i = 0; i < need; i++) { const x = 6 + (i % 12) * 7, y = pipY + Math.floor(i / 12) * 7; P.r(x, y, 5, 5, '#3b2433'); P.r(x + 1, y + 1, 3, 3, i < placed ? '#ffd23a' : '#6a7484'); }
       },
-      down() { if (phase !== 'aim') return; phase = 'drop'; fall = { x: hx - w / 2, y: SHANG - cam, w, vy: 0, miss: false };
+      down() { if (phase !== 'aim') return; phase = 'drop'; fall = { x: hx - w / 2, y: hY - cam, w, vy: 0, miss: false };
         const ov = Math.min(fall.x + w, top.x + top.w) - Math.max(fall.x, top.x); if (ov <= 0) fall.miss = true; snd('whoosh'); },
       key(k, d) { if (d && (k === 'Space' || k === 'Enter' || k === 'ArrowDown')) g.down(); },
       // test hooks
@@ -1393,10 +1399,11 @@ const MINI = (() => {
         L.sort((a, b) => b.d - a.d);
         for (const e of L) { if (e.me) { drawMe(ctx, P); continue; } if (e.gate) { gate(P, e.q, e.gate); continue; } spr(ctx, P, e); }
         // the clock (red and pulsing for the last five seconds, green for a moment after a banana)
+        const clockY = ch > RH ? 51 : 17;
         const tS = String(Math.max(0, Math.ceil(time - 1e-6))), low = time <= 5 && phase === 'race', k = 2, w = tS.length * 4 * k - k + 12;
-        ctx.globalAlpha = 0.82; P.r(90 - w / 2 - 4, 17, w + 8, 16, '#2a1a28'); P.r(90 - w / 2 - 3, 16, w + 6, 18, '#2a1a28'); ctx.globalAlpha = 1;
-        const cx0 = Math.round(90 - w / 2); P.circ(cx0 + 4, 25, 4, '#f4f4f4'); P.circ(cx0 + 4, 25, 3, low ? '#ff8a96' : '#59c1ff'); P.r(cx0 + 4, 22, 1, 3, '#2a1a28'); P.r(cx0 + 4, 25, 2, 1, '#2a1a28');
-        const col = flash > 0 ? '#7fff9a' : low ? (Math.floor(step * 4) % 2 ? '#ff5c6c' : '#ffffff') : '#ffffff'; raNum(P, cx0 + 12, 20, tS, k, col, '#000000');
+        ctx.globalAlpha = 0.82; P.r(90 - w / 2 - 4, clockY, w + 8, 16, '#2a1a28'); P.r(90 - w / 2 - 3, clockY - 1, w + 6, 18, '#2a1a28'); ctx.globalAlpha = 1;
+        const cx0 = Math.round(90 - w / 2); P.circ(cx0 + 4, clockY + 8, 4, '#f4f4f4'); P.circ(cx0 + 4, clockY + 8, 3, low ? '#ff8a96' : '#59c1ff'); P.r(cx0 + 4, clockY + 5, 1, 3, '#2a1a28'); P.r(cx0 + 4, clockY + 8, 2, 1, '#2a1a28');
+        const col = flash > 0 ? '#7fff9a' : low ? (Math.floor(step * 4) % 2 ? '#ff5c6c' : '#ffffff') : '#ffffff'; raNum(P, cx0 + 12, clockY + 3, tS, k, col, '#000000');
       },
       down(sx) { finger = true; tx = (sx - 90) / RA.PX; tip(null); },
       move(sx) { if (finger) tx = (sx - 90) / RA.PX; },
@@ -1773,8 +1780,9 @@ const MINI = (() => {
       // his shadow on whatever is under him
       if (phase === 'run' && !m.ground) { const fl = floorAt(m.x, T, m.h + 0.5); if (fl && m.h - fl.y < 80) { const k = (m.h - fl.y) / 80; P.shadow(Math.round(m.x - cam), BASE - fl.y, Math.max(2, 6 - k * 4), 1.5, 0.28 * (1 - k)); } }
       drawMe(ctx, P);
-      // the banana counter (every 10 = a coin)
-      ctx.drawImage(bb, 4, 38); for (let k = 0; k < 10; k++) P.r(14 + k * 4, 41, 3, 3, k < nban % 10 ? '#ffd23a' : 'rgba(20,16,40,0.35)');
+      // the banana counter (every 10 = a coin), safely below #g-pause on iPhone 17
+      const banY = ch > RH ? 52 : 38;
+      ctx.drawImage(bb, 4, banY); for (let k = 0; k < 10; k++) P.r(14 + k * 4, banY + 3, 3, 3, k < nban % 10 ? '#ffd23a' : 'rgba(20,16,40,0.35)');
     }
     function drawMe(ctx, P) {
       if (m.inv > 0 && phase === 'run' && Math.floor(step * 14) % 2) return;

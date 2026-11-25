@@ -314,7 +314,7 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 #ui #gift.out{transition:opacity .5s;opacity:0}
 @keyframes gbob{50%{transform:translateY(-2u)}}
 #ui.gifting #hud,#ui.gifting #bar,#ui.bday #hud,#ui.bday #bar{visibility:hidden}
-#blow{position:absolute;left:8u;right:8u;top:max(calc(4u + env(safe-area-inset-top,0px)),calc(var(--ct,0px) - 36u));background:var(--cream);border:1u solid var(--ink);box-shadow:inset 0 -2u 0 var(--cream3);padding:4u 4u 3u;text-align:center;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2u;animation:mpop .2s ease-out;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Comfortaa",sans-serif}
+#blow{position:absolute;left:8u;right:8u;top:max(calc(6px + env(safe-area-inset-top,0px)),68px,calc(var(--ct,0px) - 36u));background:var(--cream);border:1u solid var(--ink);box-shadow:inset 0 -2u 0 var(--cream3);padding:4u 4u 3u;text-align:center;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2u;animation:mpop .2s ease-out;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Comfortaa",sans-serif}
 #blow .b-t{font-size:9u;font-weight:700;line-height:1.1;letter-spacing:0.1px}
 #blow .b-s{font-size:6.5u;line-height:1.2;opacity:.88}
 #blow .bt{display:flex;gap:3u;justify-content:center;flex-wrap:wrap}
@@ -357,12 +357,25 @@ img.px,canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .mode-stretch #ext{display:none!important}
 .mode-stretch #ui #gift{top:0!important;height:100%!important}
 
-.mode-stretch #hud{top:max(5u,calc(env(safe-area-inset-top,0px) + 16px))!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
-.mode-stretch #bar{bottom:max(3u,calc(env(safe-area-inset-bottom,0px) + 6px))!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
-.mode-stretch #ghud{top:max(5u,calc(env(safe-area-inset-top,0px) + 16px))!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
-.mode-stretch .gbtns{bottom:max(6u,calc(env(safe-area-inset-bottom,0px) + 8px))!important}
-.mode-stretch #sheet{padding-bottom:max(env(safe-area-inset-bottom,0px),8px)!important}
-.mode-stretch #toasts,.mode-stretch #roomt{top:max(48u,calc(env(safe-area-inset-top,0px) + 90px))!important}
+.mode-stretch #hud{top:max(calc(env(safe-area-inset-top,0px) + 4px),66px)!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important;gap:1.5u}
+.mode-stretch #hud .ibtn{width:max(16u,36px);height:max(16u,36px)}
+.mode-stretch #hud .stat{width:17.5u;height:17.5u}
+.mode-stretch #hud .stat img{left:2.75u;top:2.75u}
+.mode-stretch #bar{bottom:max(calc(env(safe-area-inset-bottom,0px) + 2px),36px)!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important;height:36u}
+.mode-stretch #bar .abtn{width:28u;height:28u}
+.mode-stretch #bar .nav{width:21u;height:28u}
+.mode-stretch #bar .carousel .slot{width:32u;height:30u}
+.mode-stretch #bar .carousel .slot img{width:26u;height:26u}
+.mode-stretch #bar .carousel .arr{width:13u;height:20u}
+.mode-stretch #bar .flabel{bottom:31u;font-size:6.5u}
+.mode-stretch #ghud{top:max(calc(env(safe-area-inset-top,0px) + 4px),66px)!important;left:max(2u,calc(env(safe-area-inset-left,0px) + 4px))!important;right:max(2u,calc(env(safe-area-inset-right,0px) + 4px))!important}
+.mode-stretch #ghud .ibtn{width:max(16u,36px);height:max(16u,36px)}
+.mode-stretch .gbtns{bottom:max(calc(env(safe-area-inset-bottom,0px) + 4px),38px)!important}
+.mode-stretch #sheet{padding-bottom:max(env(safe-area-inset-bottom,0px),16px)!important}
+.mode-stretch #toasts,.mode-stretch #roomt{top:max(70u,calc(env(safe-area-inset-top,0px) + 94px))!important}
+.mode-stretch #tut{top:max(70u,calc(env(safe-area-inset-top,0px) + 94px))!important}
+.mode-stretch #ui.tutting #toasts,.mode-stretch #ui.tutting #roomt{top:calc(max(70u,calc(env(safe-area-inset-top,0px) + 94px)) + 3u + var(--tuth,0px))!important}
+.mode-stretch .mbox{max-height:min(290u,calc(var(--vh,100vh) - 16u - max(env(safe-area-inset-top,0px),62px) - max(env(safe-area-inset-bottom,0px),34px)))}
 
 /* Achievement Tiers (Bronze, Silver, Gold) */
 .ach-tier{display:inline-block;padding:1u 3u;font-size:5.5u;font-weight:700;line-height:1;margin-left:2.5u;vertical-align:middle;text-transform:uppercase;letter-spacing:0.5px;border-radius:2px}

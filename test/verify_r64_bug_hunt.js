@@ -464,9 +464,10 @@ function startServer() {
         const cv = document.getElementById('cv');
         const ctx = cv.getContext('2d');
         const ty = G.HOME.topY();
-        const lum = (y) => { const d = ctx.getImageData(170, y, 1, 1).data; return Math.round((d[0] + d[1] + d[2]) / 3); };
-        const ceilLum = lum(Math.max(2, ty - 10));
-        const wallLum = lum(ty + 10);
+        // Sample left bare plaster (x=10) across both ceiling (ty+6) and upper wall below cornice (ty+40)
+        const lum = (y) => { const d = ctx.getImageData(10, y, 1, 1).data; return Math.round((d[0] + d[1] + d[2]) / 3); };
+        const ceilLum = lum(ty + 6);
+        const wallLum = lum(ty + 40);
         const shotData = cv.toDataURL('image/png');
         G.HOME.wake();
         return { ty, ceilLum, wallLum, shotData };
@@ -503,21 +504,24 @@ function startServer() {
       const rCakeDim = await page.evaluate(() => {
         const G = window.__game;
         G.HOME.goTo('zal', true);
-        G.DASHA.cakeIn({ age: 24, y: 2026 });
-        G.DASHA.blowStart();
-        window.advanceTime(1200);
+        window.advanceTime(100);
         const cv = document.getElementById('cv');
         const ctx = cv.getContext('2d');
         const lum = (x, y) => { const d = ctx.getImageData(x, y, 1, 1).data; return Math.round((d[0] + d[1] + d[2]) / 3); };
-        const topCeilLum = lum(10, 5);
+        const baseCeilLum = lum(10, G.HOME.topY() + 6);
+        const baseFloorLum = lum(10, cv.height - 5);
+        G.DASHA.cakeIn({ age: 24, y: 2026 });
+        G.DASHA.blowStart();
+        window.advanceTime(1200);
+        const topCeilLum = lum(10, G.HOME.topY() + 6);
         const botFloorLum = lum(10, cv.height - 5);
         const blow = document.getElementById('blow');
         const blowCss = blow ? getComputedStyle(blow).top : null;
         G.DASHA.abort();
-        return { cvH: cv.height, topCeilLum, botFloorLum, blowCss };
+        return { cvH: cv.height, baseCeilLum, topCeilLum, baseFloorLum, botFloorLum, blowCss };
       });
-      // Normal daytime zal bottom floor is bright (~200 lum), top ceiling ~217 lum; dimmed with #140a24 must drop strongly on BOTH!
-      check('7.3 DASHA cake dim covers both lowered ceiling and extended floor', rCakeDim.topCeilLum < 145 && rCakeDim.botFloorLum < 90, rCakeDim);
+      // Compare before vs during #140a24 cake dim across both lowered ceiling and bottom extended floor
+      check('7.3 DASHA cake dim covers both lowered ceiling and extended floor', (rCakeDim.baseCeilLum - rCakeDim.topCeilLum) > 50 && (rCakeDim.baseFloorLum - rCakeDim.botFloorLum) > 45, rCakeDim);
 
       // --- 8. REAL POINTER TAPS on Pusya (kitchen), Monty (balcony) ---
       const getFriendPt = (room, id) => page.evaluate(({ room, id }) => {

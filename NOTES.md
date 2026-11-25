@@ -536,3 +536,10 @@
 - Fixed multi-touch `capId` hijack & `blur` capture cleanup (`main.js`), `pointercancel` drag completion & bath trip collisions (`home.js`), in-place Settings toggles & `pointerdown`-scoped click guards (`ui.js`, `friends.js`), short-viewport modal clipping & Dynamic Island safe-area offsets (`style.css`).
 - Fixed fullscreen visuals across `zal` night ceiling multiply & `balcony` lighting (`home.js`), birthday cake/gift dim coverage (`dasha.js`), and `Stack` / `Vine` / `Super` / `Roofs` fullscreen sky extensions (`games.js`).
 - Rebuilt Version 64 (`v=64`, `abibyan-v64-bug-hunt-%s`); added `test/verify_r64_bug_hunt.js` (20/20 passed) and verified `tools/compat.js`, `test_drum_synthesis.js`, `verify_r58`..`r63`, and `test/speech.js`.
+
+
+### Round 65 / Version 65 — iPhone 17 Full Adaptation, Ceilings & Chandelier (2026-11-25)
+- Tuned full game viewport, layout, and touch UI for **iPhone 17 (6.3")** (`402 × 874` CSS px, `3×` DPR, `safe-area-inset-top = 62px`, `safe-area-inset-bottom = 34px`, logical `180 × 391` 1:1 canvas) across `src/main.js`, `src/style.css`, `src/home.js`, and `src/games.js`.
+- Added dark HUD header panel (`#1d1622` → `#281d2c`, `topY() = 67` logical px on iPhone 17) so room ceilings start cleanly below the Dynamic Island + `#hud`, and smoothly shrink header height to `safeTop()` (`curHeaderY()`) when `#sheet` opens.
+- Removed the long vertical ceiling rod above the chandelier in `src/zal.js`, compacted `S.chand` to `44 × 41` at `CH = [78, 25]`, and updated float offsets in `src/gags.js` / `src/friends.js`.
+- Rebuilt Version 65 (`v=65`, `abibyan-v65-iphone17-%s`); verified `tools/compat.js`, `verify_r65_iphone17.js` (`9/9`), `verify_r64_bug_hunt.js` (`20/20`), `verify_r58`..`r63`, `test_drum_synthesis.js`, and `test/speech.js` (`ok: 1007`, `0` errors).

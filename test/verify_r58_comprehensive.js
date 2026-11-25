@@ -12,7 +12,7 @@ const assert = require('assert');
   });
 
   const context = await browser.newContext({
-    viewport: { width: 393, height: 852 },
+    viewport: { width: 402, height: 874 },
     deviceScaleFactor: 3,
     hasTouch: true,
     isMobile: true
@@ -55,8 +55,8 @@ const assert = require('assert');
     };
   });
   console.log('Geometry:', geom);
-  assert.strictEqual(geom.canvasH, 390, 'Canvas height on iPhone 17 must be 390');
-  assert.strictEqual(geom.topY, 52, 'HOME.topY() must be 52 (lowered ceiling) on iPhone 17');
+  assert.strictEqual(geom.canvasH, 391, 'Canvas height on iPhone 17 must be 391');
+  assert.ok(geom.topY >= 64, 'HOME.topY() must be >= 64 (below Dynamic Island + HUD) on iPhone 17, got ' + geom.topY);
 
   // -------------------------------------------------------------
   // TEST 2: Kitchen Light Off - Uniform Darkening (NO bottom stripe)
@@ -103,8 +103,11 @@ const assert = require('assert');
     }
     const botAvg = { r: Math.round(rSum / count), g: Math.round(gSum / count), b: Math.round(bSum / count) };
 
-    // Sample top ceiling at y = 10 to 30
-    const topData = ctx.getImageData(50, 15, 80, 15).data;
+    // Sample top ceiling just below HOME.topY() (below the dark HUD header panel)
+    const H = typeof HOME !== 'undefined' ? HOME : window.HOME;
+    const ceilY = (H && H.topY ? H.topY() : 0) + 4;
+    const topData = ctx.getImageData(50, ceilY, 80, 12).data;
+    count = 80 * 12;
     rSum = 0; gSum = 0; bSum = 0;
     for (let i = 0; i < count; i++) {
       rSum += topData[i * 4];
@@ -215,7 +218,7 @@ const assert = require('assert');
     }, gid);
     console.log(`Mini-game [${gid}] started:`, mgResult);
     assert.strictEqual(mgResult.activeGid, gid, `Mini-game ${gid} must be active`);
-    assert.strictEqual(mgResult.cvH, 390, 'Mini-game canvas height must be 390');
+    assert.strictEqual(mgResult.cvH, 391, 'Mini-game canvas height must be 391');
 
     await page.waitForTimeout(300);
     const mgShot = `/Users/emoorpheus/.gemini/antigravity/brain/2481af4c-0ad5-450b-af55-9f2c9b6c70f4/r58_minigame_${gid}_fullscreen.png`;

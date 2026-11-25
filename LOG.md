@@ -1753,3 +1753,27 @@
     - `node test/verify_r59_catch.js` (ALL PASSED)
     - `node test/verify_r58_comprehensive.js` (ALL TESTS PASSED, 0 errors)
     - `test/speech.js` against `dist/index.html` (`ok: 1007, bad: [], missing: [], no errors`)
+
+
+## Round 65 — iPhone 17 Adaptation, Ceilings Below Dynamic Island & Compact Chandelier (Version 65)
+- **Target device metrics (iPhone 17, 6.3"):** `402 × 874` CSS px, `3×` DPR (`1206 × 2622` px), `safe-area-inset-top = 62px`, `safe-area-inset-bottom = 34px`, logical canvas `180 × 391` (`1:1` square pixels).
+- **Changes implemented:**
+  - `src/main.js`: `fit()` stores `saTopPx` / `saBotPx` in `lay`, updates `--sat` / `--sab` CSS variables, and exports `safeArea` on `APP`.
+  - `src/home.js`: Replaced `drawCeilExt` / `applyCeilAmbient` with dedicated dark top HUD header panel (`drawTopPanel(ctx, hdrH)`, `#1d1622` → `#281d2c`), `safeTop()`, `topY()` (`67` logical px on iPhone 17), and `curHeaderY()` (shrinks smoothly to `safeTop` when bottom `#sheet` opens so cabinets never enter Dynamic Island); updated `updateCeilColor()`, preview `camY` target (`topY() - safeTop()` for `shopHome`, `128` for sheets), pointer bounds below `curHeaderY()`, `maxWalkY()`, and `snap()` floor clamp.
+  - `src/zal.js`: Removed long vertical ceiling rod above chandelier; set `CH = [78, 25]`, compacted `S.chand` sprite (`44 × 41`), and updated chandelier light/glow offsets (`CH[1] + 22`).
+  - `src/style.css`: Tuned `.mode-stretch` HUD, toolbar, `.stat`, `#bar`, `.carousel`, `.flabel`, `#ghud`, `.gbtns`, `#sheet`, `#toasts`, `#roomt`, `#tut`, `.mbox`, and `#blow` top positioning for `402 × 874` iPhone 17 safe areas.
+  - `src/gags.js` & `src/friends.js`: Added `+ HOME.topY()` to `UI.float(...)` coordinates (`pancakeDone`, `sofaTap`, `partyReward`, `count`, `feed`/`crave`).
+  - `src/games.js`: Adjusted mini-game HUD/top bounds when `cv.height > RH` (`Balloon`, `Gym`, `Stack`, `Race`, `Roofs`).
+  - `src/ui.js` & `build.py`: Updated version label (`Версия 65 · Адаптация под iPhone 17: потолки ниже острова и люстра зала`), SW query `v=65`, cache prefix `abibyan-v65-iphone17-%s`; rebuilt `dist/index.html` (8871 KB), `dist/moy-abibyan-site.zip` (13752 KB), `dist/site/`, and synced root PWA files.
+- **Verification (executed after all edits):**
+  - `node tools/compat.js`: `28 files, 0 problems`
+  - `node test/verify_r65_iphone17.js`: `9/9 passed, 0 failed` (0 console/page errors; verified screenshots `r65_iphone17_{zal,kitchen,hall,bath,balcony,grow_sheet,stack,race,roofs}.png`)
+  - `node test/verify_r64_bug_hunt.js`: `20/20 passed, 0 failed` (0 console/page errors; updated tests 7.1 & 7.3 for new header panel & Day reference baseline)
+  - `node test/verify_r63_bongo_sounds.js`: exit `0` (ALL PASSED)
+  - `node test/verify_r62_single_stage_gold.js`: exit `0` (ALL PASSED)
+  - `node test/verify_r61_ach_contrast.js`: exit `0` (ALL PASSED)
+  - `node test/verify_r60_scroll.js`: exit `0` (ALL PASSED)
+  - `node test/verify_r59_catch.js`: exit `0` (ALL PASSED)
+  - `node test/verify_r58_comprehensive.js`: exit `0` (ALL COMPREHENSIVE QA TESTS PASSED, 0 errors; updated viewport to `402 × 874` / `cvH = 391` / `topY >= 64` / kitchen ceiling sample below HUD)
+  - `node test/test_drum_synthesis.js`: exit `0`
+  - `test/speech.js` against `dist/index.html`: `ok: 1007, bad: [], missing: [], no errors`

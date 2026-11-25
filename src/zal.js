@@ -8,7 +8,7 @@ const ZAL = (() => {
   const SP = MONKEY.sprite, K = MONKEY.K, IT = K.IT, ITC = K.ITC, R = ROOMS;
   const FLOOR = R.FLOOR, GROUND = R.GROUND, RW = R.RW, hash = PX.hash, bay = PX.bayer, fur = R.fur, curve = (p, n, rf) => ART.curve(p, n, rf);
   // ---- layout (canvas px) — art, hotspots and tests all read these ----
-  const CEIL = 27, PANEL = 126, GLASS = [86, 62, 28, 62], FIRE = [128, 176], FBOX = [141, 197, 26, 25], CH = [78, 28];
+  const CEIL = 27, PANEL = 126, GLASS = [86, 62, 28, 62], FIRE = [128, 176], FBOX = [141, 197, 26, 25], CH = [78, 25];
   const HEAD = [-6, 120], BED = [-6, 168], SLEEP = [44, 236];
   const TV = {
     // the 5 real models (user's list, cheap → expensive): width grows with the diagonal; brand name on the bottom bezel (user: no inches on the TVs, names only)
@@ -89,20 +89,20 @@ const ZAL = (() => {
         a.rbox(0, 0, W, B, 1, IT, bd); a.box(1, 1, W - 1, 1 + v.sh, IT, a.mat('zScr', '#2a2e36'), { flat: 0.3 });
       }, (d) => { d.hline(1, W - 2, B - 1, '#2c2c34'); label(d, v.label, W / 2, 1 + v.sh + 1); if (v.wall) d.hline(2, W - 3, 0, '#3a3a44'); });
     },
-    chand: (on) => SP(44, 50, (a) => { // crystal chandelier, five white shades
+    chand: (on) => SP(44, 41, (a) => { // crystal chandelier, five white shades (short ceiling drop)
       const br = a.mat('zBrass', '#b08c48'), cr = a.mat('zCrys', '#cfe2ec'), sh = a.mat(on ? 'zShadeOn' : 'zShadeOff', on ? '#fbf6ea' : '#d6cfc4', 3), rose = a.mat('zRose', '#f1ece4');
       a.ell(22, 2.5, 8, 2.6, IT, rose);
-      a.tube([[22, 4, 0.8], [22, 25, 0.8]], IT, br); a.ell(22, 12, 1.6, 2, IT, cr); a.ell(22, 18, 1.6, 2, IT, cr);
-      const SH = [[14, 14], [30, 14], [5, 19], [39, 19], [22, 21]];
-      const shade = ([cx, y]) => { a.ell(cx, y + 9, 2.2, 1.3, IT, br); a.poly([[cx - 3, y], [cx + 3, y], [cx + 4.6, y + 8.5], [cx - 4.6, y + 8.5]], ITC, sh); };
-      for (const [cx, y] of SH.slice(0, 2)) { a.tube(curve([[22, 28], [(22 + cx) / 2, y + 17], [cx, y + 10]], 8, () => 0.6), IT, br); shade([cx, y]); a.ell((22 + cx) / 2, y + 19, 0.9, 1.6, IT, cr); }
-      a.ell(22, 28, 5.2, 3.4, IT, br);
-      for (const [cx, y] of SH.slice(2, 4)) { a.tube(curve([[22, 28], [(22 + cx) / 2, y + 16], [cx, y + 10]], 8, () => 0.65), IT, br); shade([cx, y]); a.ell((22 + cx) / 2 + (cx < 22 ? -1 : 1), y + 17, 0.9, 1.7, IT, cr); }
-      a.ell(22, 33, 3.6, 3, IT, cr); a.ell(22, 38.5, 2.6, 2.8, IT, cr); a.ell(22, 43.5, 1.7, 2.3, IT, cr); a.ell(22, 47.4, 1, 1.4, IT, cr);
+      a.tube([[22, 4, 0.8], [22, 16, 0.8]], IT, br); a.ell(22, 10, 1.5, 1.8, IT, cr);
+      const SH = [[14, 6], [30, 6], [5, 10], [39, 10], [22, 12]];
+      const shade = ([cx, y]) => { a.ell(cx, y + 8, 2.2, 1.3, IT, br); a.poly([[cx - 3, y], [cx + 3, y], [cx + 4.6, y + 8], [cx - 4.6, y + 8]], ITC, sh); };
+      for (const [cx, y] of SH.slice(0, 2)) { a.tube(curve([[22, 19], [(22 + cx) / 2, y + 15], [cx, y + 9]], 8, () => 0.6), IT, br); shade([cx, y]); a.ell((22 + cx) / 2, y + 17, 0.9, 1.5, IT, cr); }
+      a.ell(22, 19, 5.2, 3.2, IT, br);
+      for (const [cx, y] of SH.slice(2, 4)) { a.tube(curve([[22, 19], [(22 + cx) / 2, y + 15], [cx, y + 9]], 8, () => 0.65), IT, br); shade([cx, y]); a.ell((22 + cx) / 2 + (cx < 22 ? -1 : 1), y + 16, 0.9, 1.6, IT, cr); }
+      a.ell(22, 24, 3.6, 2.8, IT, cr); a.ell(22, 29.5, 2.6, 2.6, IT, cr); a.ell(22, 34.5, 1.7, 2.2, IT, cr); a.ell(22, 38.4, 1, 1.4, IT, cr);
       shade(SH[4]);
     }, (d) => {
-      for (const [x, y] of [[21, 31], [23, 37], [21, 42], [22, 47], [21, 11], [21, 17], [10, 35], [34, 35], [17, 32], [27, 32]]) if (d.on(x, y)) d.px(x, y, '#ffffff');
-      for (const [cx, y] of [[14, 14], [30, 14], [5, 19], [39, 19], [22, 21]]) { d.pxk(cx - 1, y + 3, on ? '#efe6d2' : '#c4bcae', 1 << ITC); d.pxk(cx + 2, y + 5, on ? '#efe6d2' : '#c4bcae', 1 << ITC); if (on) d.pxk(cx - 2, y + 1, '#ffffff', 1 << ITC); }
+      for (const [x, y] of [[21, 22], [23, 28], [21, 33], [22, 38], [21, 9], [10, 26], [34, 26], [17, 23], [27, 23]]) if (d.on(x, y)) d.px(x, y, '#ffffff');
+      for (const [cx, y] of [[14, 6], [30, 6], [5, 10], [39, 10], [22, 12]]) { d.pxk(cx - 1, y + 3, on ? '#efe6d2' : '#c4bcae', 1 << ITC); d.pxk(cx + 2, y + 5, on ? '#efe6d2' : '#c4bcae', 1 << ITC); if (on) d.pxk(cx - 2, y + 1, '#ffffff', 1 << ITC); }
     }),
     // Round 7 #7: Sony BRAVIA Theater Bar 8 — a sleek charcoal bar with a fabric grille, subtle silver logo and an LED at the right end (dyn)
     bar: () => SP(SB_W, SB_H, (a) => { const bd = a.mat('zSbB', '#222228'); a.rbox(0, 0, SB_W, SB_H, 2, IT, bd, { flat: 0.55 }); }, (d) => {
@@ -412,14 +412,12 @@ const ZAL = (() => {
   }
   function dyn(ctx, P, H, t, st) {
     const it = H.items, on = st.light !== false, lvl = tvLvl(it), tv = TV[lvl];
-    P.vl(CH[0] + 22, 0, CH[1] + 2, '#b08c48');
-    P.vl(CH[0] + 21, 0, CH[1] + 2, '#8a6a30');
     R.sprAt(ctx, spr('chand', on ? 1 : 0), CH[0], CH[1]);
     if (on) {
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.07;
-      for (const [cx, y] of [[14, 14], [30, 14], [5, 19], [39, 19], [22, 21]]) for (let r = 10; r > 3; r -= 3) P.circ(CH[0] + cx, CH[1] + y + 5, r, '#fff1c0');
+      for (const [cx, y] of [[14, 6], [30, 6], [5, 10], [39, 10], [22, 12]]) for (let r = 10; r > 3; r -= 3) P.circ(CH[0] + cx, CH[1] + y + 5, r, '#fff1c0');
       ctx.restore();
-      ctx.globalAlpha = 0.08; ctx.fillStyle = '#fff1b0'; ctx.beginPath(); ctx.moveTo(CH[0] + 6, CH[1] + 30); ctx.lineTo(CH[0] + 38, CH[1] + 30); ctx.lineTo(132, GROUND); ctx.lineTo(48, GROUND); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.globalAlpha = 0.08; ctx.fillStyle = '#fff1b0'; ctx.beginPath(); ctx.moveTo(CH[0] + 6, CH[1] + 22); ctx.lineTo(CH[0] + 38, CH[1] + 22); ctx.lineTo(132, GROUND); ctx.lineTo(48, GROUND); ctx.fill(); ctx.globalAlpha = 1;
     }
     const g = st.g || {}, ssn = typeof SEASONS !== 'undefined' && !(g.curtain >= 1);
     if (ssn) SEASONS.sky(ctx, P, 'zal', GLASS); // Round 10 #8: the event's weather behind the glass

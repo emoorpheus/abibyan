@@ -94,76 +94,52 @@ const HOME = (() => {
       snapX.imageSmoothingEnabled = false;
     }
   }
+  const safeTop = () => {
+    const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
+    const curH = (curCv && curCv.height) || RH;
+    if (curH <= RH) return 0;
+    const u = (typeof APP !== 'undefined' && APP.lay && APP.lay.u) || (402 / 180);
+    const saT = (typeof APP !== 'undefined' && APP.lay && APP.lay.saTopPx) || 62;
+    return Math.max(28, Math.ceil(saT / u));
+  };
   const topY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
-    return extraH > 0 ? Math.min(52, Math.round(extraH * 0.74)) : 0;
+    if (extraH <= 0) return 0;
+    // iPhone 17 (402x874 -> 180x391, extraH=71): header covers Dynamic Island + HUD cleanly (~67 logical px)
+    return Math.min(extraH, Math.max(67, safeTop() + 39));
   };
-  function drawCeilExt(c, P, room, ty) {
-    if (room === 'zal') {
-      P.r(0, 0, RW, ty, '#ece7e0');
-      ROOMS.dither(P, 0, 0, RW, Math.min(10, ty), '#e0dad2', '#ece7e0', 0.5);
-      if (ty >= 14) {
-        for (const x of [24, 76, 128, 168]) {
-          P.r(x - 2, ty - 18, 5, 2, '#f8f6f2');
-          P.p(x, ty - 19, '#c8c0b4');
-        }
-      }
-      P.vl(78 + 22, 0, ty, '#b08c48');
-      P.vl(78 + 21, 0, ty, '#8a6a30');
-    } else if (room === 'kitchen') {
-      P.r(0, 0, RW, ty, '#ece7e0');
-      ROOMS.dither(P, 0, 0, RW, Math.min(10, ty), '#e0dad2', '#ece7e0', 0.5);
-      if (ty >= 14) {
-        for (const x of [30, 90, 150]) {
-          P.r(x - 2, ty - 18, 5, 2, '#f8f6f2');
-          P.p(x, ty - 19, '#c8c0b4');
-        }
-      }
-    } else if (room === 'bath') {
-      P.r(0, 0, RW, ty, '#efebe6');
-      ROOMS.dither(P, 0, 0, RW, Math.min(10, ty), '#e0dac8', '#efebe6', 0.4);
-    } else if (room === 'hall') {
-      P.r(0, 0, RW, ty, '#3e2416');
-      for (const [x0, x1] of [[3, 57], [63, 117], [123, 177]]) {
-        P.r(x0, 0, x1 - x0, ty, '#5a3420');
-        P.r(x0 + 2, 0, x1 - x0 - 4, ty, '#2e1a10');
-      }
-    } else if (room === 'balcony') {
-      P.r(0, 0, RW, ty, '#5a3422');
-      for (let x = 0; x < RW; x += 14) {
-        P.r(x, 0, 1, ty, '#3e2214');
-        P.r(x + 1, 0, 1, ty, '#7a462e');
-      }
+  const curHeaderY = () => {
+    const ty = topY();
+    if (ty <= 0) return 0;
+    if (typeof DASHA !== 'undefined' && DASHA.giftOn && DASHA.giftOn()) return safeTop();
+    return Math.max(safeTop(), ty - Math.round(camY));
+  };
+  function drawTopPanel(c, hdrH) {
+    if (hdrH <= 0) return;
+    const st = safeTop();
+    c.fillStyle = '#1d1622';
+    c.fillRect(0, 0, RW, hdrH);
+    if (hdrH > st + 4) {
+      c.fillStyle = '#281d2c';
+      c.fillRect(0, st, RW, hdrH - st);
+      c.fillStyle = '#36273b';
+      c.fillRect(0, st, RW, 1);
     }
-  }
-  function applyCeilAmbient(c, room, lightOn, ty, kLamp) {
-    if (room === 'zal' && !lightOn) {
-      c.save();
-      c.globalCompositeOperation = 'multiply';
-      c.fillStyle = '#3b4078';
-      c.fillRect(0, 0, RW, ty);
-      c.restore();
-      return;
+    if (hdrH >= 3) {
+      c.fillStyle = '#4e3750';
+      c.fillRect(0, hdrH - 3, RW, 1);
+      c.fillStyle = '#3b2433';
+      c.fillRect(0, hdrH - 2, RW, 2);
     }
-    if (room === 'kitchen' && kLamp === false) {
-      c.save();
-      c.globalCompositeOperation = 'multiply';
-      c.fillStyle = '#b8b4c8';
-      c.fillRect(0, 0, RW, ty);
-      c.restore();
-      return;
-    }
-    const ph = ROOMS.phase();
-    const amb = { evening: '#fff0dc', night: '#dcd8ee' }[ph];
-    if (amb) {
-      c.save();
-      c.globalCompositeOperation = 'multiply';
-      c.fillStyle = amb;
-      c.fillRect(0, 0, RW, ty);
-      c.restore();
-    }
+    c.save();
+    c.fillStyle = '#1d1622';
+    c.globalAlpha = 0.22;
+    c.fillRect(0, hdrH, RW, 1);
+    c.globalAlpha = 0.08;
+    c.fillRect(0, hdrH + 1, RW, 1);
+    c.restore();
   }
   const fx = FX.make();
   let t = 0, room = 'zal', trans = null, camY = 0, camT = 0, preview = false, tvOn = true, tryCloth = null, flash = 0, tailPh = 0;
@@ -241,8 +217,10 @@ const HOME = (() => {
     }
   };
   function updateCeilColor(r) {
-    const c = CEIL_COLS[r || room];
-    const col = typeof c === 'function' ? c() : (c || '#ece7e0');
+    const col = topY() > 0 ? '#1d1622' : (() => {
+      const c = CEIL_COLS[r || room];
+      return typeof c === 'function' ? c() : (c || '#ece7e0');
+    })();
     document.documentElement.style.setProperty('--ceil-bg', col);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', col);
@@ -323,7 +301,8 @@ const HOME = (() => {
     if (ag.legend && !s.sleeping && room !== 'zal' && Math.random() < dt * 0.6) fx.spawn('spark', mk.x + rnd(-26, 26), mk.y - rnd(20, 110), { life: 0.7, vy: -6 });
     for (let i = timers.length - 1; i >= 0; i--) if (t >= timers[i].at) { const f = timers[i].fn; timers.splice(i, 1); try { f(); } catch (e) { console.error(e); } }
     if (trans) { trans.t += dt; if (trans.t >= trans.dur) trans = null; }
-    const target = preview ? Math.max(0, (UI.sheetKind === 'shop' && UI.sheetTab === 'home' ? 62 : 126) - APP.lay.cb) : 0; camY += (target - camY) * Math.min(1, dt * 10); if (Math.abs(target - camY) < 0.6) camY = target; camT = target;
+    const shopHome = preview && UI.sheetKind === 'shop' && UI.sheetTab === 'home';
+    const target = preview ? Math.max(0, (shopHome ? Math.max(36, topY() - safeTop()) : 128) - APP.lay.cb) : 0; camY += (target - camY) * Math.min(1, dt * 10); if (Math.abs(target - camY) < 0.6) camY = target; camT = target;
     if (mk.jy < 0 || mk.vy !== 0) { mk.vy += 900 * dt; mk.jy += mk.vy * dt; if (mk.jy >= 0) { mk.jy = 0; mk.vy = 0; } }
     tailPh += dt * ((mk.act && mk.act.def.fast) ? 6 : s.sleeping ? 0.6 : GAME.mood() > 70 ? 2.4 : 1.4);
     mk.blinkT -= dt; if (mk.blinkT <= 0) { mk.blink = 0.13; mk.blinkT = rnd(2.2, 5.5); if (Math.random() < 0.18) later(0.28, () => { mk.blink = 0.12; }); } if (mk.blink > 0) mk.blink -= dt;
@@ -449,6 +428,8 @@ const HOME = (() => {
       }
       ctx.drawImage(off, 0, -cy);
     }
+    const hdrH = curHeaderY();
+    if (hdrH > 0) drawTopPanel(ctx, hdrH);
     if (flash > 0) {
       ctx.globalAlpha = Math.min(1, flash);
       ctx.fillStyle = '#ffffff';
@@ -469,9 +450,7 @@ const HOME = (() => {
     ensureOffH(curH);
     const ty = topY();
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
-    if (ty > 0) {
-      drawCeilExt(c, P, room, ty);
-    }
+    if (ty > 0) c.clearRect(0, 0, RW, ty);
     c.save();
     if (ty > 0) c.translate(0, ty);
     const roomH = curH - ty;
@@ -514,9 +493,6 @@ const HOME = (() => {
     if (watering) drawCan(c);
     if (tool) drawTool(c);
     c.restore();
-    if (ty > 0) {
-      applyCeilAmbient(c, room, s.light, ty, kitchenLamp);
-    }
   }
   function drawStream(c) {
     // translucent water curtain from the shower head down to the monkey + falling streaks
@@ -566,6 +542,7 @@ const HOME = (() => {
   function ignoreTapUntil(ts) { ignoreUntil = Math.max(ignoreUntil, ts); }
   function down(x, y, e) {
     if (performance.now() < ignoreUntil) { press = null; return; }
+    if (!(typeof DASHA !== 'undefined' && DASHA.giftOn && DASHA.giftOn()) && y < curHeaderY()) { press = null; return; }
     if (typeof FRIENDS !== 'undefined' && FRIENDS.sceneActive && FRIENDS.sceneActive()) {
       if (FRIENDS.tapScene && FRIENDS.tapScene()) { press = null; return; }
     }
@@ -610,7 +587,7 @@ const HOME = (() => {
   }
   const maxWalkY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
-    return curCv && curCv.height > 320 ? Math.min(curCv.height - topY() - 18, 380) : WALK.y1;
+    return curCv && curCv.height > 320 ? Math.min(WALK.y1, Math.max(WALK.y0, curCv.height - topY() - 48)) : WALK.y1;
   };
   function walkTo(x, y, then) { // Round 10 #4: tap on the floor → he walks over there (in scene coords); Round 11 #6: then() when he is there
     const s = S(); if (s.sleeping || trans || tool || APP.scene !== 'home' || mk.eat) return false;
@@ -1531,10 +1508,10 @@ const HOME = (() => {
     const targetBottom = 296 + ty;
     let sy;
     if (top !== undefined) {
-      sy = Math.max(0, Math.min(targetBottom - sh, Math.round(top + ty)));
+      sy = Math.max(ty, Math.min(targetBottom - sh, Math.round(top + ty)));
     } else {
-      sy = Math.max(0, Math.min(off.height - sh, Math.round(headTop() + ty - 30)));
-      if (sy + sh < targetBottom) sy = Math.min(off.height - sh, targetBottom - sh);
+      sy = Math.max(ty, Math.min(off.height - sh, Math.round(headTop() + ty - 30)));
+      if (sy + sh < targetBottom) sy = Math.max(ty, Math.min(off.height - sh, targetBottom - sh));
     }
     const cw = 150, ch = 150;
     const c = PX.canvas(cw, ch); const ctx = c.getContext('2d');

@@ -536,7 +536,7 @@ const FRIENDS = (() => {
     return L;
   }
   function partyReward() {
-    GAME.partyReward(); const ht = HOME.headTop() - (HOME.camY || 0); UI.float(HOME.mk.x + 30, ht, '+20', UI.I('fun')); later(0.35, () => { UI.float(HOME.mk.x - 30, ht, '+10', UI.I('coin')); AUDIO.play('coin'); });
+    GAME.partyReward(); const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0; const ht = HOME.headTop() + ty - (HOME.camY || 0); UI.float(HOME.mk.x + 30, ht, '+20', UI.I('fun')); later(0.35, () => { UI.float(HOME.mk.x - 30, ht, '+10', UI.I('coin')); AUDIO.play('coin'); });
     for (const f of here()) for (let k = 0; k < 4; k++) HOME.fx.spawn('heart', f.x + rnd(-8, 8), f.headY + rnd(0, 10), { vy: -rnd(16, 28), life: 1.2, wob: 5, fadeIn: k * 0.12 });
   }
   // everybody goes home their own way (through the hall doors / towards the side of their room); a friend who lives here just stays
@@ -559,7 +559,7 @@ const FRIENDS = (() => {
     return startParty({ auto: true });
   }
   // ---- the activities ----
-  function count(n) { const ht = HOME.headTop() - (HOME.camY || 0); UI.float(HOME.mk.x, ht - 26, n ? String(n) : 'Банан!', n ? null : UI.I('camera')); AUDIO.play(n ? 'beep' : 'beepGo'); return 0.8; }
+  function count(n) { const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0; const ht = HOME.headTop() + ty - (HOME.camY || 0); UI.float(HOME.mk.x, ht - 26, n ? String(n) : 'Банан!', n ? null : UI.I('camera')); AUDIO.play(n ? 'beep' : 'beepGo'); return 0.8; }
   function bite(id) {
     const ck = party && party.cake; if (!ck) return 0.1;
     const f = id && F[id];
@@ -902,7 +902,7 @@ const FRIENDS = (() => {
       if (r.kind === 'fav') HOME.fx.spawn('ring', mx, my - 10, { r0: 4, r1: 22, life: 0.45, c: '#ff8ab0' });
     }
     if (r.kind === 'fav') later(0.5, () => AUDIO.play('happy'));
-    if (r.crave) { later(0.7, () => { AUDIO.play('coin'); UI.float(mx, my - 24 - (HOME.camY || 0), '+5', UI.I('coin')); }); }
+    if (r.crave) { later(0.7, () => { AUDIO.play('coin'); const ty = (typeof HOME !== 'undefined' && HOME.topY) ? HOME.topY() : 0; UI.float(mx, my + ty - 24 - (HOME.camY || 0), '+5', UI.I('coin')); }); }
     HOME.face('happy', 'smile', 1.2);
     if (!quiet) fsay(id, r.food.kg < 0 ? 'Ой, я похудел' + (FD[id].she ? 'а' : '') + '!' : r.crave ? E.crave : r.kind === 'fav' ? E.fav : pick(E[r.kind]), id);
     return r.kind;

@@ -68,7 +68,8 @@ const APP = (() => {
     st.setProperty('--u', u + 'px'); st.setProperty('--ux', u + 'px'); st.setProperty('--uy', u + 'px');
     st.setProperty('--ct', '0px'); st.setProperty('--sh', '100%');
     st.setProperty('--vh', vh + 'px'); st.setProperty('--vw', vw + 'px');
-    lay = { ct: 0, cb: 0, u, ux: u, uy: u, ctPx: 0, h: canvasH, mode: 'stretch' };
+    lay = { ct: 0, cb: 0, u, ux: u, uy: u, ctPx: 0, saTopPx: sa.t || 0, saBotPx: sa.b || 0, h: canvasH, mode: 'stretch' };
+    st.setProperty('--sat', ((sa.t || 0)) + 'px'); st.setProperty('--sab', ((sa.b || 0)) + 'px');
     cvRect = null;
     if (typeof FILL !== 'undefined') FILL.layout(u);
   }
@@ -281,7 +282,7 @@ const APP = (() => {
     if (scene === 'home' && typeof GAGS !== 'undefined') o.gags = GAGS.info();
     return JSON.stringify(o);
   }
-  return { fps: () => ({ target: fpsT, renders }), boot, fit, resetRect: () => { cvRect = null; }, setScreenMode: () => {}, get screenMode() { return 'stretch'; }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
+  return { fps: () => ({ target: fpsT, renders }), boot, fit, safeArea, resetRect: () => { cvRect = null; }, setScreenMode: () => {}, get screenMode() { return 'stretch'; }, setScene, afterIntro, toLogical, advance, textState, greet, get lay() { return lay; }, get scene() { return scene; }, get away() { return away; } };
 })();
 window.__game = { GAME, HOME, MINI, UI, AUDIO, APP, SPR, DATA, ROOMS, FILL, SPEECH: typeof SPEECH !== 'undefined' ? SPEECH : null, FART: typeof FART !== 'undefined' ? FART : null, FRIENDS: typeof FRIENDS !== 'undefined' ? FRIENDS : null, GAGS: typeof GAGS !== 'undefined' ? GAGS : null, ALBUM: typeof ALBUM !== 'undefined' ? ALBUM : null, TUT: typeof TUT !== 'undefined' ? TUT : null, ZAL: typeof ZAL !== 'undefined' ? ZAL : null, HALL: typeof HALL !== 'undefined' ? HALL : null, DUCKS: typeof DUCKS !== 'undefined' ? DUCKS : null, ROUTINE: typeof ROUTINE !== 'undefined' ? ROUTINE : null, ART, TOUR: typeof TOUR !== 'undefined' ? TOUR : null, DASHA };
 window.advanceTime = (ms) => APP.advance(ms); window.render_game_to_text = () => APP.textState();
