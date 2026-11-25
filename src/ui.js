@@ -60,11 +60,12 @@ const UI = (() => {
   function init() {
     root = $('#ui');
     root.innerHTML = `
+      <div id="topcap" class="np"></div>
       <div id="hud">
-        <div class="row"><div class="lvl" id="h-lvl">${im(I('star'))}<b>1</b></div><div class="xp notch" id="h-xp"><i></i></div><div class="name" id="h-name"></div><div class="sp"></div><button class="ibtn notch gbtn" id="h-grow" aria-label="Рост и задания">${im(I('sprout'))}<i class="gb"><b></b></i><span class="badge hidden">0</span></button>
-          <div class="pill notch" id="h-coins">${im(I('coin'))}<span>0</span></div><button class="ibtn notch" id="h-phone" aria-label="Телефон">${im(I('phone'))}</button><button class="ibtn notch" id="h-shop" aria-label="Магазин">${im(I('shop'))}</button></div>
-        <div class="row"><div class="stat notch" id="s-food" title="Еда"><div class="f"></div>${im(I('food'))}</div><div class="stat notch" id="s-fun" title="Веселье"><div class="f"></div>${im(I('fun'))}</div><div class="stat notch" id="s-energy" title="Энергия"><div class="f"></div>${im(I('energy'))}</div><div class="stat notch" id="s-clean" title="Чистота"><div class="f"></div>${im(I('clean'))}</div>
-          <div class="sp"></div><div class="pill notch" id="h-kg" style="cursor:pointer">${im(I('scale'))}<span>6 кг</span></div><button class="ibtn notch" id="h-ach" aria-label="Достижения">${im(I('trophy'))}</button><button class="ibtn notch" id="h-set" aria-label="Настройки">${im(I('gear'))}</button></div>
+        <div class="h-di" id="h-di"><div class="lvl" id="h-lvl">${im(I('star'))}<b>1</b></div><div class="xp notch" id="h-xp"><i></i></div><div class="name" id="h-name"></div><div class="pill notch" id="h-coins">${im(I('coin'))}<span>0</span></div></div>
+        <div class="h-wl" id="h-wl"><div class="stat notch" id="s-food" title="Еда"><div class="f"></div>${im(I('food'))}</div><div class="stat notch" id="s-fun" title="Веселье"><div class="f"></div>${im(I('fun'))}</div><div class="stat notch" id="s-energy" title="Энергия"><div class="f"></div>${im(I('energy'))}</div><div class="stat notch" id="s-clean" title="Чистота"><div class="f"></div>${im(I('clean'))}</div></div>
+        <div class="h-wr" id="h-wr"><button class="ibtn notch gbtn" id="h-grow" aria-label="Рост и задания">${im(I('sprout'))}<i class="gb"><b></b></i><span class="badge hidden">0</span></button><div class="pill notch" id="h-kg" style="cursor:pointer">${im(I('scale'))}<span>6 кг</span></div><button class="ibtn notch" id="h-ach" aria-label="Достижения">${im(I('trophy'))}</button><button class="ibtn notch" id="h-set" aria-label="Настройки">${im(I('gear'))}</button></div>
+        <button class="ibtn notch" id="h-phone" aria-label="Телефон">${im(I('phone'))}</button><button class="ibtn notch" id="h-shop" aria-label="Магазин">${im(I('shop'))}</button>
       </div>
       <div id="roomt" class="notch"></div>
       <div id="view"><div id="fx" class="np"></div></div>
@@ -81,6 +82,7 @@ const UI = (() => {
     $('#h-set').onclick = () => { click(); openSettings(); };
     $('#h-kg').onclick = () => { click(); openProfile(); };
     $('#h-name').onclick = () => { click(); openProfile(); };
+    $('#h-di').onclick = (e) => { if (e.target && e.target.closest && e.target.closest('button')) return; click(); openProfile(); };
     ['food', 'fun', 'energy', 'clean'].forEach((k) => { $('#s-' + k).onclick = () => { click(); const n = { food: 'Еда', fun: 'Веселье', energy: 'Энергия', clean: 'Чистота' }[k]; const how = { food: 'Корми на кухне', fun: 'Играй и щекочи', energy: 'Спи в спальне', clean: 'Мой в ванной' }[k]; toast(`${n}: ${Math.round(S().st[k])}% — ${how}`, I(k)); }; });
     refresh();
   }
@@ -410,7 +412,7 @@ const UI = (() => {
       ${window.ABI_TEST ? '<div class="bt"><button class="btn g" id="t-again">Начать репетицию заново</button></div>' : ''}
       ${GAME.storageOK ? '' : `<p style="font-size:${U(6.5)};color:#b83a3a">Сохранение недоступно в этом окне — прогресс пропадёт после закрытия.</p>`}
       ${plat().ios ? `<p style="font-size:${U(6)};opacity:.75;margin:0">${plat().web && !plat().standalone ? 'Чтобы сохранение не стёрлось: «Поделиться» → «На экран „Домой“». ' : ''}Нет звука — выключи режим «Без звука».</p>` : ''}
-      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 65 · Адаптация под iPhone 17: потолки ниже острова и люстра зала</div>
+      <div style="text-align:center;font-size:${U(6)};opacity:.5;margin:${U(2)} 0 ${U(1)}">Версия 66 · Dynamic Island HUD, фикс багов в Бананах и завершение ДР</div>
       <button class="btn w" data-close>Закрыть</button>`, { dismiss: true });
     const tg = (id, key) => { const b = $('#' + id, w); b.onclick = () => { const v = (s.settings[key] = !s.settings[key]); AUDIO.set(key, v); AUDIO.play('click'); GAME.save(true); b.className = 'btn sm ' + (v ? 'g' : 'w'); b.textContent = v ? 'Вкл' : 'Выкл'; }; };
     tg('t-sfx', 'sfx'); tg('t-mus', 'music');

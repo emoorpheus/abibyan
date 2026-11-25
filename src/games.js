@@ -136,18 +136,45 @@ const MINI = (() => {
       }
     }
   }
+  let shkCv = null, shkCtx = null, shkP = null;
   function render(ctx) {
     if (!G) return;
     const cvEl = ctx.canvas;
     const ch = (cvEl && cvEl.height) || RH;
+    const gid = st ? st.gid : '';
+    const dx = st && st.shake > 0 ? Math.round(rnd(-2, 2)) : 0;
+    const dy = st && st.shake > 0 ? Math.round(rnd(-2, 2)) : 0;
+    if (dx === 0 && dy === 0) {
+      ctx.clearRect(0, 0, RW, ch);
+      const P = Painter(ctx);
+      G.render(ctx, P);
+      fx.draw(ctx, P, 0);
+      if (ch > RH) drawFloorExt(ctx, P, gid, ch);
+      return;
+    }
+    if (!shkCv || shkCv.height !== ch) {
+      shkCv = PX.canvas(RW, ch);
+      shkCtx = shkCv.getContext('2d');
+      shkP = Painter(shkCtx);
+    }
+    shkCtx.clearRect(0, 0, RW, ch);
+    G.render(shkCtx, shkP);
+    fx.draw(shkCtx, shkP, 0);
+    if (ch > RH) drawFloorExt(shkCtx, shkP, gid, ch);
     ctx.clearRect(0, 0, RW, ch);
-    const P = Painter(ctx);
-    ctx.save();
-    if (st && st.shake > 0) ctx.translate(Math.round(rnd(-2, 2)), Math.round(rnd(-2, 2)));
-    G.render(ctx, P);
-    fx.draw(ctx, P, 0);
-    ctx.restore();
-    if (ch > RH) drawFloorExt(ctx, P, st ? st.gid : '', ch);
+    ctx.drawImage(shkCv, dx, dy);
+    if (dy > 0) ctx.drawImage(shkCv, 0, 0, RW, 1, dx, 0, RW, dy);
+    if (dy < 0) ctx.drawImage(shkCv, 0, ch - 1, RW, 1, dx, ch + dy, RW, -dy);
+    if (dx > 0) {
+      ctx.drawImage(shkCv, 0, 0, 1, ch, 0, dy, dx, ch);
+      if (dy > 0) ctx.drawImage(shkCv, 0, 0, 1, 1, 0, 0, dx, dy);
+      if (dy < 0) ctx.drawImage(shkCv, 0, ch - 1, 1, 1, 0, ch + dy, dx, -dy);
+    }
+    if (dx < 0) {
+      ctx.drawImage(shkCv, RW - 1, 0, 1, ch, RW + dx, dy, -dx, ch);
+      if (dy > 0) ctx.drawImage(shkCv, RW - 1, 0, 1, 1, RW + dx, 0, -dx, dy);
+      if (dy < 0) ctx.drawImage(shkCv, RW - 1, ch - 1, 1, 1, RW + dx, ch + dy, -dx, -dy);
+    }
   }
   function results() {
     if (st.duel) return duelResults();

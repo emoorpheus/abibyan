@@ -2228,7 +2228,7 @@ const DATA = (() => {
   // visit within GRACE days after it) the zal is decorated and the friends throw a party with a cake of AGE candles she blows out into the
   // microphone; «24 секрета» — hearts with his notes hidden around the flat, one at a time (texts: docs/24-secrets.md → text below).
   const DASHA = {
-    name: 'Дашулик', m: 11, d: 21, year0: 2026, age0: 24, grace: 8, coins: 0, cakes: 2,
+    name: 'Дашулик', m: 11, d: 21, year0: 2026, age0: 24, grace: 4, coins: 0, cakes: 2,
     // heart spots, scene coords
     // Round 23: ONE heart at a time — №1, then №2 … (a number with no text is skipped), each next one in another room, harder and harder.
     // A spot: x, y = the middle of the 7×6 heart; how it hides — clip [x0, y0, x1, y1]: only this part shows (the rest is behind something);

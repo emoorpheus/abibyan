@@ -100,15 +100,15 @@ const HOME = (() => {
     if (curH <= RH) return 0;
     const u = (typeof APP !== 'undefined' && APP.lay && APP.lay.u) || (402 / 180);
     const saT = (typeof APP !== 'undefined' && APP.lay && APP.lay.saTopPx) || 62;
-    return Math.max(28, Math.ceil(saT / u));
+    return Math.max(26, Math.ceil((saT - 4) / u));
   };
   const topY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     const extraH = Math.max(0, curH - RH);
     if (extraH <= 0) return 0;
-    // iPhone 17 (402x874 -> 180x391, extraH=71): header covers Dynamic Island + HUD cleanly (~67 logical px)
-    return Math.min(extraH, Math.max(67, safeTop() + 39));
+    // Compact ceiling above cornice/chandelier right below iPhone 17 Dynamic Island (#topcap=26 + 8px ceiling pad)
+    return Math.min(extraH, Math.max(34, safeTop() + 8));
   };
   const curHeaderY = () => {
     const ty = topY();
@@ -118,28 +118,14 @@ const HOME = (() => {
   };
   function drawTopPanel(c, hdrH) {
     if (hdrH <= 0) return;
-    const st = safeTop();
     c.fillStyle = '#1d1622';
     c.fillRect(0, 0, RW, hdrH);
-    if (hdrH > st + 4) {
-      c.fillStyle = '#281d2c';
-      c.fillRect(0, st, RW, hdrH - st);
-      c.fillStyle = '#36273b';
-      c.fillRect(0, st, RW, 1);
-    }
     if (hdrH >= 3) {
       c.fillStyle = '#4e3750';
-      c.fillRect(0, hdrH - 3, RW, 1);
+      c.fillRect(0, hdrH - 2, RW, 1);
       c.fillStyle = '#3b2433';
-      c.fillRect(0, hdrH - 2, RW, 2);
+      c.fillRect(0, hdrH - 1, RW, 1);
     }
-    c.save();
-    c.fillStyle = '#1d1622';
-    c.globalAlpha = 0.22;
-    c.fillRect(0, hdrH, RW, 1);
-    c.globalAlpha = 0.08;
-    c.fillRect(0, hdrH + 1, RW, 1);
-    c.restore();
   }
   const fx = FX.make();
   let t = 0, room = 'zal', trans = null, camY = 0, camT = 0, preview = false, tvOn = true, tryCloth = null, flash = 0, tailPh = 0;
@@ -302,7 +288,7 @@ const HOME = (() => {
     for (let i = timers.length - 1; i >= 0; i--) if (t >= timers[i].at) { const f = timers[i].fn; timers.splice(i, 1); try { f(); } catch (e) { console.error(e); } }
     if (trans) { trans.t += dt; if (trans.t >= trans.dur) trans = null; }
     const shopHome = preview && UI.sheetKind === 'shop' && UI.sheetTab === 'home';
-    const target = preview ? Math.max(0, (shopHome ? Math.max(36, topY() - safeTop()) : 128) - APP.lay.cb) : 0; camY += (target - camY) * Math.min(1, dt * 10); if (Math.abs(target - camY) < 0.6) camY = target; camT = target;
+    const target = preview ? Math.max(0, (shopHome ? Math.max(24, topY() - safeTop() + 16) : 106) - APP.lay.cb) : 0; camY += (target - camY) * Math.min(1, dt * 10); if (Math.abs(target - camY) < 0.6) camY = target; camT = target;
     if (mk.jy < 0 || mk.vy !== 0) { mk.vy += 900 * dt; mk.jy += mk.vy * dt; if (mk.jy >= 0) { mk.jy = 0; mk.vy = 0; } }
     tailPh += dt * ((mk.act && mk.act.def.fast) ? 6 : s.sleeping ? 0.6 : GAME.mood() > 70 ? 2.4 : 1.4);
     mk.blinkT -= dt; if (mk.blinkT <= 0) { mk.blink = 0.13; mk.blinkT = rnd(2.2, 5.5); if (Math.random() < 0.18) later(0.28, () => { mk.blink = 0.12; }); } if (mk.blink > 0) mk.blink -= dt;
@@ -428,7 +414,7 @@ const HOME = (() => {
       }
       ctx.drawImage(off, 0, -cy);
     }
-    const hdrH = curHeaderY();
+    const hdrH = safeTop();
     if (hdrH > 0) drawTopPanel(ctx, hdrH);
     if (flash > 0) {
       ctx.globalAlpha = Math.min(1, flash);
@@ -448,13 +434,21 @@ const HOME = (() => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
     const curH = (curCv && curCv.height) || RH;
     ensureOffH(curH);
-    const ty = topY();
+    const ty = topY(), st = safeTop(), pad = Math.max(0, ty - st);
     const s = S(), H = s.home, c = oc; const f = GAME.fat();
-    if (ty > 0) c.clearRect(0, 0, RW, ty);
+    if (st > 0) c.clearRect(0, 0, RW, st);
     c.save();
     if (ty > 0) c.translate(0, ty);
     const roomH = curH - ty;
-    c.drawImage(ROOMS.build(room, H, roomH), 0, 0);
+    const bgCv = ROOMS.build(room, H, roomH);
+    if (pad > 0) {
+      if (room === 'balcony') {
+        for (let yy = -pad; yy < 0; yy++) c.drawImage(bgCv, 0, ((yy % 7) + 7) % 7, RW, 1, 0, yy, RW, 1);
+      } else {
+        c.drawImage(bgCv, 0, 0, RW, 1, 0, -pad, RW, pad);
+      }
+    }
+    c.drawImage(bgCv, 0, 0);
     const pp = params(), sp = mk.sp = SPR.get(pp);
     ROOMS.dyn(c, room, H, t, { me: room === 'hall' ? mirrorMe(pp, sp) : null, tvOn, light: s.light, treeSlots: tree, front: GAGS.front(), g: GAGS.view(), lamp: kitchenLamp, sleeping: s.sleeping, th, balLamp: balLampOn(), radio: !!th.radio, guitar: guitarCase(), bagDx: bagDx(), sbOn: sbOn(), tvGame: tvGame(), con: trip && trip.con, sconces: th.sconces, fridge: trip && trip.kind === 'fridge' ? trip.door : 0, chairDx });
     if (room === 'balcony') drawYardBack(c);
@@ -483,8 +477,8 @@ const HOME = (() => {
     if (s.st.clean < 20 && !showerSt) drawStink(c);
     ROOMS.front(c, room, H, t, { behind: !!((trip && trip.kind === 'fridge' && !trip.climb && trip.my < 250) || (room === 'kitchen' && FRIENDS.behindTable && FRIENDS.behindTable())), seat: trip && trip.kind === 'pc' ? trip.seat : 0, chairDx, g: GAGS.view() });
     if (typeof DUCKS !== 'undefined' && DUCKS.render) DUCKS.render(c, P);
-    ROOMS.ambient(c, room, s.light, roomH);
-    if (room === 'zal' && !s.light) ROOMS.night(c, H, t, roomH);
+    ROOMS.ambient(c, room, s.light, roomH, -pad);
+    if (room === 'zal' && !s.light) ROOMS.night(c, H, t, roomH, -pad);
     FRIENDS.render(c, P, 'top'); GAGS.draw(c, P, 'top');
     DASHA.draw(c, P, 'top'); // Round 22: the gift box, her cake and its candlelight
     if (s.st.clean < 30 && !showerSt) drawFlies(c);
@@ -587,7 +581,7 @@ const HOME = (() => {
   }
   const maxWalkY = () => {
     const curCv = typeof cv !== 'undefined' ? cv : (typeof document !== 'undefined' ? document.getElementById('cv') : null);
-    return curCv && curCv.height > 320 ? Math.min(WALK.y1, Math.max(WALK.y0, curCv.height - topY() - 48)) : WALK.y1;
+    return curCv && curCv.height > 320 ? Math.min(WALK.y1, Math.max(WALK.y0, curCv.height - topY() - 56)) : WALK.y1;
   };
   function walkTo(x, y, then) { // Round 10 #4: tap on the floor → he walks over there (in scene coords); Round 11 #6: then() when he is there
     const s = S(); if (s.sleeping || trans || tool || APP.scene !== 'home' || mk.eat) return false;

@@ -47,7 +47,7 @@ const dataContent = fs.readFileSync(path.join(__dirname, '../src/data.js'), 'utf
 const mGrace = dataContent.match(/name:\s*'Дашулик',\s*m:\s*11,\s*d:\s*21,\s*year0:\s*2026,\s*age0:\s*24,\s*grace:\s*(\d+)/);
 assert(mGrace, 'DATA.DASHA grace found');
 const grace = parseInt(mGrace[1], 10);
-assert.strictEqual(grace, 8, 'Grace should be 8 to cover 21.11 to 28.11 inclusive');
+assert.strictEqual(grace, 4, 'Grace should be 4 to cover 21.11 to 24.11 inclusive (ending on 25.11)');
 
 function day0(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 function bday(now) {
@@ -60,11 +60,10 @@ function bday(now) {
 assert.strictEqual(bday(new Date(2026, 10, 20)), null, '20.11 is before birthday window');
 assert(bday(new Date(2026, 10, 21)) !== null, '21.11 is inside birthday window (day 0)');
 assert.strictEqual(bday(new Date(2026, 10, 21)).diff, 0, '21.11 diff = 0');
-assert(bday(new Date(2026, 10, 25)) !== null, '25.11 is inside birthday window');
-assert(bday(new Date(2026, 10, 28)) !== null, '28.11 is inside birthday window (day 7)');
-assert.strictEqual(bday(new Date(2026, 10, 28)).diff, 7, '28.11 diff = 7');
-assert.strictEqual(bday(new Date(2026, 10, 29)), null, '29.11 is after birthday window');
-console.log('✓ 2. Birthday event window strictly covers 2026-11-21 to 2026-11-28 inclusive (8 days, diff 0..7)');
+assert(bday(new Date(2026, 10, 24)) !== null, '24.11 is inside birthday window (day 3)');
+assert.strictEqual(bday(new Date(2026, 10, 24)).diff, 3, '24.11 diff = 3');
+assert.strictEqual(bday(new Date(2026, 10, 25)), null, '25.11 is after birthday window (ended)');
+console.log('✓ 2. Birthday event window strictly covers 2026-11-21 to 2026-11-24 inclusive (4 days, diff 0..3; ended on 25.11)');
 
 // 3. Check party spots separation
 const hallContent = fs.readFileSync(path.join(__dirname, '../src/hall.js'), 'utf8');

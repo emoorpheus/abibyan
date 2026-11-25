@@ -225,12 +225,12 @@ const ROOMS = (() => {
   function steam(ctx, P, x, y, t, col = '#ffffff') { for (let k = 0; k < 3; k++) { const ph = (t * 0.5 + k / 3) % 1; ctx.globalAlpha = 0.55 * (1 - ph); P.circ(x + Math.sin(ph * 6 + k) * 3, y - ph * 22, 1.5 + ph * 2.5, col); } ctx.globalAlpha = 1; }
   // time-of-day ambience over the whole scene (room + monkey): warm evening, dimmer lamp-lit night
   const AMB = { evening: '#fff0dc', night: '#dcd8ee' };
-  function ambient(ctx, room, lightOn, H = RH) {
+  function ambient(ctx, room, lightOn, H = RH, y0 = 0) {
     if (room === 'zal' && !lightOn) return; const c = AMB[phase()]; if (!c) return;
-    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = c; ctx.fillRect(0, 0, RW, H); ctx.restore();
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = c; ctx.fillRect(0, y0, RW, H - y0); ctx.restore();
   }
-  function night(ctx, H_state, t, H = RH) { // bedroom light off
-    const P = Painter(ctx); ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#3b4078'; ctx.fillRect(0, 0, RW, H); ctx.restore();
+  function night(ctx, H_state, t, H = RH, y0 = 0) { // bedroom light off
+    const P = Painter(ctx); ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#3b4078'; ctx.fillRect(0, y0, RW, H - y0); ctx.restore();
     if (EXT.zal && EXT.zal.night) EXT.zal.night(ctx, P, H_state, t, H);
   }
   // named hotspot rects of a hand-drawn room (one place for the layout: art, taps and tests read the same numbers)

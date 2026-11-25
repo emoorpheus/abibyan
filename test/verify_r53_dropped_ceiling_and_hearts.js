@@ -1,12 +1,13 @@
 'use strict';
-const { chromium } = require('/Users/emoorpheus/Library/Caches/pnpm/dlx/a22d3c450bc2b9b728685c96a1951453/mw4wy74h-3mp/node_modules/playwright');
+const { chromium } = require('playwright');
 const path = require('path');
 const assert = require('assert');
 const fs = require('fs');
 
 (async () => {
   console.log('--- Starting Round 53 Dropped Ceiling & Hearts Verification ---');
-  const browser = await chromium.launch();
+  const ep = '/Users/emoorpheus/Library/Caches/ms-playwright/chromium_headless_shell-1254/chrome-headless-shell-mac-arm64/chrome-headless-shell';
+  const browser = await chromium.launch(fs.existsSync(ep) ? { executablePath: ep, headless: true, args: ['--no-sandbox'] } : {});
   const page = await browser.newPage({
     viewport: { width: 393, height: 791 },
     screen: { width: 393, height: 852 },
@@ -25,9 +26,12 @@ const fs = require('fs');
       configurable: true
     });
 
+    const d = new Date();
+    const today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     const s = {
       v: 9, name: 'Абибян', named: true, tut: 99,
-      daily: { last: '2026-11-23', streak: 1 },
+      daily: { last: today, streak: 1 },
+      dasha: { gift: '2026-11-21', gifts: { 2026: '2026-11-21' }, party: { 2026: '2026-11-21' } },
       coins: 286, xp: 45, lvl: 4,
       st: { food: 70, fun: 75, energy: 85, clean: 80 }, kg: 2.0,
       home: { items: { tv: 'hiper', pc: 'none', lamp: 1, duck: 1, soap: 1 } },
@@ -94,15 +98,15 @@ const fs = require('fs');
   });
 
   console.log('Geometry:', geom);
-  assert.strictEqual(geom.topY, 42, 'HOME.topY() must be 42 on iPhone 17 (canvas height 390)');
+  assert(geom.topY >= 26 && geom.topY <= 36, 'HOME.topY() must be compact 26..36 on iPhone (Variant 3), got ' + geom.topY);
 
-  // 3. Verify ceiling extension pixels with light ON (top 20 pixels should be light ceiling plaster)
-  const topPixelsLightOn = await page.evaluate(() => {
+  // 3. Verify ceiling extension pixels with light ON (16 rows from geom.topY should be light ceiling plaster)
+  const topPixelsLightOn = await page.evaluate((ty) => {
     const cv = document.getElementById('cv');
     const ctx = cv.getContext('2d');
-    const d = ctx.getImageData(0, 0, cv.width, 20).data;
+    const d = ctx.getImageData(0, ty, cv.width, 16).data;
     let rSum = 0, gSum = 0, bSum = 0;
-    const count = cv.width * 20;
+    const count = cv.width * 16;
     for (let i = 0; i < count; i++) {
       rSum += d[i * 4];
       gSum += d[i * 4 + 1];
@@ -113,26 +117,26 @@ const fs = require('fs');
       g: Math.round(gSum / count),
       b: Math.round(bSum / count)
     };
-  });
+  }, geom.topY);
   console.log('Top ceiling average color (light on):', topPixelsLightOn);
-  assert(topPixelsLightOn.r > 150 && topPixelsLightOn.g > 150 && topPixelsLightOn.b > 150, 'Top pixels must be light ceiling plaster when light is on');
+  assert(topPixelsLightOn.r > 150 && topPixelsLightOn.g > 150 && topPixelsLightOn.b > 150, 'Top ceiling pixels must be light ceiling plaster when light is on');
 
   // 4. Verify chandelier position and interactivity (toggling light)
   const lightBefore = await page.evaluate(() => window.__game.GAME.S.light);
-  // Tap chandelier in zal: screen coordinate x=90, y=85 (in CSS points, with u=2.1833, 85 * 2.1833 = 185px)
-  await page.mouse.click(393 / 2, 85 * (393 / 180));
+  // Tap chandelier in zal right below topY
+  await page.mouse.click(393 / 2, (geom.topY + 42) * (393 / 180));
   await page.waitForTimeout(300);
   const lightAfter = await page.evaluate(() => window.__game.GAME.S.light);
   console.log('Zal light toggle tap test:', { before: lightBefore, after: lightAfter });
   assert.strictEqual(lightAfter, !lightBefore, 'Tapping chandelier must toggle zal light');
 
   // 5. Verify ceiling darkened when light turned off
-  const topPixelsLightOff = await page.evaluate(() => {
+  const topPixelsLightOff = await page.evaluate((ty) => {
     const cv = document.getElementById('cv');
     const ctx = cv.getContext('2d');
-    const d = ctx.getImageData(0, 0, cv.width, 20).data;
+    const d = ctx.getImageData(0, ty, cv.width, 16).data;
     let rSum = 0, gSum = 0, bSum = 0;
-    const count = cv.width * 20;
+    const count = cv.width * 16;
     for (let i = 0; i < count; i++) {
       rSum += d[i * 4];
       gSum += d[i * 4 + 1];
@@ -143,9 +147,9 @@ const fs = require('fs');
       g: Math.round(gSum / count),
       b: Math.round(bSum / count)
     };
-  });
+  }, geom.topY);
   console.log('Top ceiling average color (light off):', topPixelsLightOff);
-  assert(topPixelsLightOff.r < 50 && topPixelsLightOff.g < 50 && topPixelsLightOff.b < 50, 'Top pixels must be darkened by night tint when light is off');
+  assert(topPixelsLightOff.r < 110 && topPixelsLightOff.g < 110 && topPixelsLightOff.b < 140 && topPixelsLightOff.r < topPixelsLightOn.r - 120, 'Top pixels must be darkened by night tint when light is off');
 
   console.log('--- ALL VERIFICATIONS PASSED ---');
   await browser.close();

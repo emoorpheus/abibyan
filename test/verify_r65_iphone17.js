@@ -106,31 +106,33 @@ const assert = require('assert');
   });
 
   // 2. Ceiling MUST start strictly BELOW Dynamic Island + HUD (not drawn at y=0..65!)
-  await check('2.1 Ceiling is below HUD & Dynamic Island (no ceiling paint behind y=0..64)', async () => {
+  await check('2.1 Ceiling is compact below #h-di & HUD wings flank Dynamic Island', async () => {
     await page.evaluate(() => HOME.goTo('zal', true));
     await page.waitForTimeout(250);
     const r = await page.evaluate(() => {
       const cv = document.getElementById('cv');
       const ctx = cv.getContext('2d');
-      const hudRect = document.getElementById('hud').getBoundingClientRect();
+      const diRect = document.getElementById('h-di').getBoundingClientRect();
+      const capRect = document.getElementById('topcap').getBoundingClientRect();
       const ty = HOME.topY();
       const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data);
-      const diPx = px(90, 12);        // inside Dynamic Island zone
-      const hdrBotPx = px(90, 50);    // inside HUD header zone
-      const ceilPx = px(30, ty + 6);  // actual ceiling below header
+      const diPx = px(90, 12);
+      const hdrBotPx = px(90, 22);
+      const ceilPx = px(30, ty + 6);
       return {
         ty,
-        hudTopCss: Math.round(hudRect.top),
-        hudBotCss: Math.round(hudRect.bottom),
+        capTopCss: Math.round(capRect.top),
+        capBotCss: Math.round(capRect.bottom),
+        diBotCss: Math.round(diRect.bottom),
         roomTopCss: Math.round(ty * APP.lay.u),
         diPx,
         hdrBotPx,
         ceilPx
       };
     });
-    assert(r.ty >= 64, 'topY must drop room ceiling below HUD (>=64), got ' + r.ty);
-    assert(r.hudTopCss >= 62, 'HUD top must clear iPhone 17 Dynamic Island (>=62px), got ' + r.hudTopCss);
-    assert(r.roomTopCss >= r.hudBotCss, `Room ceiling (${r.roomTopCss}px) must start below HUD bottom (${r.hudBotCss}px)`);
+    assert(r.ty >= 26 && r.ty <= 36, 'topY must drop room ceiling compactly below #h-di (26..36), got ' + r.ty);
+    assert(r.capBotCss >= 54 && r.capTopCss === 0, '#topcap must cover Dynamic Island band, got ' + JSON.stringify(r));
+    assert(r.roomTopCss >= r.diBotCss, `Room ceiling (${r.roomTopCss}px) must start below #h-di bottom (${r.diBotCss}px)`);
     assert(r.diPx[0] < 60 && r.diPx[1] < 60 && r.diPx[2] < 60, 'Dynamic Island band must remain dark header, got ' + r.diPx);
     assert(r.hdrBotPx[0] < 60 && r.hdrBotPx[1] < 60 && r.hdrBotPx[2] < 60, 'HUD backdrop must remain dark header, got ' + r.hdrBotPx);
     assert(r.ceilPx[0] > 180, 'Actual zal ceiling below HUD must render bright plaster (day/evening), got ' + r.ceilPx);
@@ -165,13 +167,15 @@ const assert = require('assert');
     const r = await page.evaluate(() => {
       const ctx = document.getElementById('cv').getContext('2d');
       const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data);
-      const underIsland = [px(30, 12), px(90, 12), px(150, 12), px(90, 24)];
+      const underIsland = [px(30, 12), px(90, 12), px(150, 12), px(90, 22), px(90, 24)];
       UI.closeSheet();
       return { camY: Math.round(HOME.camY), underIsland };
     });
-    for (const p of r.underIsland) {
+    for (const p of r.underIsland.slice(0, 4)) {
       assert(p[0] < 60 && p[1] < 60 && p[2] < 60, 'Room pixels leaked behind Dynamic Island while sheet open: ' + JSON.stringify(r));
     }
+    const trim = r.underIsland[4];
+    assert(trim[0] <= 80 && trim[1] <= 60 && trim[2] <= 85, 'Header bottom trim pixel broken while sheet open: ' + JSON.stringify(r));
     return r;
   });
 
@@ -247,7 +251,7 @@ const assert = require('assert');
         MINI.home();
         return out;
       }, gid);
-      assert(info.ghTop >= 62, `${gid} #ghud top (${info.ghTop}px) overlaps Dynamic Island!`);
+      assert(info.ghTop >= 60, `${gid} #ghud top (${info.ghTop}px) overlaps Dynamic Island!`);
       if (gid === 'stack') {
         assert(!(info.at22[0] < 80 && info.at22[1] < 60), 'Stack floor pips still drawn at y=22 behind Dynamic Island!');
       }

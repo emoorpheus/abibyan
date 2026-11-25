@@ -1777,3 +1777,18 @@
   - `node test/verify_r58_comprehensive.js`: exit `0` (ALL COMPREHENSIVE QA TESTS PASSED, 0 errors; updated viewport to `402 × 874` / `cvH = 391` / `topY >= 64` / kitchen ceiling sample below HUD)
   - `node test/test_drum_synthesis.js`: exit `0`
   - `test/speech.js` against `dist/index.html`: `ok: 1007, bad: [], missing: [], no errors`
+
+
+## Round 66 — Dynamic Island HUD (Variant 3), Banana Catch Fixes & End Dasha 2026 Birthday (Version 66)
+- **Visual design & iOS anti-blur (`src/ui.js`, `src/style.css`, `src/home.js`, `src/rooms.js`):**
+  - Implemented **Variant 3** HUD around Dynamic Island (`402 × 874`, `3×` DPR): solid `#topcap` DOM strip (`0..58px`, `#1d1622` with `#4e3750` / `#3b2433` bottom trim) prevents system iOS 26 status-bar glass blur; centered `#h-di` capsule (`top: 46px`, `#h-lvl` `#ffe694`, high-contrast `#h-xp` `#140d18` track with `#6b4b63` outline, `#h-coins`, opens Profile on tap); top-left `#h-wl` (4× `25×25px` stats); top-right `#h-wr` (3× `34×34px` buttons); bottom-corner `#h-phone` and `#h-shop` (`38×38px`, `bottom: 38px`); centered Kitchen `#bar` (`52px` horizontal clearance).
+  - Compacted `safeTop()` (`26` logical px) and `topY()` (`34` logical px on iPhone 17), placing ceilings, Zal chandelier, Hall plafon, and Bath fresco directly under `#h-di` without covering center artwork; extended seamless ceiling rows (`-pad..0`) with `y0` support in `ROOMS.ambient()` / `ROOMS.night()`.
+  - Removed `image-rendering: crisp-edges`, `translateZ(0)`, and `will-change: transform` from `#cv` (`image-rendering: pixelated` only); preserved 2-row grid HUD (`#topcap` hidden, `#h-name` & `#h-kg` shown) on `.is-desktop`.
+- **Banana Catch bug fixes (`src/games.js`, `src/main.js`):**
+  - Rewrote `GAMES.render()` screen-shake compositing with offscreen `shkCv` (scene + `fx` + `drawFloorExt` unshifted) blitted at `(dx, dy)` with 1px edge/corner clamping — eliminating transparent floor/edge stripes during coconut head-hit shake (`st.shake > 0`).
+  - Added `{ passive: false }` `touchstart`, `touchmove`, `touchend`, `gesturestart`, `gesturechange`, and `touchforcechange` `preventDefault()` on canvas/stage touches in `main.js` while leaving interactive HUD/modal/pause controls untouched (`allowTouch`), blocking iOS long-press loupe and zoom.
+- **Dasha 2026 birthday completion (`src/data.js`):**
+  - Updated `DASHA` `grace` from `8` to `4` (Nov 21–24 inclusive), ending the 2026 birthday event cleanly starting `2026-11-25` (`DASHA.bday() === null`, `due() === null`, `decor() === false`, `isGreeting() === false`).
+- **Build & Test Updates (`build.py`, `src/ui.js`, `test/verify_*.js`):**
+  - Updated version label to `Версия 66 · Dynamic Island HUD, фикс багов в Бананах и завершение ДР`, SW query to `v=66`, cache prefix to `abibyan-v66-di-wings-%s`.
+  - Added `test/verify_r66.js` and updated Variant 3 / ended-bday assertions in `verify_r36.js`, `verify_r53_dropped_ceiling_and_hearts.js`, `verify_r58_comprehensive.js`, and `verify_r65_iphone17.js`.

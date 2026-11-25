@@ -114,12 +114,18 @@ const APP = (() => {
       if (homeIn()) { if (capId === e.pointerId || (capId === null && e.pointerType !== 'mouse')) HOME.move(p.x, p.y, e); else if (capId === null && ok(e) && inside(p)) HOME.hover(p.x, p.y); else if (capId === null) HOME.hover(-99, -99); }
       else if (scene === 'game' && (capId === e.pointerId || (capId === null && e.pointerType === 'mouse'))) { const q = clampP(p); MINI.move(q.x, q.y); }
     }, { passive: false });
-    stage.addEventListener('touchmove', (e) => {
-      if (scene === 'game' && e.cancelable) {
-        if (e.target && (e.target.id === 'g-pause' || (e.target.closest && (e.target.closest('#g-pause') || e.target.closest('#modal, #modalw, .mbox'))))) return;
-        e.preventDefault();
-      }
-    }, { passive: false });
+    const allowTouch = (t) => !t || (t.closest && t.closest('#g-pause, button, .btn, .pad, a, input, textarea, #modalw, #modal, .mbox, #sheet, #hud button, #hud .pill, #hud .stat, #hud .lvl, #hud .xp, #hud .name, #h-di, #bar button, #bar .slot, .want'));
+    const preventCanvasTouch = (e) => {
+      if (!e.cancelable || UI.hasModal()) return;
+      if (allowTouch(e.target)) return;
+      if (scene === 'game' || e.target === cv || e.target === stage) e.preventDefault();
+    };
+    stage.addEventListener('touchstart', preventCanvasTouch, { passive: false });
+    stage.addEventListener('touchmove', preventCanvasTouch, { passive: false });
+    stage.addEventListener('touchend', preventCanvasTouch, { passive: false });
+    for (const ev of ['gesturestart', 'gesturechange', 'touchforcechange']) {
+      stage.addEventListener(ev, preventCanvasTouch, { passive: false });
+    }
     const end = (e) => { AUDIO.init(); if (capId !== e.pointerId) return; capId = null; if (e.cancelable) e.preventDefault(); const p = toLogical(e.clientX, e.clientY); if (homeIn()) HOME.up(p.x, p.y, e); else if (scene === 'game') { const q = clampP(p); MINI.up(q.x, q.y); } };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
     window.addEventListener('blur', () => { if (capId !== null) { capId = null; if (homeIn()) HOME.up(0, 0, { type: 'pointercancel' }); else if (scene === 'game') MINI.up(90, 160); } });
